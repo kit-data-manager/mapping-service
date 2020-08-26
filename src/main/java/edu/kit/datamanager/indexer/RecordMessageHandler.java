@@ -17,34 +17,52 @@ package edu.kit.datamanager.indexer;
 
 import edu.kit.datamanager.entities.messaging.BasicMessage;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler;
-import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
+//import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
 import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
+import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.apache.logging.log4j.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Andreas Pfeil
  */
+@Component
 public class RecordMessageHandler implements IMessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(RecordMessageHandler.class);
 
-    @Override
-    public RESULT handle(BasicMessage message){
-        LOG.debug("Successfully received message {}.", message);
-        if(MessageHandlerUtils.isAddressed(getHandlerIdentifier(), message)){
-            LOG.debug("This message is for me!"); 
-            return RESULT.SUCCEEDED;
-        } else{
-            LOG.debug("I'll ignore this message.");
-            return RESULT.REJECTED;
-        }
+    @Autowired
+    private IConsumerEngine consumer;
+
+    RecordMessageHandler() {
+        System.out.println("CONSTRUCT RECORDMESSAGEHANDLER");
     }
 
     @Override
-    public boolean configure(){
-        //no configuration necessary
+    public RESULT handle(BasicMessage message) {
+        LOG.debug("Successfully received message {}.", message);
+        System.out.println("Successfully received message");
+        // guards which decide to reject early
+        if (message.getEntityName() != "pidrecord") {
+            return RESULT.REJECTED;
+        }
+        if (!MessageHandlerUtils.isAddressed(this.getHandlerIdentifier(), message)) {
+            return RESULT.REJECTED;
+        }
+        LOG.debug("This message is for me!");
+
+        // 1. process using gemma-plugin
+        // 2. hand over data to elasticsearch (a consumer impl)
+        return RESULT.SUCCEEDED;
+    }
+
+    @Override
+    public boolean configure() {
+        // no configuration necessary
         return true;
     }
 }
