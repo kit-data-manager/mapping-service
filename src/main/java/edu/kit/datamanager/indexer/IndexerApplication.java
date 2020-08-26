@@ -9,14 +9,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
 
 import edu.kit.datamanager.indexer.consumer.DummyConsumer;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 import edu.kit.datamanager.messaging.client.configuration.RabbitMQConsumerConfiguration;
+import edu.kit.datamanager.messaging.client.Application;
 
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan({"edu.kit.datamanager", "edu.kit.datamanager.messaging.client"})
+@ComponentScan(basePackages = {"edu.kit.datamanager.indexer", "edu.kit.datamanager.messaging.client"},
+	excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = Application.class)
+)
 public class IndexerApplication {
 
 	@Bean
