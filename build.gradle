@@ -16,6 +16,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 }
 
 dependencies {
@@ -29,7 +30,8 @@ dependencies {
 	}
 
 	implementation("edu.kit.datamanager:generic-message-consumer:0.1")
-	implementation("edu.kit.datamanager:service-base:0.2")
+	implementation("edu.kit.datamanager:service-base:0.1")
+	implementation("edu.kit.datamanager:kitdm-python-connector:0.1")
 }
 
 test {
