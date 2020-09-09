@@ -17,13 +17,11 @@ package edu.kit.datamanager.indexer;
 
 import edu.kit.datamanager.entities.messaging.BasicMessage;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler;
-//import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
 import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.apache.logging.log4j.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,25 +36,28 @@ public class RecordMessageHandler implements IMessageHandler {
     @Autowired
     private IConsumerEngine consumer;
 
-    RecordMessageHandler() {
-        System.out.println("CONSTRUCT RECORDMESSAGEHANDLER");
-    }
-
     @Override
     public RESULT handle(BasicMessage message) {
-        LOG.debug("Successfully received message {}.", message);
-        System.out.println("Successfully received message");
+        LOG.debug("Successfully received message with routing key {}.", message.getRoutingKey());
         // guards which decide to reject early
-        if (message.getEntityName() != "pidrecord") {
-            return RESULT.REJECTED;
-        }
+        // TODO fix message receiving, ideally without casting.
+        //if (message.getEntityName() != "pidrecord") {
+        //    LOG.debug("Reject message: Entity name was {}", message.getEntityName());
+        //    return RESULT.REJECTED;
+        //}
         if (!MessageHandlerUtils.isAddressed(this.getHandlerIdentifier(), message)) {
+            LOG.debug("Reject message: Not addressed correctly");
             return RESULT.REJECTED;
         }
         LOG.debug("This message is for me!");
 
         // 1. process using gemma-plugin
+        String record_url = message.getMetadata().get("resolvingUrl");
+        // resolve, convert using gemma
+
         // 2. hand over data to elasticsearch (a consumer impl)
+        // Note that gemma can do this, maybe just make a java API for gemma that allows this?
+        //  -> In this case, consumers may not be necessary anymore.
         return RESULT.SUCCEEDED;
     }
 
