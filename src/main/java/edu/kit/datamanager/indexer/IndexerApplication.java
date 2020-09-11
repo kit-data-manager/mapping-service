@@ -19,7 +19,8 @@ import edu.kit.datamanager.messaging.client.Application;
 
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan(basePackages = {"edu.kit.datamanager.indexer", "edu.kit.datamanager.messaging.client"},
+@ComponentScan(
+	basePackages = {"edu.kit.datamanager.indexer", "edu.kit.datamanager.messaging.client", "edu.kit.datamanager.python.gemma"},
 	excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = Application.class)
 )
 public class IndexerApplication {
