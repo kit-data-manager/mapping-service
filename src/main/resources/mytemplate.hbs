@@ -1,0 +1,10 @@
+{
+  "pid": "{{pid}}",
+  {{#each entries}}
+  "{{@key}}": [
+    {{#each this}}
+    {{{maybeStringify value}}}{{#unless @last}},{{/unless}}
+    {{/each}}
+  ]{{#unless @last}},{{/unless}}
+  {{/each}}
+}
