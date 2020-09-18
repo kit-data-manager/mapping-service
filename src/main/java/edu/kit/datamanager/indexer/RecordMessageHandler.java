@@ -19,8 +19,6 @@ import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.entities.messaging.BasicMessage;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler;
 import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
-import edu.kit.datamanager.util.FilenameUtils;
-import javassist.expr.Instanceof;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +27,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -40,8 +40,6 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
-import com.github.jknack.handlebars.helper.StringHelpers;
-import com.github.jknack.handlebars.internal.lang3.CharSequenceUtils;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -64,14 +62,17 @@ public class RecordMessageHandler implements IMessageHandler {
         this.hb = new Handlebars();
         this.hb.registerHelper("maybeStringify", new Helper<Object>() {
             /**
-             * This helper will add quotation marks to strings that can not be converted to numbers.
-             * Not that this is a workaround. A json string may contain a string that contains a number.
-             * TODO Ideally, if the json has quotation marks before that, we want to preserve them.
+             * This helper will add quotation marks to strings that can not be converted to
+             * numbers. Not that this is a workaround. A json string may contain a string
+             * that contains a number. TODO Ideally, if the json has quotation marks before
+             * that, we want to preserve them.
              */
             public CharSequence apply(Object o, Options options) {
-                if (! (o instanceof String)) {
+                // TODO think about String o instead of Object o, as until now, it was always a string.
+                if (!(o instanceof String)) {
                     System.out.println("It is not a string!");
                 }
+                System.out.println(String.format("Options is: ", options));
                 String thing = (String) o;
                 boolean isInteger = false;
                 boolean isFloat = false;
@@ -120,22 +121,13 @@ public class RecordMessageHandler implements IMessageHandler {
             return RESULT.FAILED;
         }
         LOG.debug("Received JSON record: {}", record_json.get());
-        // Optional<String> filename =
-        // this.pidToFilename(message.getMetadata().get("pid"));
-        // Optional<String> filename = this.pidToFilename("/tmp/hallo/test");
-        // if (filename.isEmpty()) {
-        // LOG.debug("Could not extract filename to store json. Abort.");
-        // return RESULT.FAILED;
-        // }
-        // Optional<Path> filepath = this.storeAsTempFile(record_json.get(),
-        // filename.get());
 
         // 2. Verify record (do not trust anyone)
         // - verify schema
         // - verify that pid resolves to url that was given?
 
         // 3. Map record to elasticsearch json file
-        String elastic_json = "";
+        String elastic_string = "";
         try {
             Template template = hb.compile("mytemplate");
             JSONObject jsonData = new JSONObject(record_json.get());
@@ -143,16 +135,25 @@ public class RecordMessageHandler implements IMessageHandler {
                 .newBuilder(template)
                 .combine(jsonData.toMap())
                 .build();
-            elastic_json = template.apply(c);
+            elastic_string = template.apply(c);
+            // TODO maybe check the types in here, afterwards, instead of helper function? Or use and extend gemma?
         } catch (Exception e) {
             LOG.debug("Could not build and apply template. {}", e);
             return RESULT.FAILED;  // TODO when to use FAILED and when REJECTED?
         }
-        LOG.debug("Result for elasticsearch is: {}", elastic_json);
-        // TODO maybe check the types in here, afterwards, instead of helper function?
-        // TODO store on disk
+        LOG.debug("Result for elasticsearch is: {}", elastic_string);
+        // 4. Store elastic version to disk
+        // TODO this.pidToFilename(message.getMetadata().get("pid"));
+        Optional<String> filename = this.pidToFilename("/tmp/hallo/test");
+        if (filename.isEmpty()) {
+            LOG.debug("Could not extract filename to store json. Abort.");
+            return RESULT.FAILED;
+        }
+        this.storeAsElasticFile(record_json.get(), filename.get());
 
         // 4. Send to elasticsearch (consumer impl?)
+        Optional<String> response = this.uploadToElastic(elastic_string);
+        LOG.debug("Elastic says: {}", response);
 
         return RESULT.SUCCEEDED;
     }
@@ -164,9 +165,12 @@ public class RecordMessageHandler implements IMessageHandler {
     }
 
     /**
-     * Transforms a given PID to a filename where the record with this PID can be stored.
+     * Transforms a given PID to a filename where the record with this PID can be
+     * stored.
+     * 
      * @param pid the given PID.
-     * @return if the PID was not empty or null, it will return a filename. Empty otherwise.
+     * @return if the PID was not empty or null, it will return a filename. Empty
+     *         otherwise.
      */
     private Optional<String> pidToFilename(String pid) {
         if (pid == null || pid.isEmpty()) {
@@ -181,7 +185,7 @@ public class RecordMessageHandler implements IMessageHandler {
         pid = pid.replace('%', '_');
         pid = pid.replace('!', '_');
         pid = pid.replace('$', '_');
-        String filename = String.format("{}{}.json", "record", pid);
+        String filename = String.format("%s%s.json", "record", pid);
         return Optional.of(filename);
     }
 
@@ -199,12 +203,31 @@ public class RecordMessageHandler implements IMessageHandler {
         } catch (Exception e) {
             return Optional.empty();
         }
-        String theResource = SimpleServiceClient
-            .create(url.toString())
-            .accept(MediaType.APPLICATION_JSON)
-            // TODO I think this function actually might throw an exception. Handle?
-            .getResource(String.class);
+        String theResource = SimpleServiceClient.create(url.toString()).accept(MediaType.APPLICATION_JSON)
+                // TODO I think this function actually might throw an exception. Handle?
+                .getResource(String.class);
         return Optional.of(theResource);
+    }
+
+    private Optional<String> uploadToElastic(String json) {
+        // TODO these variables should be in applications.properties
+        String elasticIndex = "/record";
+        String mappingType = "/_doc?pretty"; // depricated anyway, no need for configuration
+        try {
+            // TODO https does not work, currently. Anyway, this should be solved by making the url configurable.
+            URL elasticURL = new URL("http://localhost:9200" + elasticIndex + mappingType);
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(elasticURL.toURI())
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return Optional.of(response.body());
+        } catch (Exception e) {
+            LOG.error("Could not send to url", e);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -223,10 +246,28 @@ public class RecordMessageHandler implements IMessageHandler {
 
         File directory = Paths.get(System.getProperty("java.io.tmpdir")).toFile();
         File target = new File(directory, filename);
-        Path target_path = Paths.get(target.getAbsolutePath());
+        
+        return this.storeAsFile(content, target);
+    }
+
+    private Optional<Path> storeAsElasticFile(String content, String filename) {
+        String elastic_dir = System.getProperty("user.dir") + "/elastic_json";  // TODO put into indexer properties
+
+        if (content == null || filename == null) {
+            LOG.error("Did not receive any resource in the response body. Unable to continue.");
+            return Optional.empty();
+        }
+
+        File directory = Paths.get(elastic_dir).toFile();
+        File target = new File(directory, filename);
+        return this.storeAsFile(content, target);
+    }
+    
+    private Optional<Path> storeAsFile(String content, File file) {
+        Path target_path = Paths.get(file.getAbsolutePath());
         try {
-            LOG.trace("Writing data resource to temporary file {}.", target_path);
-            FileOutputStream out = new FileOutputStream(target);
+            LOG.trace("Writing data resource to file {}.", target_path);
+            FileOutputStream out = new FileOutputStream(file);
             out.write(content.getBytes());
             out.close();
         } catch (Exception e) {
