@@ -110,16 +110,17 @@ public class RecordMessageHandler implements IMessageHandler {
         }
         LOG.debug("Result for elasticsearch is: {}", elastic_string);
         // 4. Store elastic version to disk
-        // TODO this.pidToFilename(message.getMetadata().get("pid"));
-        Optional<String> filename = this.pidToFilename("/tmp/hallo/test");
+        String pid = message.getMetadata().get("pid");
+        Optional<String> filename = this.pidToFilename(pid);
         if (filename.isEmpty()) {
             LOG.debug("Could not extract filename to store json. Abort.");
             return RESULT.FAILED;
         }
+        LOG.trace("Will store content of PID {} into {}", pid, filename.get());
         this.storeAsElasticFile(record_json.get(), filename.get());
 
         // 4. Send to elasticsearch (consumer impl?)
-        Optional<String> response = this.uploadToElastic(elastic_string);
+        Optional<String> response = this.uploadToElastic(elastic_string, this.pidToSimpleString(pid));
         LOG.debug("Elastic says: {}", response);
 
         return RESULT.SUCCEEDED;
@@ -185,6 +186,12 @@ public class RecordMessageHandler implements IMessageHandler {
         if (pid == null || pid.isEmpty()) {
             return Optional.empty();
         }
+        pid = this.pidToSimpleString(pid);
+        String filename = String.format("%s%s.json", "record", pid);
+        return Optional.of(filename);
+    }
+
+    private String pidToSimpleString(String pid) {
         pid = pid.replace('/', '_');
         pid = pid.replace('\\', '_');
         pid = pid.replace('|', '_');
@@ -194,8 +201,7 @@ public class RecordMessageHandler implements IMessageHandler {
         pid = pid.replace('%', '_');
         pid = pid.replace('!', '_');
         pid = pid.replace('$', '_');
-        String filename = String.format("%s%s.json", "record", pid);
-        return Optional.of(filename);
+        return pid;
     }
 
     /**
@@ -220,12 +226,12 @@ public class RecordMessageHandler implements IMessageHandler {
         return Optional.of(theResource);
     }
 
-    private Optional<String> uploadToElastic(String json) {
+    private Optional<String> uploadToElastic(String json, String document_id) {
         String elasticIndex = properties.getElasticIndex();
-        String mappingType = "/_doc?pretty"; // depricated anyway, no need for configuration
+        String typeAndId = String.format("/_doc/%s?pretty", document_id);
         try {
             // TODO https does not work, currently. Anyway, this should be solved by making the url configurable.
-            URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + mappingType);
+            URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + typeAndId);
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(elasticURL.toURI())
                 .header("Content-Type", "application/json")
