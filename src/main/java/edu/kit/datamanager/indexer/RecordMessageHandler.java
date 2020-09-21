@@ -19,6 +19,7 @@ import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.entities.messaging.BasicMessage;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler;
 import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
+import edu.kit.datamanager.indexer.configuration.IndexerProperties;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,47 +57,13 @@ public class RecordMessageHandler implements IMessageHandler {
     private Handlebars hb;
 
     @Autowired
+    private IndexerProperties properties;
+
+    @Autowired
     private IConsumerEngine consumer;
 
     RecordMessageHandler() {
         this.hb = new Handlebars();
-        this.hb.registerHelper("maybeStringify", new Helper<Object>() {
-            /**
-             * This helper will add quotation marks to strings that can not be converted to
-             * numbers. Not that this is a workaround. A json string may contain a string
-             * that contains a number. TODO Ideally, if the json has quotation marks before
-             * that, we want to preserve them.
-             */
-            public CharSequence apply(Object o, Options options) {
-                // TODO think about String o instead of Object o, as until now, it was always a string.
-                if (!(o instanceof String)) {
-                    System.out.println("It is not a string!");
-                }
-                System.out.println(String.format("Options is: ", options));
-                String thing = (String) o;
-                boolean isInteger = false;
-                boolean isFloat = false;
-                try {
-                    Integer.parseInt(thing);
-                    isInteger = true;
-                } catch (Exception e) {
-                    isInteger = false;
-                }
-                try {
-                    Float.parseFloat(thing);
-                    isFloat = true;
-                } catch (Exception e) {
-                    isFloat = false;
-                }
-                boolean isNumber = isInteger || isFloat;
-                boolean isObject = thing.length() > 0 && thing.charAt(0) == '{';
-                boolean isString = !isNumber && !isObject;
-                if (isString) {
-                    thing = String.format("\"%s\"", thing);
-                }
-                return new Handlebars.SafeString(thing);
-            }
-        });
     }
 
     @Override
@@ -160,8 +127,50 @@ public class RecordMessageHandler implements IMessageHandler {
 
     @Override
     public boolean configure() {
-        // no configuration necessary
-        return true;
+        boolean everythingWorks = true;
+        File elasticDir = new File(System.getProperty("user.dir") + properties.getElasticFilesStorage());
+        everythingWorks &= elasticDir.exists() && elasticDir.isDirectory();
+        
+        this.hb.registerHelper("maybeStringify", new Helper<Object>() {
+            /**
+             * This helper will add quotation marks to strings that can not be converted to
+             * numbers. Not that this is a workaround. A json string may contain a string
+             * that contains a number. TODO Ideally, if the json has quotation marks before
+             * that, we want to preserve them.
+             */
+            public CharSequence apply(Object o, Options options) {
+                // TODO think about String o instead of Object o, as until now, it was always a string.
+                if (!(o instanceof String)) {
+                    System.out.println("It is not a string!");
+                }
+                String thing = (String) o;
+                boolean isInteger = false;
+                boolean isFloat = false;
+                try {
+                    Integer.parseInt(thing);
+                    isInteger = true;
+                } catch (Exception e) {
+                    isInteger = false;
+                }
+                try {
+                    Float.parseFloat(thing);
+                    isFloat = true;
+                } catch (Exception e) {
+                    isFloat = false;
+                }
+                boolean isNumber = isInteger || isFloat;
+                boolean isObject = thing.length() > 0 && thing.charAt(0) == '{';
+                boolean isString = !isNumber && !isObject;
+                if (isString) {
+                    thing = String.format("\"%s\"", thing);
+                }
+                return new Handlebars.SafeString(thing);
+            }
+        });
+        if (!everythingWorks) {
+            LOG.error("Could not set up RecordMessageHandler");
+        }
+        return everythingWorks;
     }
 
     /**
@@ -203,19 +212,20 @@ public class RecordMessageHandler implements IMessageHandler {
         } catch (Exception e) {
             return Optional.empty();
         }
-        String theResource = SimpleServiceClient.create(url.toString()).accept(MediaType.APPLICATION_JSON)
-                // TODO I think this function actually might throw an exception. Handle?
-                .getResource(String.class);
+        String theResource = SimpleServiceClient
+            .create(url.toString())
+            .accept(MediaType.APPLICATION_JSON)
+            // TODO I think this function actually might throw an exception. Handle?
+            .getResource(String.class);
         return Optional.of(theResource);
     }
 
     private Optional<String> uploadToElastic(String json) {
-        // TODO these variables should be in applications.properties
-        String elasticIndex = "/record";
+        String elasticIndex = properties.getElasticIndex();
         String mappingType = "/_doc?pretty"; // depricated anyway, no need for configuration
         try {
             // TODO https does not work, currently. Anyway, this should be solved by making the url configurable.
-            URL elasticURL = new URL("http://localhost:9200" + elasticIndex + mappingType);
+            URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + mappingType);
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(elasticURL.toURI())
                 .header("Content-Type", "application/json")
@@ -251,7 +261,7 @@ public class RecordMessageHandler implements IMessageHandler {
     }
 
     private Optional<Path> storeAsElasticFile(String content, String filename) {
-        String elastic_dir = System.getProperty("user.dir") + "/elastic_json";  // TODO put into indexer properties
+        String elastic_dir = System.getProperty("user.dir") + properties.getElasticFilesStorage();
 
         if (content == null || filename == null) {
             LOG.error("Did not receive any resource in the response body. Unable to continue.");
