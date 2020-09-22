@@ -14,7 +14,6 @@ import org.springframework.context.annotation.FilterType;
 
 import edu.kit.datamanager.indexer.consumer.DummyConsumer;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
-import edu.kit.datamanager.messaging.client.configuration.RabbitMQConsumerConfiguration;
 import edu.kit.datamanager.messaging.client.Application;
 
 @SpringBootApplication

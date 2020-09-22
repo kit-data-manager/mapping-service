@@ -89,7 +89,7 @@ public class RecordMessageHandler implements IMessageHandler {
         }
         LOG.debug("Received JSON record: {}", record_json.get());
 
-        // 2. Verify record (do not trust anyone)
+        // 2. TODO Verify record (do not trust anyone)
         // - verify schema
         // - verify that pid resolves to url that was given?
 
@@ -110,7 +110,7 @@ public class RecordMessageHandler implements IMessageHandler {
         }
         LOG.debug("Result for elasticsearch is: {}", elastic_string);
         // 4. Store elastic version to disk
-        String pid = message.getMetadata().get("pid");
+        String pid = message.getEntityId();
         Optional<String> filename = this.pidToFilename(pid);
         if (filename.isEmpty()) {
             LOG.debug("Could not extract filename to store json. Abort.");
