@@ -230,12 +230,11 @@ public class RecordMessageHandler implements IMessageHandler {
         String elasticIndex = properties.getElasticIndex();
         String typeAndId = String.format("/_doc/%s?pretty", document_id);
         try {
-            // TODO https does not work, currently. Anyway, this should be solved by making the url configurable.
             URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + typeAndId);
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(elasticURL.toURI())
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .PUT(HttpRequest.BodyPublishers.ofString(json))
                 .build();
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
