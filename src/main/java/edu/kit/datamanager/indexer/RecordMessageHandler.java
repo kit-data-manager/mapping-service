@@ -130,6 +130,9 @@ public class RecordMessageHandler implements IMessageHandler {
     public boolean configure() {
         boolean everythingWorks = true;
         File elasticDir = new File(System.getProperty("user.dir") + properties.getElasticFilesStorage());
+        if (!elasticDir.exists()) {
+            elasticDir.mkdirs();
+        }
         everythingWorks &= elasticDir.exists() && elasticDir.isDirectory();
         
         this.hb.registerHelper("maybeStringify", new Helper<Object>() {
