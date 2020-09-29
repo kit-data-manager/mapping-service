@@ -22,6 +22,8 @@ import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
 import edu.kit.datamanager.indexer.configuration.IndexerProperties;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 import com.github.jknack.handlebars.Context;
@@ -58,6 +61,12 @@ public class RecordMessageHandler implements IMessageHandler {
 
     @Autowired
     private IndexerProperties properties;
+
+    @Autowired
+    private AmqpAdmin amqpAdmin;
+
+    @Autowired
+    private List<Binding> bindings;
 
     @Autowired
     private IConsumerEngine consumer;
@@ -134,6 +143,9 @@ public class RecordMessageHandler implements IMessageHandler {
             elasticDir.mkdirs();
         }
         everythingWorks &= elasticDir.exists() && elasticDir.isDirectory();
+        for (Binding b : bindings) {
+          amqpAdmin.declareBinding(b);
+        }
         
         this.hb.registerHelper("maybeStringify", new Helper<Object>() {
             /**
