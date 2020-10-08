@@ -63,12 +63,6 @@ public class RecordMessageHandler implements IMessageHandler {
     private IndexerProperties properties;
 
     @Autowired
-    private AmqpAdmin amqpAdmin;
-
-    @Autowired
-    private List<Binding> bindings;
-
-    @Autowired
     private IConsumerEngine consumer;
 
     RecordMessageHandler() {
@@ -143,9 +137,6 @@ public class RecordMessageHandler implements IMessageHandler {
             elasticDir.mkdirs();
         }
         everythingWorks &= elasticDir.exists() && elasticDir.isDirectory();
-        for (Binding b : bindings) {
-          amqpAdmin.declareBinding(b);
-        }
         
         this.hb.registerHelper("maybeStringify", new Helper<Object>() {
             /**
