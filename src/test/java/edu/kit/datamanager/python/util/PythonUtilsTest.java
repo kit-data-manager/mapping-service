@@ -5,34 +5,50 @@
  */
 package edu.kit.datamanager.python.util;
 
-import org.junit.Assert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  *
- * @author Torridity
+ * @author hartmann-v
  */
 public class PythonUtilsTest {
 
-    //@Test
-    //public void testTrue() {
-    //    FirstClass instance = new FirstClass();
-    //    Assert.assertTrue(instance.testMe(true));
-    //}
+  public PythonUtilsTest() {
+  }
+   
+  @BeforeClass
+  public static void setUpClass() {
+  }
+  
+  @AfterClass
+  public static void tearDownClass() {
+  }
+  
+  @Before
+  public void setUp() {
+  }
+  
+  @After
+  public void tearDown() {
+  }
 
-    //@Test
-    //public void testFalse() {
-    //    FirstClass instance = new FirstClass();
-    //    Assert.assertFalse(instance.testMe(false));
-    //}
+  /**
+   * Test of run method, of class PythonUtils.
+   */
+  @Test
+  public void testRun_3args_withWrongPython() {
+    System.out.println("testRun_3args_withWrongPython");
+    String pythonLocation = "/usr/bin/invalidpython";
+    String scriptLocation = "";
+    String[] arguments = null;
+    int expResult = PythonUtils.PYTHON_NOT_FOUND_ERROR;
+    int result = PythonUtils.run(pythonLocation, scriptLocation, arguments);
+    assertEquals(Integer.valueOf(expResult), Integer.valueOf(result));
+  }
 
-    // TODO inspiration for writing tests:
-    //  public static void main(String[] args){
-    //
-    //    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    //
-    //    System.out.println(PythonUtils.run("/Users/jejkal/anaconda/bin/python", "/Users/jejkal/NetBeansProjects/KITDM-2.0/gemma/retrieve_response.py", System.out, System.err, "./testmd"));
-    //
-    //    //System.out.println("PRINTE " + output.toString());
-    //  }
 }
