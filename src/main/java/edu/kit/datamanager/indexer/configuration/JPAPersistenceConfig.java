@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Karlsruhe Institute of Technology.
+ * Copyright 2018 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.python.gemma;
+package edu.kit.datamanager.indexer.configuration;
 
-import edu.kit.datamanager.configuration.GenericPluginProperties;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- *
- * @author jejkal
  */
-@ConfigurationProperties(prefix = "metastore.indexer.gemma")
 @Configuration
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class GemmaConfiguration {
- private String pythonLocation;
-
-  private String gemmaLocation;
+@EnableTransactionManagement
+@EnableJpaRepositories(basePackages = "edu.kit.datamanager.indexer")
+@EntityScan(basePackages = {"edu.kit.datamanager.indexer.domain"})
+public class JPAPersistenceConfig{
 
 }

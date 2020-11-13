@@ -49,6 +49,8 @@ public class PythonUtils{
    */
  public static final int TIME_OUT_DEFAULT = 30;
 
+  /** Logger for this class.
+   */
   private final static Logger LOGGER = LoggerFactory.getLogger(PythonUtils.class);
 
   /**
