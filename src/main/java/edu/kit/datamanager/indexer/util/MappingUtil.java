@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.python.util;
+package edu.kit.datamanager.indexer.util;
 
+import edu.kit.datamanager.python.util.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * Utilities class for python.
  * @author jejkal
  */
-public class PythonUtils {
+public class MappingUtil {
 
   /**
    * Return codes.
@@ -55,23 +56,27 @@ public class PythonUtils {
   /**
    * Logger for this class.
    */
-  private final static Logger LOGGER = LoggerFactory.getLogger(PythonUtils.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(MappingUtil.class);
+  
+  private MappingConfiguration configuration;
+  
+  public MappingUtil(MappingConfiguration conf) {
+    this.configuration = conf;
+  }
 
   /**
    * Run the script at 'scriptLocation' with 'arguments' using the Python
    * executable at 'pythonLocation'. All output will be redirected to stdout and
    * stderr.
    *
-   * @param pythonLocation The absolute path to a local python executable.
-   * @param scriptLocation The absolute path to the python script which should
-   * be executed.
-   * @param arguments Veriable number of arguments, which can also be omitted.
+   * @param content Content of the mapping file.
+   * @param id ID of the mapping
    *
-   * @return The exit status of the python process or one of the internal codes
-   * PYTHON_NOT_FOUND, TIMEOUT_ERROR or EXECUTION_ERROR.
+   * @return Success or not.
    */
-  public static int run(String pythonLocation, String scriptLocation, String... arguments) {
-    return run(pythonLocation, scriptLocation, TIME_OUT_DEFAULT, arguments);
+  public boolean saveMapping(String content, String id) {
+    
+    return true;
   }
 
   /**
