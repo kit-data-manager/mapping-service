@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Karlsruhe Institute of Technology.
+ * Copyright 2018 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.python.gemma;
-
-import lombok.Getter;
-import lombok.Setter;
+package edu.kit.datamanager.indexer.service;
 
 /**
- * Configuration for GemmaUtil
+ * Service for managing mappings.
  */
-@Setter
-@Getter
-public class GemmaConfiguration {
- /**
-  * Absolute path to python executable.
-  */
-  private String pythonLocation;
-  /**
-   * Absolute path to gemma script.
-   */
-  private String gemmaLocation;
-
+public class IMappingService {
+  
+  
 }

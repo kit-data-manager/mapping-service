@@ -66,8 +66,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- *
- * @author jejkal
+ * Controller for managing mapping files.
  */
 @Controller
 @RequestMapping(value = "/api/v1/metadata")

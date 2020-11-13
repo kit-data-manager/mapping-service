@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.python.gemma;
+package edu.kit.datamanager.indexer.util;
 
+import edu.kit.datamanager.python.gemma.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,14 +24,10 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class GemmaConfiguration {
+public class MappingConfiguration {
  /**
-  * Absolute path to python executable.
+  * Absolute path to mapping files.
   */
-  private String pythonLocation;
-  /**
-   * Absolute path to gemma script.
-   */
-  private String gemmaLocation;
+  private String mappingLocation;
 
 }
