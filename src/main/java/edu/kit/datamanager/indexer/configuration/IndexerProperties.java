@@ -1,7 +1,7 @@
 package edu.kit.datamanager.indexer.configuration;
 
-import java.util.List;
 
+import java.net.URL;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -19,15 +19,14 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class IndexerProperties {
     /**
-     * A list of filenames, stored in the classpath (i.e. java/main/resources)
-     * which will be used to map the records into elastic-compatible json.
+     * Folder where the mappings are stored locally.
      * 
      * Example: indexer.recordMapping.mappingFiles: mytemplate,yourtemplate
      * (Assuming your files are in the classpaths root and named mytemplate.hbs
      * and yourtemplate.hbs)
      */
-    @Value("#{'${indexer.recordMapping.mappingFiles}'.split(',')}")
-    List<String> schemaMappings;
+    @Value("${indexer.mappingFolder}}")
+    URL mappingFolder;
 
     /**
      * The base URL of the elasticsearch service, including port.

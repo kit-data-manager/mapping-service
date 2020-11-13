@@ -26,10 +26,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +67,16 @@ public class GemmaBinding {
    * @return the content of the file (the body of the response) as a string. null if a problem occurred.
    */
   public Optional<String> downloadResource(URI resourceURL) {
-    String theResource = SimpleServiceClient
+    String content = null;
+    try {
+    content = SimpleServiceClient
     .create(resourceURL.toString())
     .accept(MediaType.TEXT_PLAIN)
-    // TODO I think this function actually might throw an exception. Handle?
     .getResource(String.class);
-    return Optional.of(theResource);
+    } catch (Throwable tw) {
+      LOGGER.error("Error reading URI '" + resourceURL.toString() + "'", tw);
+    }
+    return Optional.ofNullable(content);
   }
 
   /**
@@ -97,12 +105,9 @@ public class GemmaBinding {
     return Optional.ofNullable(target_path);
   }
 
-  public void mapSingleFile(Path filepath, Path schema) {
+  public Path mapSingleFile(Path filepath, Path schema) {
     // TODO
-  }
-
-  public void ingestToElasticsearch() {
-    
+    return Path.of("tmp");
   }
 
     /**
@@ -121,37 +126,27 @@ public class GemmaBinding {
    * @return The final result, which can be returned as final handler result.
    */
   private boolean applyAndUploadMapping(URI contentUri, String contentType, String entityId, String filename) {
-    LOGGER.trace("Calling processAndUploadMapping({}, {}, {}).", contentType, contentUri, entityId);
-    Path mappingFile = getMappingFile(contentType);
-    LOGGER.trace("Obtained mapping file {}. Obtaining output filename.", mappingFile);
-    Path contentPath = Paths.get(contentUri);
-    if(filename.contains(".")){
-      LOGGER.trace("Replacing file extension of filename {}.", filename);
-      filename = filename.substring(0, filename.lastIndexOf(".")) + ".elastic.json";
-    } else{
-      LOGGER.trace("Appending file extension to filename {}.", filename);
-      filename += ".elastic.json";
-    }
+//    LOGGER.trace("Calling processAndUploadMapping({}, {}, {}).", contentType, contentUri, entityId);
+//    Path mappingFile = getMappingFile(contentType);
+//    LOGGER.trace("Obtained mapping file {}. Obtaining output filename.", mappingFile);
+//    Path contentPath = Paths.get(contentUri);
+//    if(filename.contains(".")){
+//      LOGGER.trace("Replacing file extension of filename {}.", filename);
+//      filename = filename.substring(0, filename.lastIndexOf(".")) + ".elastic.json";
+//    } else{
+//      LOGGER.trace("Appending file extension to filename {}.", filename);
+//      filename += ".elastic.json";
+//    }
+//
+//    LOGGER.trace("Obtained output filename '{}'. Creating Python mapping process.", filename);
+//    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//    int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation(), gemmaConfiguration.getGemmaLocation(), bout, bout, mappingFile.toAbsolutePath().toString(), contentPath.toAbsolutePath().toString(), System.getProperty("java.io.tmpdir") + "/" + filename);
+//    LOGGER.trace(bout.toString());
+//    LOGGER.trace("Python mapping process returned with status {}. Uploading content to repository.", returnCode);
+//
+//    Path localFile = Paths.get(System.getProperty("java.io.tmpdir"), filename);
 
-    LOGGER.trace("Obtained output filename '{}'. Creating Python mapping process.", filename);
-    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-    int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation(), gemmaConfiguration.getGemmaLocation(), bout, bout, mappingFile.toAbsolutePath().toString(), contentPath.toAbsolutePath().toString(), System.getProperty("java.io.tmpdir") + "/" + filename);
-    LOGGER.trace(bout.toString());
-    LOGGER.trace("Python mapping process returned with status {}. Uploading content to repository.", returnCode);
-
-    Path localFile = Paths.get(System.getProperty("java.io.tmpdir"), filename);
-
-    if(returnCode == 0){
-      try{
-        String elasticFilename = localFile.getName(localFile.getNameCount() - 1).toString();
-        if(uploadContent(entityId, "generated/" + elasticFilename, localFile.toUri())){
-          return true;
-        }
-      } catch(IOException ex){
-        LOGGER.error("Failed to upload generated content.", ex);
-      }
-    }
-
+ 
     return false;
   }
 
@@ -163,21 +158,7 @@ public class GemmaBinding {
    * @return TRUE if a mapping exists, FALSE otherwise.
    */
   private boolean hasMapping(String contentType){
-    return gemmaConfiguration.getSchemaMappings().containsKey(contentType);
-  }
-
-  /**
-   * Obtain the mapping file path for the provided content type. The path is
-   * taken from the gemma configuration by concatenating the mappingsLocation
-   * and the schemaMapping value for the provided contentType.
-   *
-   * @param contentType The content type to obtain the mapping file location
-   * for.
-   *
-   * @return The mapping file location.
-   */
-  private Path getMappingFile(String contentType){
-    return Paths.get(gemmaConfiguration.getMappingsLocation(), gemmaConfiguration.getSchemaMappings().get(contentType));
+    return true;
   }
 
   /**
@@ -193,13 +174,13 @@ public class GemmaBinding {
    *
    * @throw IOException If the preparation of the upload failed.
    */
-  private boolean uploadContent(String resourceId, String filename, URI localFileUri) throws IOException{
-    LOGGER.trace("Performing uploadContent({}, {}, {}, {}).", resourceId, filename, localFileUri);
-    ContentInformation info = new ContentInformation();
-    LOGGER.trace("Setting uploader to handler identifier {}.", this.identifier);
-    info.setUploader(this.identifier);
-
-    HttpStatus status = SimpleRepositoryClient.create(gemmaConfiguration.getRepositoryBaseUrl()).uploadData(resourceId, filename, new File(localFileUri), info, true);
-    return HttpStatus.CREATED.equals(status);
-  }
+//  private boolean uploadContent(String resourceId, String filename, URI localFileUri) throws IOException{
+//    LOGGER.trace("Performing uploadContent({}, {}, {}, {}).", resourceId, filename, localFileUri);
+//    ContentInformation info = new ContentInformation();
+//    LOGGER.trace("Setting uploader to handler identifier {}.", this.identifier);
+//    info.setUploader(this.identifier);
+//
+//    HttpStatus status = SimpleRepositoryClient.create(gemmaConfiguration.getRepositoryBaseUrl()).uploadData(resourceId, filename, new File(localFileUri), info, true);
+//    return HttpStatus.CREATED.equals(status);
+//  }
 }
