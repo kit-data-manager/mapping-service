@@ -39,10 +39,15 @@ import org.slf4j.LoggerFactory;
  * @author jejkal
  */
 public class PythonUtils{
-
+  /** Return codes. */
+  public static final int SUCCESS = 0;
   public static final int PYTHON_NOT_FOUND_ERROR = -2;
   public static final int TIMEOUT_ERROR = -3;
   public static final int EXECUTION_ERROR = -4;
+  /** 
+   * Time in seconds when the script should throw a timeout exception.
+   */
+ public static final int TIME_OUT_DEFAULT = 30;
 
   private final static Logger LOGGER = LoggerFactory.getLogger(PythonUtils.class);
 
@@ -60,7 +65,25 @@ public class PythonUtils{
    * PYTHON_NOT_FOUND, TIMEOUT_ERROR or EXECUTION_ERROR.
    */
   public static int run(String pythonLocation, String scriptLocation, String... arguments){
-    return run(pythonLocation, scriptLocation, System.out, System.err, arguments);
+    return run(pythonLocation, scriptLocation, TIME_OUT_DEFAULT, arguments);
+  }
+
+  /**
+   * Run the script at 'scriptLocation' with 'arguments' using the Python
+   * executable at 'pythonLocation'. All output will be redirected to stdout and
+   * stderr.
+   *
+   * @param pythonLocation The absolute path to a local python executable.
+   * @param scriptLocation The absolute path to the python script which should
+   * be executed.
+   * @param timeOutInSeconds Duration in seconds when a timeout should be thrown.
+   * @param arguments Veriable number of arguments, which can also be omitted.
+   *
+   * @return The exit status of the python process or one of the internal codes
+   * PYTHON_NOT_FOUND, TIMEOUT_ERROR or EXECUTION_ERROR.
+   */
+  public static int run(String pythonLocation, String scriptLocation, int timeOutInSeconds, String... arguments){
+    return run(pythonLocation, scriptLocation, System.out, System.err, timeOutInSeconds, arguments);
   }
 
   /**
@@ -80,11 +103,34 @@ public class PythonUtils{
    * PYTHON_NOT_FOUND, TIMEOUT_ERROR or EXECUTION_ERROR.
    */
   public static int run(String pythonLocation, String scriptLocation, OutputStream output, OutputStream error, String... arguments){
+    return run(pythonLocation, scriptLocation, output, error, TIME_OUT_DEFAULT, arguments);
+  }
+
+  /**
+   * Run the script at 'scriptLocation' with 'arguments' using the Python
+   * executable at 'pythonLocation'. The output as well as all errors can be
+   * redirected to the provided output stream.
+   *
+   * @param pythonLocation The absolute path to a local python executable.
+   * @param scriptLocation The absolute path to the python script which should
+   * be executed.
+   * @param output The stream receiving all process output.
+   * @param error The stream receiving all process error output (can be equal to
+   * 'output').
+   * @param timeOutInSeconds Duration in seconds when a timeout should be thrown.
+   * @param arguments Veriable number of arguments, which can also be omitted.
+   *
+   * @return The exit status of the python process or one of the internal codes
+   * PYTHON_NOT_FOUND, TIMEOUT_ERROR or EXECUTION_ERROR.
+   */
+  public static int run(String pythonLocation, String scriptLocation, OutputStream output, OutputStream error, int timeOutInSeconds, String... arguments){
     List<String> command = new ArrayList<>();
     command.add(pythonLocation);
     command.add(scriptLocation);
-
-    Collections.addAll(command, arguments);
+    
+    if (arguments != null) {
+      Collections.addAll(command, arguments);
+    }
 
     ExecutorService pool = Executors.newSingleThreadExecutor();
 
@@ -96,28 +142,29 @@ public class PythonUtils{
       Future<List<String>> errorFuture = pool.submit(new ProcessReadTask(p.getErrorStream()));
       Future<List<String>> inputFuture = pool.submit(new ProcessReadTask(p.getInputStream()));
 
-      List<String> stdErr = errorFuture.get(30, TimeUnit.SECONDS);
-      List<String> stdOut = inputFuture.get(30, TimeUnit.SECONDS);
+      List<String> stdErr = errorFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
+      List<String> stdOut = inputFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
 
       for(String line : stdOut){
+          LOGGER.trace("[OUT] {}", line);
         if(output != null){
           output.write((line + "\n").getBytes());
-        } else{
-          LOGGER.trace("[OUT] {}", line);
         }
       }
 
       for(String line : stdErr){
+          LOGGER.trace("[ERR] {}", line);
         if(error != null){
           error.write((line + "\n").getBytes());
-        } else{
-          LOGGER.trace("[ERR] {}", line);
         }
       }
 
       result = p.waitFor();
+      if (result != 0) {
+        throw new ExecutionException(new Throwable());
+      }
     } catch(IOException ioe){
-      if(ioe.getMessage().contains("No such file")){
+      if(ioe.getMessage().contains("error=2")){
         LOGGER.error("Failed to execute python.", ioe);
         result = PYTHON_NOT_FOUND_ERROR;
       } else{
@@ -125,7 +172,7 @@ public class PythonUtils{
         result = EXECUTION_ERROR;
       }
     } catch(TimeoutException te){
-      LOGGER.error("Python script did not return in expected timeframe of 30 seconds", te);
+      LOGGER.error("Python script did not return in expected timeframe of " + TIME_OUT_DEFAULT + " seconds", te);
       result = TIMEOUT_ERROR;
     } catch(InterruptedException | ExecutionException e){
       LOGGER.error("Failed to execute python script due to an unknown Exception.", e);
