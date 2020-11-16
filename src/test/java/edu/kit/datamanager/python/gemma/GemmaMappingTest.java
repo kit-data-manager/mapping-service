@@ -5,6 +5,7 @@
  */
 package edu.kit.datamanager.python.gemma;
 
+import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -30,7 +31,7 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class GemmaUtilTest {
+public class GemmaMappingTest {
 
   private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/indexer/";
   private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
@@ -43,7 +44,7 @@ public class GemmaUtilTest {
   private static String PYTHON_EXECUTABLE;
   private static String GEMMA_CLASS;
 
-  public GemmaUtilTest() {
+  public GemmaMappingTest() {
   }
 
   @BeforeClass
@@ -53,11 +54,11 @@ public class GemmaUtilTest {
     PythonUtils.run("which", "python3", os, null);
     String pythonExecutable = os.toString();
     os.flush();
-    if (pythonExecutable.isBlank()) {
+    if (pythonExecutable.trim().isEmpty()) {
       PythonUtils.run("which", "python", os, null);
       pythonExecutable = os.toString();
     }
-    if (pythonExecutable.isBlank()) {
+    if (pythonExecutable.trim().isEmpty()) {
       throw new IOException("Python seems not to be available!");
     }
     System.out.println("Location of python: " + pythonExecutable);
@@ -88,7 +89,7 @@ public class GemmaUtilTest {
   }
 
   /**
-   * Test of runGemma method, of class GemmaUtil.
+   * Test of mapFile method, of class GemmaMapping.
    */
   @Test
   public void testRunGemma() throws IOException {
@@ -99,9 +100,9 @@ public class GemmaUtilTest {
     Path resultFile = new File("/tmp/result.elastic.json").getAbsoluteFile().toPath();
     conf.setGemmaLocation(GEMMA_CLASS);
     conf.setPythonLocation(PYTHON_EXECUTABLE);
-    GemmaUtil instance = new GemmaUtil(conf);
+    GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
     int expResult = 0;
-    int result = instance.runGemma(mappingFile, srcFile, resultFile);
+    int result = instance.mapFile(mappingFile, srcFile, resultFile);
     assertEquals(expResult, result);
 
     assertTrue(resultFile.toFile().exists());
@@ -110,7 +111,7 @@ public class GemmaUtilTest {
   }
 
   /**
-   * Test of runGemma method, of class GemmaUtil.
+   * Test of mapFile method, of class GemmaMapping.
    */
   @Test
   public void testRunGemmaXmlMapping() throws IOException {
@@ -121,9 +122,9 @@ public class GemmaUtilTest {
     Path resultFile = new File("/tmp/result.xml.elastic.json").getAbsoluteFile().toPath();
     conf.setGemmaLocation(GEMMA_CLASS);
     conf.setPythonLocation(PYTHON_EXECUTABLE);
-    GemmaUtil instance = new GemmaUtil(conf);
+    GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
     int expResult = 0;
-    int result = instance.runGemma(mappingFile, srcFile, resultFile);
+    int result = instance.mapFile(mappingFile, srcFile, resultFile);
     assertEquals(expResult, result);
 
     assertTrue(resultFile.toFile().exists());
@@ -132,7 +133,7 @@ public class GemmaUtilTest {
   }
 
   /**
-   * Test of runGemma method, of class GemmaUtil.
+   * Test of mapFile method, of class GemmaMapping.
    */
   @Test
   public void testRunGemmaWrongMapping() throws IOException {
@@ -143,32 +144,21 @@ public class GemmaUtilTest {
     Path resultFile = new File("/tmp/invalid_result.elastic.json").getAbsoluteFile().toPath();
     conf.setGemmaLocation(GEMMA_CLASS);
     conf.setPythonLocation(PYTHON_EXECUTABLE);
-    GemmaUtil instance = new GemmaUtil(conf);
+    GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
     int expResult = PythonUtils.EXECUTION_ERROR;
-    int result = instance.runGemma(mappingFile, srcFile, resultFile);
+    int result = instance.mapFile(mappingFile, srcFile, resultFile);
     assertEquals(expResult, result);
 
     assertTrue(resultFile.toFile().exists());
     String readFileToString = FileUtils.readFileToString(resultFile.toFile(), StandardCharsets.UTF_8);
     assertEquals(RESULT, readFileToString);
   }
-
-  /**
-   * Test of downloadResource method, of class GemmaUtil.
-   */
-  @Test
-  public void testDownloadResource() throws URISyntaxException {
-    System.out.println("downloadResource");
-    URI resourceURL = new URI("https://www.example.org");
-    GemmaUtil instance = new GemmaUtil(new GemmaConfiguration());
-    Optional<Path> result = instance.downloadResource(resourceURL);
-    assertTrue(result.isPresent());
-    assertTrue(result.get().toFile().exists());
-    assertTrue(result.get().toFile().delete());
-
-    resourceURL = new URI("https://invalidhttpaddress.de");
-    result = instance.downloadResource(resourceURL);
-    assertTrue(result.isEmpty());
+  
+  private ApplicationProperties conf2ApplicationProperties(GemmaConfiguration configuration) {
+    ApplicationProperties ap = new ApplicationProperties();
+    ap.setGemmaLocation(configuration.getGemmaLocation());
+    ap.setPythonLocation(configuration.getPythonLocation());
+    return ap;
   }
 
 }

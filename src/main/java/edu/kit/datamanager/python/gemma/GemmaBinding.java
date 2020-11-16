@@ -16,29 +16,17 @@
 package edu.kit.datamanager.python.gemma;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
-import edu.kit.datamanager.clients.impl.SimpleRepositoryClient;
-import edu.kit.datamanager.entities.repo.ContentInformation;
-//import edu.kit.datamanager.gemma.configuration.GemmaConfiguration;
-import edu.kit.datamanager.python.util.PythonUtils;
-//import edu.kit.datamanager.messaging.client.handler.IMessageHandler;
-//import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
-import java.io.ByteArrayOutputStream;
+import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -52,13 +40,13 @@ public class GemmaBinding {
   private final static Logger LOGGER = LoggerFactory.getLogger(GemmaBinding.class);
 
   @Autowired
-  GemmaConfiguration gemmaConfiguration;
+  ApplicationProperties gemmaConfiguration;
 
-  String identifier;
-
-  GemmaBinding(String identifier) {
-      this.identifier = identifier;
-  }
+//  String identifier;
+//
+//  GemmaBinding(String identifier) {
+//      this.identifier = identifier;
+//  }
 
   /**
    * Downloads the file behind the given URI and returns its content as a string.
@@ -107,7 +95,7 @@ public class GemmaBinding {
 
   public Path mapSingleFile(Path filepath, Path schema) {
     // TODO
-    return Path.of("tmp");
+    return Paths.get("tmp");
   }
 
     /**

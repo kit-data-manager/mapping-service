@@ -25,25 +25,25 @@ public class IndexerProperties {
      * (Assuming your files are in the classpaths root and named mytemplate.hbs
      * and yourtemplate.hbs)
      */
-    @Value("${indexer.mappingFolder}}")
+    @Value("${indexer.mappingFolder:file:///tmp/metastore2/default/mapping}")
     URL mappingFolder;
 
     /**
      * The base URL of the elasticsearch service, including port.
      */
-    @Value("${indexer.elastic.baseUrl}")
+    @Value("${indexer.elastic.baseUrl:http://localhost:9200}")
     String elasticUrl;
 
     /**
      * The elastic index ("database") where the records will be stored into.
      */
-    @Value("${indexer.elastic.index}")
+    @Value("${indexer.elastic.index:kitdm}")
     String elasticIndex;
 
     /**
      * The subfolder where the json files, which are ingested into elasticsearch
      * are stored locally. This might be useful as a backup.
      */
-    @Value("${indexer.elastic.folder}")
+    @Value("${indexer.elastic.folder:/tmp/elasticsearch}")
     String elasticFilesStorage;
 }

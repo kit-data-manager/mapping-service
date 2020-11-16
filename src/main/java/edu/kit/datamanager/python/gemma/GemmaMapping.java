@@ -16,6 +16,8 @@
 package edu.kit.datamanager.python.gemma;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
+import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
+import edu.kit.datamanager.indexer.mapping.IMappingTool;
 import edu.kit.datamanager.python.util.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -30,56 +32,32 @@ import org.springframework.http.MediaType;
 /**
  * Utilities class for GEMMA.
  */
-public class GemmaUtil{
+public class GemmaMapping implements IMappingTool {
 
   /** Logger for this class.
    */
-  private final static Logger LOGGER = LoggerFactory.getLogger(GemmaUtil.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(GemmaMapping.class);
 
   
   GemmaConfiguration gemmaConfiguration;
 
-  public GemmaUtil(GemmaConfiguration gemmaConfiguration) {
-    this.gemmaConfiguration = gemmaConfiguration;
+  public GemmaMapping(ApplicationProperties configuration) {
+    gemmaConfiguration = new GemmaConfiguration();
+    gemmaConfiguration.setGemmaLocation(configuration.getGemmaLocation());
+    gemmaConfiguration.setPythonLocation(configuration.getPythonLocation());
   }
 
-
   /**
-   * Downloads the file behind the given URI and returns its path on local disc.
-   * You should delete or move to another location afterwards.
-   * 
-   * @param resourceURL the given URI
-   * @return the path to the created file. 
-   */
-  public Optional<Path> downloadResource(URI resourceURL) {
-    String content = null;
-    Path downloadedFile = null;
-    try {
-    content = SimpleServiceClient
-    .create(resourceURL.toString())
-    .accept(MediaType.TEXT_PLAIN)
-    .getResource(String.class);
-      downloadedFile = Files.createTempFile("gemma", "txt");
-      FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
-    } catch (Throwable tw) {
-      LOGGER.error("Error reading URI '" + resourceURL.toString() + "'", tw);
-    }
-    return Optional.ofNullable(downloadedFile);
-  }
-  /**
-   * Run the script at 'scriptLocation' with 'arguments' using the Python
-   * executable at 'pythonLocation'. All output will be redirected to stdout and
-   * stderr.
+   * Map the source file to a new file using a given mapping tool.
    *
    * @param mappingFile The absolute path to mapping file.
    * @param srcFile The absolute path to the source file.
    * @param resultFile The absolute path to the created mapping.
     *
-   * @return The exit status of the python process or one of the internal codes
-   * PYTHON_NOT_FOUND, TIMEOUT_ERROR or EXECUTION_ERROR.
+   * @return Errorcode (0 = SUCCESS)
    * @see edu.kit.datamanager.python.util.PythonUtils
    */
-  public int runGemma(Path mappingFile, Path srcFile, Path resultFile){
+  public int mapFile(Path mappingFile, Path srcFile, Path resultFile){
     LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", srcFile, mappingFile, resultFile);
      int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation(), gemmaConfiguration.getGemmaLocation(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
    return returnCode;

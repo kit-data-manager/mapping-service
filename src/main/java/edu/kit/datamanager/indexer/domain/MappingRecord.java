@@ -18,7 +18,7 @@ package edu.kit.datamanager.indexer.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import edu.kit.datamanager.entities.EtagSupport;
-import edu.kit.datamanager.entities.repo.AclEntry;
+import edu.kit.datamanager.indexer.domain.acl.AclEntry;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
