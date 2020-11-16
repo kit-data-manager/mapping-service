@@ -16,15 +16,13 @@
 package edu.kit.datamanager.indexer.web.impl;
 
 import edu.kit.datamanager.entities.PERMISSION;
-import edu.kit.datamanager.entities.repo.AclEntry;
 import edu.kit.datamanager.exceptions.CustomInternalServerError;
 import edu.kit.datamanager.exceptions.ResourceNotFoundException;
-import edu.kit.datamanager.indexer.configuration.IndexerProperties;
+import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
+import edu.kit.datamanager.indexer.domain.acl.AclEntry;
 import edu.kit.datamanager.indexer.web.IMappingController;
-import edu.kit.datamanager.service.IAuditService;
-import edu.kit.datamanager.service.IMessagingService;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
 import java.io.IOException;
@@ -69,19 +67,15 @@ import org.springframework.web.util.UriComponentsBuilder;
  * Controller for managing mapping files.
  */
 @Controller
-@RequestMapping(value = "/api/v1/metadata")
+@RequestMapping(value = "/api/v1/mapping")
 public class MappingController implements IMappingController {
 
   private static final Logger LOG = LoggerFactory.getLogger(MappingController.class);
 
   @Autowired
-  private IndexerProperties indexerProperties;
+  private ApplicationProperties indexerProperties;
   @Autowired
   private IMappingRecordDao mappingRecordDao;
-  @Autowired
-  private IAuditService<MappingRecord> auditService;
-  @Autowired
-  private IMessagingService messagingService;
 
   @Override
   public ResponseEntity createMapping(
@@ -140,9 +134,6 @@ public class MappingController implements IMappingController {
 
     LOG.trace("Persisting metadata record.");
     MappingRecord result = mappingRecordDao.save(record);
-
-    LOG.trace("Capturing metadata schema audit information.");
-    auditService.captureAuditInformation(result, AuthenticationHelper.getPrincipal());
 
     LOG.trace("Get ETag of MappingRecord.");
     String etag = result.getEtag();
@@ -274,7 +265,7 @@ public class MappingController implements IMappingController {
         if (writeMetadataFile) {
           //persist document
           LOG.trace("Writing user-provided metadata file to repository.");
-          URL mappingFolderUrl = indexerProperties.getMappingFolder();
+          URL mappingFolderUrl = new URL(indexerProperties.getMappingsLocation());
           try {
             Path metadataDir = Paths.get(Paths.get(mappingFolderUrl.toURI()).toAbsolutePath().toString(), existingRecord.getId());
             if (!Files.exists(metadataDir)) {
@@ -312,8 +303,6 @@ public class MappingController implements IMappingController {
 
     LOG.trace("Persisting metadata record.");
     record = mappingRecordDao.save(existingRecord);
-    LOG.trace("Capturing metadata schema audit information.");
-    auditService.captureAuditInformation(record, AuthenticationHelper.getPrincipal());
 
     LOG.trace("Metadata record successfully persisted. Updating document URI and returning result.");
     fixMetadataDocumentUri(record);
@@ -339,15 +328,13 @@ public class MappingController implements IMappingController {
       LOG.trace("Checking provided ETag.");
       ControllerUtils.checkEtag(wr, existingRecord);
 
-      LOG.trace("Removing audit information of schema with id {}.", id);
-      auditService.deleteAuditInformation(AuthenticationHelper.getPrincipal(), existingRecord);
-
       LOG.trace("Removing schema from database.");
       mappingRecordDao.delete(existingRecord);
       LOG.trace("Deleting all metadata documents from disk.");
 
-      URL mappingFolderUrl = indexerProperties.getMappingFolder();
+      URL mappingFolderUrl;
       try {
+        mappingFolderUrl = new URL(indexerProperties.getMappingsLocation());
         Path p = Paths.get(Paths.get(mappingFolderUrl.toURI()).toAbsolutePath().toString(), existingRecord.getId());
         LOG.trace("Deleting schema file(s) from path.", p);
         FileUtils.deleteDirectory(p.toFile());

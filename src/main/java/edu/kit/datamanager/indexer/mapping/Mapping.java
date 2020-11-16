@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.indexer.util;
-
-import edu.kit.datamanager.python.gemma.*;
-import lombok.Getter;
-import lombok.Setter;
+package edu.kit.datamanager.indexer.mapping;
 
 /**
- * Configuration for GemmaUtil
  */
-@Setter
-@Getter
-public class MappingConfiguration {
- /**
-  * Absolute path to mapping files.
-  */
-  private String mappingLocation;
-
+public enum Mapping {
+  GEMMA
 }

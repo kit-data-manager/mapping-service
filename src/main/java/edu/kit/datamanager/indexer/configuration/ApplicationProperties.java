@@ -31,11 +31,13 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @EqualsAndHashCode(callSuper = true)
 public class ApplicationProperties extends GenericPluginProperties{
- @Value("metastore.indexer.gemma.pythonLocation")
+ @Value("${metastore.indexer.gemma.pythonLocation}")
   private String pythonLocation;
 
-  @Value("metastore.indexer.gemma.gemmaLocation")
+  @Value("${metastore.indexer.gemma.gemmaLocation}")
  private String gemmaLocation;
 
+  @Value("${metastore.indexer.mappingsLocation}")
+ private String mappingsLocation;
 
 }

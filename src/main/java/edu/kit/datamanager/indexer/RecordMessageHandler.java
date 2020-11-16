@@ -22,8 +22,6 @@ import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
 import edu.kit.datamanager.indexer.configuration.IndexerProperties;
 import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.Binding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -31,12 +29,8 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 import com.github.jknack.handlebars.Context;
@@ -44,10 +38,13 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpRequest;
 
 /**
  * @author Andreas Pfeil
@@ -86,7 +83,7 @@ public class RecordMessageHandler implements IMessageHandler {
 
         // 1. Download record
         Optional<String> record_json = this.downloadResource(message.getMetadata().get("resolvingUrl"));
-        if (record_json.isEmpty()) {
+        if (!record_json.isPresent()) {
             LOG.debug("No JSON was received.");
             return RESULT.FAILED;
         }
@@ -115,7 +112,7 @@ public class RecordMessageHandler implements IMessageHandler {
         // 4. Store elastic version to disk
         String pid = message.getEntityId();
         Optional<String> filename = this.pidToFilename(pid);
-        if (filename.isEmpty()) {
+        if (!filename.isPresent()) {
             LOG.debug("Could not extract filename to store json. Abort.");
             return RESULT.FAILED;
         }
@@ -236,15 +233,16 @@ public class RecordMessageHandler implements IMessageHandler {
         String elasticIndex = properties.getElasticIndex();
         String typeAndId = String.format("/_doc/%s?pretty", document_id);
         try {
-            URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + typeAndId);
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(elasticURL.toURI())
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return Optional.of(response.body());
+//            URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + typeAndId);
+//            HttpRequest request = HttpRequest.newBuilder()
+//                .uri(elasticURL.toURI())
+//                .header("Content-Type", "application/json")
+//                .PUT(HttpRequest.BodyPublishers.ofString(json))
+//                .build();
+//            HttpClient client =  HttpClient();
+//            HttpResponse response = client.send(request, HttpResponse.BodyHandlers.ofString());
+////            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return Optional.of("todo"); //response.body());
         } catch (Exception e) {
             LOG.error("Could not send to url", e);
             return Optional.empty();

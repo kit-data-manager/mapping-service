@@ -33,9 +33,9 @@ println "Building ${name} version: ${version}"
 
 
 repositories {
-    mavenCentral()
-    jcenter()
     mavenLocal()
+    jcenter()
+    mavenCentral()
 }
 
 sourceCompatibility = 1.8
