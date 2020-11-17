@@ -22,6 +22,8 @@ import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.domain.acl.AclEntry;
+import edu.kit.datamanager.indexer.exception.IndexerException;
+import edu.kit.datamanager.indexer.service.impl.MappingService;
 import edu.kit.datamanager.indexer.web.IMappingController;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +79,9 @@ public class MappingController implements IMappingController {
   private ApplicationProperties indexerProperties;
   @Autowired
   private IMappingRecordDao mappingRecordDao;
+  
+  @Autowired
+  private MappingService mappingService;
 
   @Override
   public ResponseEntity createMapping(
@@ -87,9 +93,9 @@ public class MappingController implements IMappingController {
 
     LOG.trace("Performing createRecord({},...).", record);
 
-    if (record.getId() == null) {
+    if ((record.getId() == null) || (record.getMappingType() == null)){
       LOG.error("Mandatory attribute Id not found in record. Returning HTTP BAD_REQUEST.");
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mandatory attributes relatedResource and/or schemaId not found in record.");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mandatory attributes mappingType and/or schemaId not found in record.");
     }
 
  
@@ -133,19 +139,24 @@ public class MappingController implements IMappingController {
     }
 
     LOG.trace("Persisting metadata record.");
-    MappingRecord result = mappingRecordDao.save(record);
+    try {
+      String contentOfFile = new String(document.getBytes(), StandardCharsets.UTF_8);
+      mappingService.createMapping(contentOfFile, record);
+    } catch (IOException ioe) {
+      throw new IndexerException("Error: Can't read content of document!");
+    }
 
     LOG.trace("Get ETag of MappingRecord.");
-    String etag = result.getEtag();
+    String etag = record.getEtag();
 
     LOG.trace("Schema record successfully persisted. Updating document URI.");
-    fixMetadataDocumentUri(result);
+    fixMetadataDocumentUri(record);
 
     URI locationUri;
     locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(record.getId(), null, null)).toUri();
 
     LOG.trace("Schema record successfully persisted. Returning result.");
-    return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(result);
+    return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(record);
   }
 
   @Override
@@ -237,72 +248,20 @@ public class MappingController implements IMappingController {
 
     LOG.trace("Checking provided ETag.");
     ControllerUtils.checkEtag(request, existingRecord);
-    mergeRecords(existingRecord, record);
-
+    record = mergeRecords(existingRecord, record);
+ 
     if (document != null) {
       LOG.trace("Updating metadata document.");
-      try {
-        byte[] data = document.getBytes();
- 
-        boolean writeMetadataFile = true;
-        String existingDocumentHash = existingRecord.getDocumentHash();
-        try {
-          LOG.trace("Creating metadata document hash and updating record.");
-          MessageDigest md = MessageDigest.getInstance("SHA1");
-          md.update(data, 0, data.length);
-
-          existingRecord.setDocumentHash("sha1:" + Hex.encodeHexString(md.digest()));
-
-          if (Objects.equals(existingRecord.getDocumentHash(), existingDocumentHash)) {
-            LOG.trace("Metadata file hashes are equal. Skip writing new metadata file.");
-            writeMetadataFile = false;
-          }
-        } catch (NoSuchAlgorithmException ex) {
-          LOG.error("Failed to initialize SHA1 MessageDigest.", ex);
-          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to initialize SHA1 MessageDigest.");
-        }
-
-        if (writeMetadataFile) {
-          //persist document
-          LOG.trace("Writing user-provided metadata file to repository.");
-          URL mappingFolderUrl = new URL(indexerProperties.getMappingsLocation());
-          try {
-            Path metadataDir = Paths.get(Paths.get(mappingFolderUrl.toURI()).toAbsolutePath().toString(), existingRecord.getId());
-            if (!Files.exists(metadataDir)) {
-              LOG.trace("Creating metadata directory at {}.", metadataDir);
-              Files.createDirectories(metadataDir);
-            } else {
-              if (!Files.isDirectory(metadataDir)) {
-                LOG.error("Metadata directory {} exists but is no folder. Aborting operation.", metadataDir);
-                throw new CustomInternalServerError("Illegal metadata registry state detected.");
-              }
-            }
-
-            Path p = Paths.get(metadataDir.toAbsolutePath().toString(), getUniqueRecordHash(existingRecord));
-            if (Files.exists(p)) {
-              LOG.error("Metadata document conflict. A file at path {} already exists.", p);
-              return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal filename conflict.");
-            }
-
-            LOG.trace("Persisting valid metadata document at {}.", p);
-            Files.write(p, data);
-            LOG.trace("Metadata document successfully persisted. Updating record.");
-            existingRecord.setMappingDocumentUri(p.toUri().toString());
-
-            LOG.trace("Metadata record completed.");
-          } catch (URISyntaxException ex) {
-            LOG.error("Failed to determine metadata storage location.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal misconfiguration of metadata location.");
-          }
-        }
-      } catch (IOException ex) {
-        LOG.error("Failed to read medata from input stream. Returning HTTP UNPROCESSABLE_ENTITY.");
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Failed to read medata from input stream.");
-      }
+     try {
+      String contentOfFile = new String(document.getBytes(), StandardCharsets.UTF_8);
+      mappingService.updateMapping(contentOfFile, record);
+    } catch (IOException ioe) {
+      throw new IndexerException("Error: Can't read content of document!");
     }
-
-    LOG.trace("Persisting metadata record.");
-    record = mappingRecordDao.save(existingRecord);
+    } else {
+      mappingRecordDao.save(record);
+    }
+     
 
     LOG.trace("Metadata record successfully persisted. Updating document URI and returning result.");
     fixMetadataDocumentUri(record);
@@ -381,10 +340,10 @@ public class MappingController implements IMappingController {
         managed.setMappingType(provided.getMappingType());
       }
 
-      if (!Objects.isNull(provided.getMappingDocumentUri())) {
-        LOG.trace("Updating schemaId from {} to {}.", managed.getMappingDocumentUri(), provided.getMappingDocumentUri());
-        managed.setMappingDocumentUri(provided.getMappingDocumentUri());
-      }
+//      if (!Objects.isNull(provided.getMappingDocumentUri())) {
+//        LOG.trace("Updating schemaId from {} to {}.", managed.getMappingDocumentUri(), provided.getMappingDocumentUri());
+//        managed.setMappingDocumentUri(provided.getMappingDocumentUri());
+//      }
 
       //update acl
       if (provided.getAcl() != null) {

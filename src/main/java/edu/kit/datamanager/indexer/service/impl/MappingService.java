@@ -16,12 +16,23 @@
 package edu.kit.datamanager.indexer.service.impl;
 
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
+import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
+import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.exception.IndexerException;
+import edu.kit.datamanager.indexer.mapping.MappingUtil;
+import edu.kit.datamanager.indexer.util.IndexerUtil;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Optional;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,11 +48,22 @@ public class MappingService {
   /**
    * Instance holding all settings.
    */
-  ApplicationProperties applicationProperties;
+  private final ApplicationProperties applicationProperties;
+
+  /**
+   * Repo holding all MappingRecords.
+   */
+  @Autowired
+  private IMappingRecordDao mappingRepo;
   /**
    * Path to directory holding all mapping files.
    */
-  Path mappingsDirectory;
+  private Path mappingsDirectory;
+
+  /**
+   * MappingUtil for executing mappings.
+   */
+  private MappingUtil mappingUtil;
 
   /**
    * Logger for this class.
@@ -58,48 +80,87 @@ public class MappingService {
    * Save content to mapping file and get the mapping location.
    *
    * @param content Content of the mapping file.
-   * @param filename filename of the mapping
-   *
-   * @return Path to mapping file.
+   * @param mappingRecord record of the mapping
    */
-  public Path saveMapping(String content, String filename) {
-    boolean success = false;
-    Path mappingFile = Paths.get(mappingsDirectory.toString(), filename);
-    try {
-      FileUtils.writeStringToFile(mappingFile.toFile(), content, StandardCharsets.UTF_8);
-
-    } catch (IOException ex) {
-      LOGGER.error("Error writing mapping file!", ex);
-      throw new IndexerException("Error writing mapping file to '" + mappingFile.toAbsolutePath() + "'!", ex);
+  public void createMapping(String content, MappingRecord mappingRecord) throws IOException {
+    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
+    if (findMapping.isPresent()) {
+      throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' already exists!");
     }
-    return mappingFile;
+    saveMappingFile(content, mappingRecord);
+    mappingRepo.save(mappingRecord);
   }
 
   /**
    * Update content of mapping file and get the mapping location.
    *
    * @param content Content of the mapping file.
-   * @param filename filename of the mapping
+   * @param mappingRecord record of the mapping
+   */
+  public void updateMapping(String content, MappingRecord mappingRecord) throws IOException {
+    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
+    if (!findMapping.isPresent()) {
+      throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' doesn't exists!");
+    }
+    saveMappingFile(content, mappingRecord);
+    mappingRepo.save(mappingRecord);
+  }
+
+  /**
+   * Delete mapping file and its record.
+   *
+   * @param content Content of the mapping file.
+   * @param mappingRecord record of the mapping
+   */
+  public void deleteMapping(String content, MappingRecord mappingRecord) throws IOException {
+    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
+    if (!findMapping.isPresent()) {
+      throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' doesn't exists!");
+    }
+    deleteMappingFile(mappingRecord);
+    mappingRepo.delete(mappingRecord);
+  }
+
+  /**
+   * Save content to mapping file and get the mapping location.
+   *
+   * @param content Content of the mapping file.
+   * @param mappingId filename of the mapping
    *
    * @return Path to mapping file.
    */
-  public Path updateMapping(String content, String filename) {
-    Path mappingFile = Paths.get(mappingsDirectory.toString(), filename);
-    try {
-      if (mappingFile.toFile().exists()) {
-        FileUtils.writeStringToFile(mappingFile.toFile(), content, StandardCharsets.UTF_8);
+  public Optional<Path> executeMapping(URI contentUrl, String mappingId) {
+    Optional<Path> returnValue = Optional.ofNullable(null);
+
+    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingId);
+    if (findMapping.isPresent()) {
+      // create temporary file for content
+      Optional<Path> download = IndexerUtil.downloadResource(contentUrl);
+      if (download.isPresent()) {
+        Path srcFile = download.get();
+        // Get mapping file
+        MappingRecord mappingRecord = findMapping.get();
+        mappingRecord.getMappingDocumentUri();
+        Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
+        // execute mapping
+        returnValue = mappingUtil.mapFile(mappingFile, srcFile, mappingId);
+        // remove downloaded file
+        IndexerUtil.removeFile(srcFile);
       } else {
-        throw new IndexerException("Cannot update due to missing mapping file! ('" + filename + "')");
+        throw new IndexerException("Error: Unknown mapping '" + mappingId + "'!");
       }
-    } catch (IOException ex) {
-      LOGGER.error("Error writing mapping file!", ex);
-      throw new IndexerException("Error writing mapping file to '" + mappingFile.toAbsolutePath() + "'!", ex);
     }
-    return mappingFile;
+    return returnValue;
   }
 
+  /**
+   * Initalize mappings directory and mappingUtil instance.
+   *
+   * @param applicationProperties Properties holding mapping directory setting.
+   */
   private void init(ApplicationProperties applicationProperties) {
     if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
+      mappingUtil = new MappingUtil(applicationProperties);
       try {
         mappingsDirectory = Files.createDirectories(Paths.get(applicationProperties.getMappingsLocation())).toAbsolutePath();
       } catch (IOException e) {
@@ -108,5 +169,63 @@ public class MappingService {
     } else {
       throw new IndexerException("Could not initialize mapping directory due to missing location!");
     }
+  }
+
+  /**
+   * Save mapping file to mapping directory.
+   *
+   * @param content Content of file.
+   * @param mapping record of mapping
+   * @throws IOException error writing file.
+   */
+  private void saveMappingFile(String content, MappingRecord mapping) throws IOException {
+    Path newMappingFile = null;
+    if (mapping != null) {
+      try {
+        // 'delete' old file
+        deleteMappingFile(mapping);
+        newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getId() + "_" + mapping.getMappingType() + ".mapping");
+        FileUtils.writeStringToFile(newMappingFile.toFile(), content, StandardCharsets.UTF_8);
+        mapping.setMappingDocumentUri(newMappingFile.toString());
+        byte[] data = content.getBytes();
+        
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        md.update(data, 0, data.length);
+        
+        mapping.setDocumentHash("sha1:" + Hex.encodeHexString(md.digest()));
+      } catch (NoSuchAlgorithmException ex) {
+          LOGGER.error("Failed to initialize SHA1 MessageDigest.", ex);
+        throw new IndexerException("Failed to initialize SHA1 MessageDigest.", ex);
+      }
+    }
+  }
+
+  /**
+   * Delete mapping file. The file will not be deleted. Add actual datetime as
+   * suffix
+   *
+   * @param mapping record of mapping
+   * @throws IOException error writing file.
+   */
+  private void deleteMappingFile(MappingRecord mapping) throws IOException {
+    if ((mapping != null) && (mapping.getMappingDocumentUri() != null)) {
+      Path deleteFile = Paths.get(mapping.getMappingDocumentUri());
+      if (deleteFile.toFile().exists()) {
+        Path newFileName = Paths.get(deleteFile.getParent().toString(), deleteFile.getFileName() + date2String());
+        FileUtils.moveFile(deleteFile.toFile(), newFileName.toFile());
+      }
+    }
+  }
+
+  /**
+   * Create string from actual date.
+   *
+   * @return formatted date.
+   */
+  private String date2String() {
+    SimpleDateFormat sdf = new SimpleDateFormat("_yyyyMMdd_HHmmss");
+    String dateAsString = sdf.format(new Date());
+
+    return dateAsString;
   }
 }

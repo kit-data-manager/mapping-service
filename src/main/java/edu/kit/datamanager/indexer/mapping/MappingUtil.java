@@ -16,34 +16,16 @@
 package edu.kit.datamanager.indexer.mapping;
 
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import edu.kit.datamanager.indexer.exception.IndexerException;
+import edu.kit.datamanager.indexer.util.IndexerUtil;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Utilities class for python.
- *
- * @author jejkal
+ * Utilities class for mapping files.
  */
 public class MappingUtil {
 
@@ -51,6 +33,7 @@ public class MappingUtil {
    * Return codes.
    */
   public static final int SUCCESS = 0;
+  public static final int FAILURE = Integer.MIN_VALUE;
 
   /**
    * Logger for this class.
@@ -58,28 +41,60 @@ public class MappingUtil {
   private final static Logger LOGGER = LoggerFactory.getLogger(MappingUtil.class);
 
   private ApplicationProperties configuration;
-  
+
   @Autowired
-  public MappingUtil(ApplicationProperties configutation) {
+  public MappingUtil(ApplicationProperties configuration) {
     this.configuration = configuration;
   }
 
-  
-    /**
+  /**
    * Map the source file to a new file using a given mapping tool.
    *
    * @param mappingFile The absolute path to mapping file.
    * @param srcFile The absolute path to the source file.
    * @param resultFile The absolute path to the created mapping.
-    *
+   *
+   * @return Errorcode (0 = SUCCESS)
+   * @exception if an error occurs.
+   */
+  public Optional<Path> mapFile(Path mappingFile, Path srcFile, String mapping) {
+    Path resultFile;
+    int returnCode = FAILURE;
+    resultFile = IndexerUtil.createTempFile(mapping + "_", ".mapping");
+    try {
+      System.out.println("xxxxxxxxxxxxx" + configuration.getGemmaLocation());
+      returnCode = mapFile(mappingFile, srcFile, resultFile, mapping);
+    } catch (IndexerException ie) {
+       System.out.println("xxxxxxxxxxxxx" + ie.getMessage());
+     throw ie;
+    } finally {
+      if (returnCode != SUCCESS) {
+        IndexerUtil.removeFile(resultFile);
+        resultFile = null;
+      }
+    }
+
+    return Optional.ofNullable(resultFile);
+  }
+
+  /**
+   * Map the source file to a new file using a given mapping tool.
+   *
+   * @param mappingFile The absolute path to mapping file.
+   * @param srcFile The absolute path to the source file.
+   * @param resultFile The absolute path to the created mapping.
+   *
    * @return Errorcode (0 = SUCCESS)
    */
   public int mapFile(Path mappingFile, Path srcFile, Path resultFile, String mapping) {
     int returnValue;
-    
+
     IMappingTool mappingTool = IMappingTool.getMappingTool(configuration, mapping);
+    if (resultFile.toFile().exists() && ((resultFile.toFile().length() > 0) || !resultFile.toFile().canWrite())) {
+      throw new IndexerException("Overwriting file '" + resultFile.toString() + "' is not allowed!");
+    }
     returnValue = mappingTool.mapFile(mappingFile, srcFile, resultFile);
-    
+
     return returnValue;
   }
 }
