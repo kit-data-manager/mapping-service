@@ -17,9 +17,7 @@ package edu.kit.datamanager.indexer.mapping;
 
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.exception.IndexerException;
-import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
 import edu.kit.datamanager.python.gemma.GemmaMapping;
-import edu.kit.datamanager.python.gemma.GemmaMappingTest;
 import edu.kit.datamanager.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

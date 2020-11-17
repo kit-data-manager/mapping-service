@@ -15,11 +15,12 @@
  */
 package edu.kit.datamanager.indexer.util;
 
-import edu.kit.datamanager.python.gemma.GemmaConfiguration;
-import edu.kit.datamanager.python.gemma.GemmaMapping;
+import edu.kit.datamanager.indexer.exception.IndexerException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Optional;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,6 +71,56 @@ public class IndexerUtilTest {
     resourceURL = new URI("https://invalidhttpaddress.de");
     result = IndexerUtil.downloadResource(resourceURL);
     assertTrue(!result.isPresent());
+  }
+
+  /**
+   * Test of createTempFile method, of class IndexerUtil.
+   */
+  @Test
+  public void testCreateTempFile() {
+    System.out.println("createTempFile");
+    String[] prefix = {null, null, null,     "",   "", "",       "prefix", "prefix", "prefix"};
+    String[] suffix = {null, "",   "suffix", null, "", "suffix", null,     "",       "suffix"};
+    HashSet<String> allPaths = new HashSet<>();
+    String path = null;
+    for (int index = 0; index < prefix.length; index++) {
+      Path tmpPath = IndexerUtil.createTempFile(prefix[index], suffix[index]);
+      String tmpFile = tmpPath.getFileName().toString();
+      path = tmpPath.getParent().toString();
+      assertFalse(allPaths.contains(tmpFile));
+      allPaths.add(tmpFile);
+      if ((prefix[index] != null) && (!prefix[index].trim().isEmpty())) {
+        assertTrue(tmpFile.startsWith(prefix[index]));
+      } else {
+        assertTrue(tmpFile.startsWith(IndexerUtil.DEFAULT_PREFIX));
+      }
+      if ((suffix[index] != null) && (!suffix[index].trim().isEmpty())) {
+        assertTrue(tmpFile.endsWith(suffix[index]));
+      } else {
+        assertTrue(tmpFile.endsWith(IndexerUtil.DEFAULT_SUFFIX));
+      }
+    }
+     for (String filename : allPaths) {
+       IndexerUtil.removeFile(Paths.get(path, filename));
+     }
+  }
+
+  /**
+   * Test of removeFile method, of class IndexerUtil.
+   */
+  @Test
+  public void testRemoveFile() {
+    System.out.println("removeFile");
+    Path createTempFile = IndexerUtil.createTempFile("testRemoveDir", ".txt");
+    try {
+    IndexerUtil.removeFile(createTempFile.getParent());
+    assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(ie.getMessage().contains("Error removing file"));
+    }
+    assertTrue(createTempFile.toFile().exists());
+    IndexerUtil.removeFile(createTempFile);
+    assertFalse(createTempFile.toFile().exists());
   }
   
 }

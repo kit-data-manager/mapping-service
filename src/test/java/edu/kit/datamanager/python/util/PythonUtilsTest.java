@@ -69,6 +69,14 @@ public class PythonUtilsTest {
    * Test of run method, of class PythonUtils.
    */
   @Test
+  public void testRun_Constructor() {
+    assertNotNull(new PythonUtils());
+  }
+
+  /**
+   * Test of run method, of class PythonUtils.
+   */
+  @Test
   public void testRun_3args_withWrongPython() {
     System.out.println("testRun_3args_withWrongPython");
     String pythonLocation = "/usr/bin/invalidpython";

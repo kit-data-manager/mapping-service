@@ -68,47 +68,4 @@ public class GemmaConfigurationTest {
     result = instance.getGemmaLocation();
     assertEquals(expResult, result);
   }
-
-  /**
-   * Test of toString method, of class GemmaConfiguration.
-   */
-  @Test
-  public void testToString() {
-    System.out.println("toString");
-    GemmaConfiguration instance = new GemmaConfiguration();
-    String expResult = "";
-    String result = instance.toString();
-    assertEquals(expResult, result);
-   }
-
-  /**
-   * Test of equals method, of class GemmaConfiguration.
-   */
-  @Test
-  public void testEquals() {
-    System.out.println("equals");
-    Object o = null;
-    GemmaConfiguration instance = new GemmaConfiguration();
-    boolean expResult = false;
-    boolean result = instance.equals(o);
-    assertEquals(expResult, result);
-    expResult = true;
-    result = instance.equals(new GemmaConfiguration());
-    assertEquals(expResult, result);
-  }
-
-  /**
-   * Test of hashCode method, of class GemmaConfiguration.
-   */
-  @Test
-  public void testHashCode() {
-    System.out.println("hashCode");
-    GemmaConfiguration instance = new GemmaConfiguration();
-    int expResult = 0;
-    int result = instance.hashCode();
-    assertEquals(expResult, result);
-    // TODO review the generated test code and remove the default call to fail.
-    fail("The test case is a prototype.");
-  }
-  
 }
