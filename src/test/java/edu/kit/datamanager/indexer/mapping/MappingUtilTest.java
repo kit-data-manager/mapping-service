@@ -80,6 +80,7 @@ public class MappingUtilTest {
 
   @Before
   public void setUp() {
+   IMappingTool.toolMapper.clear();
   }
 
   @After
