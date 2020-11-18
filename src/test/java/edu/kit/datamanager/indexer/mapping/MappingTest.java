@@ -27,22 +27,22 @@ import static org.junit.Assert.*;
  * @author hartmann-v
  */
 public class MappingTest {
-  
+
   public MappingTest() {
   }
-  
+
   @BeforeClass
   public static void setUpClass() {
   }
-  
+
   @AfterClass
   public static void tearDownClass() {
   }
-  
+
   @Before
   public void setUp() {
   }
-  
+
   @After
   public void tearDown() {
   }
@@ -69,5 +69,21 @@ public class MappingTest {
     Mapping result = Mapping.valueOf(string);
     assertEquals(expResult, result);
   }
-  
+
+  /**
+   * Test of valueOf method, of class Mapping.
+   */
+  @Test
+  public void testValueOfWithInvalidValue() {
+    System.out.println("testValueOfWithInvalidValue");
+    String string = "invalidMapping";
+    Mapping expResult = null;
+    try {
+      Mapping result = Mapping.valueOf(string);
+      assertTrue("Exception expected!", false);
+    } catch (IllegalArgumentException iae) {
+      assertTrue(true);
+    }
+  }
+
 }

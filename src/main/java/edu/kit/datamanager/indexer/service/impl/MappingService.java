@@ -19,6 +19,7 @@ import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.exception.IndexerException;
+import edu.kit.datamanager.indexer.mapping.Mapping;
 import edu.kit.datamanager.indexer.mapping.MappingUtil;
 import edu.kit.datamanager.indexer.util.IndexerUtil;
 import java.io.IOException;
@@ -102,6 +103,7 @@ public class MappingService {
     if (!findMapping.isPresent()) {
       throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' doesn't exists!");
     }
+    mappingRecord.setMappingDocumentUri(findMapping.get().getMappingDocumentUri());
     saveMappingFile(content, mappingRecord);
     mappingRepo.save(mappingRecord);
   }
@@ -109,14 +111,14 @@ public class MappingService {
   /**
    * Delete mapping file and its record.
    *
-   * @param content Content of the mapping file.
-   * @param mappingRecord record of the mapping
+  * @param mappingRecord record of the mapping
    */
-  public void deleteMapping(String content, MappingRecord mappingRecord) throws IOException {
+  public void deleteMapping(MappingRecord mappingRecord) throws IOException {
     Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
     if (!findMapping.isPresent()) {
       throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' doesn't exists!");
     }
+    mappingRecord = findMapping.get();
     deleteMappingFile(mappingRecord);
     mappingRepo.delete(mappingRecord);
   }
@@ -180,8 +182,9 @@ public class MappingService {
    */
   private void saveMappingFile(String content, MappingRecord mapping) throws IOException {
     Path newMappingFile = null;
-    if (mapping != null) {
+    if ((content != null) && (mapping != null) && (mapping.getId() != null) && (mapping.getMappingType()!= null)) {
       try {
+        Mapping mappingType = Mapping.valueOf(mapping.getMappingType());
         // 'delete' old file
         deleteMappingFile(mapping);
         newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getId() + "_" + mapping.getMappingType() + ".mapping");
@@ -196,7 +199,11 @@ public class MappingService {
       } catch (NoSuchAlgorithmException ex) {
           LOGGER.error("Failed to initialize SHA1 MessageDigest.", ex);
         throw new IndexerException("Failed to initialize SHA1 MessageDigest.", ex);
+      } catch (IllegalArgumentException iae) {
+        throw new IndexerException("Error: Unknown mapping type '" + mapping.getMappingType() + "'!");
       }
+    } else {
+      throw new IndexerException("Error saving mapping file! (no content)");
     }
   }
 

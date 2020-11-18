@@ -29,6 +29,8 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.aspectj.util.FileUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -47,17 +49,26 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("test")
-@TestPropertySource(properties = {"metastore.indexer.mappingsLocation=/tmp/metastore2/mapping"})
+@TestPropertySource(properties = {"metastore.indexer.mappingsLocation=/tmp/metastore2/test/mappingservice"})
 public class MappingServiceTest {
 
   @Autowired
   ApplicationProperties applicationProperties;
 
   @Autowired
+  MappingService mappingService;
+
+  @Autowired
   IMappingRecordDao mappingRepo;
 
-  private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/";
-  private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
+  private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/test/";
+  private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mappingservice/";
+  private static final String MAPPING_ID = "my_mapping";
+  private static final File JSON_MAPPING_FILE = new File("src/test/resources/mapping/gemma/simple.mapping");
+  private static final File XML_MAPPING_FILE = new File("src/test/resources/mapping/gemma/simple.xml.mapping");
+  private static final File JSON_SRC_FILE = new File("src/test/resources/examples/gemma/simple.json");
+  private static final File XML_SRC_FILE = new File("src/test/resources/examples/gemma/simple.xml");
+  private static final File RESULT_FILEDe = new File("src/test/resources/result/gemma/simple.elastic.json");
 
   public MappingServiceTest() {
   }
@@ -82,6 +93,17 @@ public class MappingServiceTest {
 
   @Before
   public void setUp() {
+    try {
+      try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING)))) {
+        walk.sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+      }
+      Paths.get(TEMP_DIR_4_MAPPING).toFile().mkdir();
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
+    mappingRepo.deleteAll();
   }
 
   @After
@@ -95,26 +117,14 @@ public class MappingServiceTest {
 
   @Test
   public void testConstructorRelativePath() throws IOException {
-    System.out.println("***********************************************");   
-    System.out.println("Number of records" + mappingRepo.count());
-    MappingRecord mappingRecord = new MappingRecord();
-    mappingRecord.setId("id4test");
-    mappingRecord.setMappingDocumentUri(Mapping.GEMMA.name());
-    mappingRepo.save(mappingRecord);
-     System.out.println("Number of records" + mappingRepo.count());
-    System.out.println("***********************************************");   
-//    try {
-//      ApplicationProperties ap = new ApplicationProperties();
-//      ap.setMappingsLocation("tmp/relativePath");
-//      MappingService ms = new MappingService(ap);
-//      Path saveMapping = ms.saveMapping("x", "x.txt");
-//      File toFile = saveMapping.getParent().toFile();
-//      FileUtils.deleteDirectory(toFile);
-//      assertTrue(true);
-//    } catch (IndexerException ie) {
-//      assertTrue(false);
-//    }
-    assertTrue("Todo", false);
+    String mappingsDir = "testMapping";
+    ApplicationProperties applicationProperties = new ApplicationProperties();
+    applicationProperties.setMappingsLocation("testMapping");
+    File file = new File(mappingsDir);
+    assertFalse(file.exists());
+    MappingService mappingService = new MappingService(applicationProperties);
+    assertTrue(file.exists());
+    FileUtils.deleteDirectory(file);
   }
 
   @Test
@@ -139,146 +149,272 @@ public class MappingServiceTest {
    * Test of saveMapping method, of class MappingService.
    */
   @Test
-  public void testSaveMapping() throws IOException {
-//    System.out.println("saveMapping");
-//    String content = "content";
-//    String filename = "firstTest.txt";
-//    MappingService instance = new MappingService(applicationProperties);
-//    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), filename);
-//    Path result = instance.saveMapping(content, filename);
-//    assertEquals(expResult, result);
-//    assertTrue(result.toFile().exists());
-//    assertEquals(content, FileUtils.readFileToString(result.toFile(), StandardCharsets.UTF_8));
-    assertTrue("Todo", false);
-
+  public void testCreateMapping() throws IOException {
+    System.out.println("testCreateMapping");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    mappingService.createMapping(mappingContent, mappingRecord);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    MappingRecord get = mappingRepo.findAll().get(0);
+    assertTrue(get.getMappingDocumentUri().contains(MAPPING_ID));
+    assertTrue(get.getMappingDocumentUri().contains(Mapping.GEMMA.toString()));
+    assertTrue(get.getMappingDocumentUri().contains(TEMP_DIR_4_MAPPING));
+    File mappingFile = new File(get.getMappingDocumentUri());
+    assertTrue(mappingFile.exists());
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
   }
 
   /**
    * Test of saveMapping method, of class MappingService.
    */
   @Test
-  public void testSaveMappingWithoutContent() throws IOException {
-//    System.out.println("saveMapping");
-//    String content = null;
-//    String filename = "firstTest.txt";
-//    MappingService instance = new MappingService(applicationProperties);
-//    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), filename);
-//    Path result = instance.saveMapping(content, filename);
-//    assertEquals(expResult, result);
-//    assertTrue(result.toFile().exists());
-//    assertEquals("", FileUtils.readFileToString(result.toFile(), StandardCharsets.UTF_8));
-    assertTrue("Todo", false);
-
+  public void testCreateMappingWithoutContent() throws IOException {
+    System.out.println("testCreateMappingWithoutContent");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappinDigContent = null;
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.createMapping(mappinDigContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
   }
 
   /**
    * Test of saveMapping method, of class MappingService.
    */
   @Test
-  public void testSaveMappingWithInvalidFilename() throws IOException {
-//    System.out.println("saveMapping");
-//    String content = "anyContent";
-//    String filename = "securityException";
-//    ApplicationProperties ap = new ApplicationProperties();
-//    ap.setMappingsLocation("/usr/bin");
-//    MappingService instance = new MappingService(ap);
-//    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), filename);
-//    try {
-//      Path result = instance.saveMapping(content, filename);
-//      assertTrue(false);
-//    } catch (IndexerException ie) {
-//      assertTrue(true);
-//      assertTrue(ie.getMessage().contains("Error writing mapping file"));
-//    }
-    assertTrue("Todo", false);
-
+  public void testSaveMappingWithNoMapping() throws IOException {
+    System.out.println("testSaveMappingWithNoMapping");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(null);
+    String mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.createMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
   }
 
   /**
    * Test of saveMapping method, of class MappingService.
    */
   @Test
-  public void testUpdateMappingWithInvalidFilename() throws IOException {
-    System.out.println("saveMapping");
-    String content = "anyContent";
-    String filename = "securityException";
-//    Path saveMapping = null;
-//    ApplicationProperties ap = new ApplicationProperties();
-//    ap.setMappingsLocation("/tmp");
-//    MappingService instance = new MappingService(ap);
-//    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), filename);
-//    try {
-//      saveMapping = instance.createMapping(content, filename);
-//      saveMapping.toFile().setReadOnly();
-//      Path result = instance.updateMapping(content, filename);
-//      assertTrue(false);
-//    } catch (IndexerException ie) {
-//      assertTrue(true);
-//      assertTrue(ie.getMessage().contains("Error writing mapping file"));
-//      saveMapping.toFile().setWritable(true);
-//      saveMapping.toFile().delete();
-//    }
-    assertTrue("Todo", false);
+  public void testSaveMappingWithUnknownMapping() throws IOException {
+    System.out.println("testSaveMappingWithUnknownMapping");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType("unknownMappingType");
+    String mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.createMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
   }
 
   /**
-   * Test of updateMapping method, of class MappingService.
+   * Test of saveMapping method, of class MappingService.
+   */
+  @Test
+  public void testCreateMappingTwice() throws IOException {
+    System.out.println("testCreateMapping");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    mappingService.createMapping(mappingContent, mappingRecord);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.createMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+  }
+
+  /**
+   * Test of saveMapping method, of class MappingService.
    */
   @Test
   public void testUpdateMapping() throws IOException {
-    System.out.println("updateMapping");
-//    String content = "content";
-//    String newContent = "new content";
-//    String filename = "updateTest.txt";
-//    MappingService instance = new MappingService(applicationProperties);
-//    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), filename);
-//    MappingRecord mappingRecord = new MappingRecord();
-//    mappingRecord.setMappingDocumentUri(expResult.toString());
-//    mappingRecord.setId("id4test");
-//    mappingRecord.setMappingType(Mapping.GEMMA.name());
-//    instance.createMapping(content, mappingRecord);
-//    
-//    
-//    instance.updateMapping(newContent, filename);
-//    assertEquals(expResult, result);
-//    assertTrue(result.toFile().exists());
-//    assertEquals(newContent, FileUtils.readFileToString(result.toFile(), StandardCharsets.UTF_8));
-    assertTrue("Todo", false);
-  }
-
-  /**
-   * Test of updateMapping method, of class MappingService.
-   */
-  @Test
-  public void testUpdateMappingWithWrongFile() {
-    System.out.println("updateMapping");
-    String content = "new content";
-    String filename = "invalidFilename.txt";
+    System.out.println("testUpdateMapping");
+    testCreateMapping();
     MappingRecord mappingRecord = new MappingRecord();
-    mappingRecord.setId(filename);
-    MappingService instance = new MappingService(applicationProperties);
-    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), filename);
-    try {
-      instance.updateMapping(content, mappingRecord);
-      assertTrue(false);
-    } catch (IOException | IndexerException ie) {
-      assertTrue(true);
-      assertTrue(ie.getMessage().contains("missing mapping file"));
-    }
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappingContent = FileUtil.readAsString(XML_MAPPING_FILE);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    mappingService.updateMapping(mappingContent, mappingRecord);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(2, new File(TEMP_DIR_4_MAPPING).list().length);
+    MappingRecord first = mappingRepo.findAll().get(0);
+    assertTrue(first.getMappingDocumentUri().contains(MAPPING_ID));
+    assertTrue(first.getMappingDocumentUri().contains(Mapping.GEMMA.toString()));
+    assertTrue(first.getMappingDocumentUri().contains(TEMP_DIR_4_MAPPING));
+    File mappingFile = new File(first.getMappingDocumentUri());
+    assertTrue(mappingFile.exists());
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
   }
 
   /**
-   * Test of createMapping method, of class MappingService.
+   * Test of saveMapping method, of class MappingService.
    */
   @Test
-  public void testCreateMapping() throws Exception {
-    System.out.println("createMapping");
-    String content = "";
-    MappingRecord mappingRecord = null;
-    MappingService instance = null;
-    instance.createMapping(content, mappingRecord);
-    // TODO review the generated test code and remove the default call to fail.
-    fail("The test case is a prototype.");
+  public void testUpdateMappingWithoutCreate() throws IOException {
+    System.out.println("testUpdateMappingWithoutCreate");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappingContent = FileUtil.readAsString(XML_MAPPING_FILE);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.updateMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+  }
+
+  /**
+   * Test of saveMapping method, of class MappingService.
+   */
+  @Test
+  public void testUpdateMappingWithoutContent() throws IOException {
+    System.out.println("testUpdateMappingWithoutContent");
+    testCreateMapping();
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappingContent = null;
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.updateMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    MappingRecord first = mappingRepo.findAll().get(0);
+    File mappingFile = new File(first.getMappingDocumentUri());
+    assertTrue(mappingFile.exists());
+    mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
+  }
+
+  /**
+   * Test of saveMapping method, of class MappingService.
+   */
+  @Test
+  public void testUpdateMappingWithNoMapping() throws IOException {
+    System.out.println("testUpdateMappingWithNoMapping");
+    testCreateMapping();
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(null);
+    String mappingContent = FileUtil.readAsString(XML_MAPPING_FILE);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.createMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    MappingRecord first = mappingRepo.findAll().get(0);
+    File mappingFile = new File(first.getMappingDocumentUri());
+    assertTrue(mappingFile.exists());
+    mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
+  }
+
+  /**
+   * Test of saveMapping method, of class MappingService.
+   */
+  @Test
+  public void testUpdateMappingWithUnknownMapping() throws IOException {
+    System.out.println("testUpdateMappingWithUnknownMapping");
+    testCreateMapping();
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType("unknownMappingType");
+    String mappingContent = FileUtil.readAsString(XML_MAPPING_FILE);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.createMapping(mappingContent, mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    MappingRecord first = mappingRepo.findAll().get(0);
+    File mappingFile = new File(first.getMappingDocumentUri());
+    assertTrue(mappingFile.exists());
+    mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
+  }
+
+  /**
+   * Test of saveMapping method, of class MappingService.
+   */
+  @Test
+  public void testUpdateMappingTwice() throws IOException, InterruptedException {
+    System.out.println("testUpdateMappingTwice");
+    testUpdateMapping();
+    Thread.sleep(1000);
+    String newMappingContent = "any content";
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    mappingRecord.setMappingType(Mapping.GEMMA.toString());
+    String mappingContent = newMappingContent;
+    assertEquals(1, mappingRepo.count());
+    mappingService.updateMapping(mappingContent, mappingRecord);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(3, new File(TEMP_DIR_4_MAPPING).list().length);
+    MappingRecord first = mappingRepo.findAll().get(0);
+    assertTrue(first.getMappingDocumentUri().contains(MAPPING_ID));
+    assertTrue(first.getMappingDocumentUri().contains(Mapping.GEMMA.toString()));
+    assertTrue(first.getMappingDocumentUri().contains(TEMP_DIR_4_MAPPING));
+    File mappingFile = new File(first.getMappingDocumentUri());
+    assertTrue(mappingFile.exists());
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
   }
 
   /**
@@ -287,12 +423,40 @@ public class MappingServiceTest {
   @Test
   public void testDeleteMapping() throws Exception {
     System.out.println("deleteMapping");
-    String content = "";
-    MappingRecord mappingRecord = null;
-    MappingService instance = null;
-    instance.deleteMapping(content, mappingRecord);
-    // TODO review the generated test code and remove the default call to fail.
-    fail("The test case is a prototype.");
+    testCreateMapping();
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    String mappingContent = FileUtil.readAsString(JSON_MAPPING_FILE);
+    assertEquals(1, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    mappingService.deleteMapping(mappingRecord);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(1, new File(TEMP_DIR_4_MAPPING).list().length);
+    File mappingFile = new File(TEMP_DIR_4_MAPPING).listFiles()[0];
+    assertTrue(mappingFile.exists());
+    assertEquals(mappingContent, FileUtil.readAsString(mappingFile));
+
+  }
+
+  /**
+   * Test of deleteMapping method, of class MappingService.
+   */
+  @Test
+  public void testDeleteNotExistingMapping() throws Exception {
+    System.out.println("testDeleteNotExistingMapping");
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setId(MAPPING_ID);
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+    try {
+      mappingService.deleteMapping(mappingRecord);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    assertEquals(0, mappingRepo.count());
+    assertEquals(0, new File(TEMP_DIR_4_MAPPING).list().length);
+
   }
 
   /**
@@ -301,14 +465,14 @@ public class MappingServiceTest {
   @Test
   public void testExecuteMapping() {
     System.out.println("executeMapping");
-    URI contentUrl = null;
-    String mappingId = "";
-    MappingService instance = null;
-    Optional<Path> expResult = null;
-    Optional<Path> result = instance.executeMapping(contentUrl, mappingId);
-    assertEquals(expResult, result);
-    // TODO review the generated test code and remove the default call to fail.
-    fail("The test case is a prototype.");
+//    URI contentUrl = null;
+//    String mappingId = "";
+//    MappingService instance = null;
+//    Optional<Path> expResult = null;
+//    Optional<Path> result = instance.executeMapping(contentUrl, mappingId);
+//    assertEquals(expResult, result);
+//    // TODO review the generated test code and remove the default call to fail.
+//    fail("The test case is a prototype.");
   }
 
 }
