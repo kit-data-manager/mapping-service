@@ -16,6 +16,7 @@
 package edu.kit.datamanager.indexer.util;
 
 import edu.kit.datamanager.indexer.exception.IndexerException;
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -34,27 +35,26 @@ import static org.junit.Assert.*;
  * @author hartmann-v
  */
 public class IndexerUtilTest {
-  
+
   public IndexerUtilTest() {
   }
-  
+
   @BeforeClass
   public static void setUpClass() {
   }
-  
+
   @AfterClass
   public static void tearDownClass() {
   }
-  
+
   @Before
   public void setUp() {
   }
-  
+
   @After
   public void tearDown() {
   }
 
- 
   /**
    * Test of downloadResource method, of class GemmaMapping.
    */
@@ -63,14 +63,51 @@ public class IndexerUtilTest {
     System.out.println("downloadResource");
     assertNotNull(new IndexerUtil());
     URI resourceURL = new URI("https://www.example.org");
-     Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
+    Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
     assertTrue(result.isPresent());
     assertTrue(result.get().toFile().exists());
     assertTrue(result.get().toFile().delete());
 
-    resourceURL = new URI("https://invalidhttpaddress.de");
-    result = IndexerUtil.downloadResource(resourceURL);
-    assertTrue(!result.isPresent());
+    try {
+      resourceURL = new URI("https://invalidhttpaddress.de");
+      result = IndexerUtil.downloadResource(resourceURL);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+      assertTrue(ie.getMessage().contains("Error downloading resource"));
+    }
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadLocalResource() throws URISyntaxException {
+    System.out.println("downloadResource");
+    URI resourceURL = new File("src/test/resources/examples/gemma/simple.json").toURI();
+    Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
+    assertTrue(result.isPresent());
+    assertTrue(result.get().toFile().exists());
+    assertTrue(result.get().toFile().delete());
+
+    try {
+      resourceURL = new File("/invalid/path/to/local/file").toURI();
+      result = IndexerUtil.downloadResource(resourceURL);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+      assertTrue(ie.getMessage().contains("Error downloading resource"));
+    }
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadResourceNoParameter() throws URISyntaxException {
+    System.out.println("downloadResource");
+    Optional<Path> result = IndexerUtil.downloadResource(null);
+    assertFalse(result.isPresent());
   }
 
   /**
@@ -79,8 +116,8 @@ public class IndexerUtilTest {
   @Test
   public void testCreateTempFile() {
     System.out.println("createTempFile");
-    String[] prefix = {null, null, null,     "",   "", "",       "prefix", "prefix", "prefix"};
-    String[] suffix = {null, "",   "suffix", null, "", "suffix", null,     "",       "suffix"};
+    String[] prefix = {null, null, null, "", "", "", "prefix", "prefix", "prefix"};
+    String[] suffix = {null, "", "suffix", null, "", "suffix", null, "", "suffix"};
     HashSet<String> allPaths = new HashSet<>();
     String path = null;
     for (int index = 0; index < prefix.length; index++) {
@@ -100,9 +137,9 @@ public class IndexerUtilTest {
         assertTrue(tmpFile.endsWith(IndexerUtil.DEFAULT_SUFFIX));
       }
     }
-     for (String filename : allPaths) {
-       IndexerUtil.removeFile(Paths.get(path, filename));
-     }
+    for (String filename : allPaths) {
+      IndexerUtil.removeFile(Paths.get(path, filename));
+    }
   }
 
   /**
@@ -113,8 +150,8 @@ public class IndexerUtilTest {
     System.out.println("removeFile");
     Path createTempFile = IndexerUtil.createTempFile("testRemoveDir", ".txt");
     try {
-    IndexerUtil.removeFile(createTempFile.getParent());
-    assertTrue(false);
+      IndexerUtil.removeFile(createTempFile.getParent());
+      assertTrue(false);
     } catch (IndexerException ie) {
       assertTrue(ie.getMessage().contains("Error removing file"));
     }
@@ -122,5 +159,5 @@ public class IndexerUtilTest {
     IndexerUtil.removeFile(createTempFile);
     assertFalse(createTempFile.toFile().exists());
   }
-  
+
 }

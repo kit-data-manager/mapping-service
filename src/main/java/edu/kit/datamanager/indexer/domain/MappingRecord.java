@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -36,6 +37,7 @@ import org.springframework.http.MediaType;
  */
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
+@IdClass(CompositeKey.class)
 @Data
 public class MappingRecord implements EtagSupport, Serializable {
 
@@ -43,7 +45,8 @@ public class MappingRecord implements EtagSupport, Serializable {
 
   @Id
   @NotBlank(message = "The unique identify of the record.")
-  private String id;
+  private String mappingId;
+  @Id
   @NotBlank(message = "Type of the mapping, e.g. GEMMA, XSLT, handlebars, ....")
   private String mappingType;
   @NotNull(message = "A list of access control entries for resticting access.")

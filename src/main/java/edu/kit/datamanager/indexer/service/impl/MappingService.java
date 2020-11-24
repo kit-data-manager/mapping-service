@@ -19,6 +19,7 @@ import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.exception.IndexerException;
+import edu.kit.datamanager.indexer.mapping.Mapping;
 import edu.kit.datamanager.indexer.mapping.MappingUtil;
 import edu.kit.datamanager.indexer.util.IndexerUtil;
 import java.io.IOException;
@@ -30,8 +31,12 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -83,9 +88,9 @@ public class MappingService {
    * @param mappingRecord record of the mapping
    */
   public void createMapping(String content, MappingRecord mappingRecord) throws IOException {
-    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
+    Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
     if (findMapping.isPresent()) {
-      throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' already exists!");
+      throw new IndexerException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' already exists!");
     }
     saveMappingFile(content, mappingRecord);
     mappingRepo.save(mappingRecord);
@@ -98,9 +103,9 @@ public class MappingService {
    * @param mappingRecord record of the mapping
    */
   public void updateMapping(String content, MappingRecord mappingRecord) throws IOException {
-    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
+    Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
     if (!findMapping.isPresent()) {
-      throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' doesn't exists!");
+      throw new IndexerException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' doesn't exist!");
     }
     saveMappingFile(content, mappingRecord);
     mappingRepo.save(mappingRecord);
@@ -109,45 +114,68 @@ public class MappingService {
   /**
    * Delete mapping file and its record.
    *
-   * @param content Content of the mapping file.
    * @param mappingRecord record of the mapping
    */
-  public void deleteMapping(String content, MappingRecord mappingRecord) throws IOException {
-    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingRecord.getId());
+  public void deleteMapping(MappingRecord mappingRecord) throws IOException {
+    Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
     if (!findMapping.isPresent()) {
-      throw new IndexerException("Error: Mapping '" + mappingRecord.getId() + "' doesn't exists!");
+      throw new IndexerException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' doesn't exist!");
     }
     deleteMappingFile(mappingRecord);
     mappingRepo.delete(mappingRecord);
   }
 
   /**
-   * Save content to mapping file and get the mapping location.
+   * Execute mapping and get the location of result file.
    *
-   * @param content Content of the mapping file.
+   * @param contentUrl Content of the src file.
    * @param mappingId filename of the mapping
+   * @param mappingType type of the mapping.
    *
-   * @return Path to mapping file.
+   * @return Path to result file.
    */
-  public Optional<Path> executeMapping(URI contentUrl, String mappingId) {
+  public Optional<Path> executeMapping(URI contentUrl, String mappingId, String mappingType) {
     Optional<Path> returnValue = Optional.ofNullable(null);
-
-    Optional<MappingRecord> findMapping = mappingRepo.findById(mappingId);
-    if (findMapping.isPresent()) {
-      // create temporary file for content
-      Optional<Path> download = IndexerUtil.downloadResource(contentUrl);
-      if (download.isPresent()) {
-        Path srcFile = download.get();
-        // Get mapping file
-        MappingRecord mappingRecord = findMapping.get();
+    Optional<Path> download = IndexerUtil.downloadResource(contentUrl);
+    MappingRecord mappingRecord = null;
+    if (download.isPresent()) {
+      Path srcFile = download.get();
+      // Get mapping file
+      Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingIdAndMappingType(mappingId, mappingType);
+      if (optionalMappingRecord.isPresent()) {
+        mappingRecord = optionalMappingRecord.get();
         mappingRecord.getMappingDocumentUri();
         Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
         // execute mapping
-        returnValue = mappingUtil.mapFile(mappingFile, srcFile, mappingId);
+        returnValue = mappingUtil.mapFile(mappingFile, srcFile, mappingType);
         // remove downloaded file
         IndexerUtil.removeFile(srcFile);
-      } else {
-        throw new IndexerException("Error: Unknown mapping '" + mappingId + "'!");
+      }
+    } else {
+      String message = contentUrl != null? "Error: Downloading content from '" + contentUrl.toString() + "'!": "Error: No URL provided!"; 
+      throw new IndexerException(message);
+    }
+    return returnValue;
+  }
+
+  /**
+   * Execute mapping(s) and get the location of result file.
+   *
+   * @param contentUrl Content of the src file.
+   * @param mappingId filename of the mapping
+   *
+   * @return List of paths to all result files.
+   */
+  public List<Path> executeMapping(URI contentUrl, String mappingId) {
+    List<Path> returnValue = new ArrayList<>();
+
+    Iterator<MappingRecord> findMapping = mappingRepo.findByMappingId(mappingId).iterator();
+    if (findMapping.hasNext()) {
+      LOGGER.trace("Execute Mapping for '{}', and mapping '{}'.", contentUrl.toString(), mappingId);
+      String mappingType = findMapping.next().getMappingType();
+      Optional<Path> executeMapping = executeMapping(contentUrl, mappingId, mappingType);
+      if (executeMapping.isPresent()) {
+        returnValue.add(executeMapping.get());
       }
     }
     return returnValue;
@@ -182,20 +210,26 @@ public class MappingService {
     Path newMappingFile = null;
     if (mapping != null) {
       try {
+        Mapping.valueOf(mapping.getMappingType());
         // 'delete' old file
         deleteMappingFile(mapping);
-        newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getId() + "_" + mapping.getMappingType() + ".mapping");
+        newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getMappingId() + "_" + mapping.getMappingType() + ".mapping");
         FileUtils.writeStringToFile(newMappingFile.toFile(), content, StandardCharsets.UTF_8);
         mapping.setMappingDocumentUri(newMappingFile.toString());
         byte[] data = content.getBytes();
-        
+
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update(data, 0, data.length);
-        
+
         mapping.setDocumentHash("sha1:" + Hex.encodeHexString(md.digest()));
       } catch (NoSuchAlgorithmException ex) {
-          LOGGER.error("Failed to initialize SHA1 MessageDigest.", ex);
-        throw new IndexerException("Failed to initialize SHA1 MessageDigest.", ex);
+        String message = "Failed to initialize SHA1 MessageDigest.";
+        LOGGER.error(message, ex);
+        throw new IndexerException(message, ex);
+      } catch (IllegalArgumentException iae) {
+        String message = "Error: Unkown mapping! (" + mapping.getMappingType() + ")";
+        LOGGER.error(message, iae);
+        throw new IndexerException(message, iae);
       }
     }
   }

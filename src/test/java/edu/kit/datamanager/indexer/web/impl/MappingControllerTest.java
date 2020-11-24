@@ -129,8 +129,8 @@ public class MappingControllerTest {
     System.out.println("createMapping");
     String mappingContent = FileUtils.readFileToString(new File("src/test/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
     MappingRecord record = new MappingRecord();
-//    record.setId("my_id");
-    record.setId(MAPPING_ID);
+//    record.setMappingId("my_id");
+    record.setMappingId(MAPPING_ID);
     record.setMappingType(MAPPING_TYPE);
     Set<AclEntry> aclEntries = new HashSet<>();
 //    aclEntries.add(new AclEntry("SELF",PERMISSION.READ));

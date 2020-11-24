@@ -93,17 +93,17 @@ public class MappingController implements IMappingController {
 
     LOG.trace("Performing createRecord({},...).", record);
 
-    if ((record.getId() == null) || (record.getMappingType() == null)){
+    if ((record.getMappingId() == null) || (record.getMappingType() == null)){
       LOG.error("Mandatory attribute Id not found in record. Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mandatory attributes mappingType and/or schemaId not found in record.");
     }
 
  
     LOG.trace("Setting random UUID as record id.");
-    record.setId(UUID.randomUUID().toString());
+    record.setMappingId(UUID.randomUUID().toString());
     LOG.debug("Test for existing metadata record for given schema and resource");
     MappingRecord dummy = new MappingRecord();
-    dummy.setId(record.getId());
+    dummy.setMappingId(record.getMappingId());
     Example<MappingRecord> example = Example.of(dummy);
     Optional<MappingRecord> findOne = mappingRecordDao.findOne(example);
     if (findOne.isPresent()) {
@@ -153,7 +153,7 @@ public class MappingController implements IMappingController {
     fixMetadataDocumentUri(record);
 
     URI locationUri;
-    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(record.getId(), null, null)).toUri();
+    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(record.getMappingId(), null, null)).toUri();
 
     LOG.trace("Schema record successfully persisted. Returning result.");
     return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(record);
@@ -268,7 +268,7 @@ public class MappingController implements IMappingController {
     String etag = record.getEtag();
 
     URI locationUri;
-    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(record.getId(), null, null)).toUri();
+    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(record.getMappingId(), null, null)).toUri();
 
     return ResponseEntity.ok().location(locationUri).eTag("\"" + etag + "\"").body(record);
   }
@@ -294,7 +294,7 @@ public class MappingController implements IMappingController {
       URL mappingFolderUrl;
       try {
         mappingFolderUrl = new URL(indexerProperties.getMappingsLocation());
-        Path p = Paths.get(Paths.get(mappingFolderUrl.toURI()).toAbsolutePath().toString(), existingRecord.getId());
+        Path p = Paths.get(Paths.get(mappingFolderUrl.toURI()).toAbsolutePath().toString(), existingRecord.getMappingId());
         LOG.trace("Deleting schema file(s) from path.", p);
         FileUtils.deleteDirectory(p.toFile());
 
@@ -330,9 +330,9 @@ public class MappingController implements IMappingController {
 
   public MappingRecord mergeRecords(MappingRecord managed, MappingRecord provided) {
     if (provided != null) {
-      if (!Objects.isNull(provided.getId())) {
-        LOG.trace("Updating pid from {} to {}.", managed.getId(), provided.getId());
-        managed.setId(provided.getId());
+      if (!Objects.isNull(provided.getMappingId())) {
+        LOG.trace("Updating pid from {} to {}.", managed.getMappingId(), provided.getMappingId());
+        managed.setMappingId(provided.getMappingId());
       }
 
       if (!Objects.isNull(provided.getMappingType())) {
@@ -355,7 +355,7 @@ public class MappingController implements IMappingController {
   }
 
   private void fixMetadataDocumentUri(MappingRecord record) {
-    record.setMappingDocumentUri(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingDocumentById(record.getId(), null, null)).toUri().toString());
+    record.setMappingDocumentUri(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingDocumentById(record.getMappingId(), null, null)).toUri().toString());
   }
 
   private String getUniqueRecordHash(MappingRecord record) {
@@ -363,7 +363,7 @@ public class MappingController implements IMappingController {
     try {
       LOG.trace("Creating metadata record hash.");
       MessageDigest md = MessageDigest.getInstance("SHA1");
-      md.update(record.getId().getBytes(), 0, record.getId().length());
+      md.update(record.getMappingId().getBytes(), 0, record.getMappingId().length());
       md.update(record.getMappingType().getBytes(), 0, record.getMappingType().length());
       hash = Hex.encodeHexString(md.digest());
     } catch (NoSuchAlgorithmException ex) {

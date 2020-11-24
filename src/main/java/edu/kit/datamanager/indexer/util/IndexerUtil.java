@@ -17,6 +17,7 @@ package edu.kit.datamanager.indexer.util;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.indexer.exception.IndexerException;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +33,13 @@ import org.springframework.http.MediaType;
  */
 public class IndexerUtil {
 
-  /** Default value for suffix of temporary files. */
+  /**
+   * Default value for suffix of temporary files.
+   */
   public static final String DEFAULT_SUFFIX = ".tmp";
-  /** Default value for prefix of temporary files. */
+  /**
+   * Default value for prefix of temporary files.
+   */
   public static final String DEFAULT_PREFIX = "IndexerUtil_";
   /**
    * Logger for this class.
@@ -42,8 +47,8 @@ public class IndexerUtil {
   private final static Logger LOGGER = LoggerFactory.getLogger(IndexerUtil.class);
 
   /**
-   * Downloads the file behind the given URI and returns its path on local disc.
-   * You should delete or move to another location afterwards.
+   * Downloads or copy the file behind the given URI and returns its path on
+   * local disc. You should delete or move to another location afterwards.
    *
    * @param resourceURL the given URI
    * @return the path to the created file.
@@ -52,12 +57,22 @@ public class IndexerUtil {
     String content = null;
     Path downloadedFile = null;
     try {
-      content = SimpleServiceClient
-              .create(resourceURL.toString())
-              .accept(MediaType.TEXT_PLAIN)
-              .getResource(String.class);
-      downloadedFile = createTempFile("gemma", "txt");
-      FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
+      if (resourceURL != null) {
+        if (resourceURL.getHost() != null) {
+          content = SimpleServiceClient
+                  .create(resourceURL.toString())
+                  .accept(MediaType.TEXT_PLAIN)
+                  .getResource(String.class);
+          downloadedFile = createTempFile("gemma", "txt");
+          FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
+        } else {
+          // copy local file to new place.
+          File srcFile = new File(resourceURL.getPath());
+          File destFile = IndexerUtil.createTempFile("download", "tmp").toFile();
+          FileUtils.copyFile(srcFile, destFile);
+          downloadedFile = destFile.toPath();
+        }
+      }
     } catch (Throwable tw) {
       LOGGER.error("Error reading URI '" + resourceURL.toString() + "'", tw);
       throw new IndexerException("Error downloading resource from '" + resourceURL.toString() + "'!", tw);
@@ -76,8 +91,8 @@ public class IndexerUtil {
    */
   public static Path createTempFile(String prefix, String suffix) {
     Path tempFile = null;
-    prefix = ((prefix == null)|| (prefix.trim().isEmpty())) ? DEFAULT_PREFIX : prefix;
-    suffix = ((suffix == null) || (suffix.trim().isEmpty()))  ? DEFAULT_SUFFIX : suffix;
+    prefix = ((prefix == null) || (prefix.trim().isEmpty())) ? DEFAULT_PREFIX : prefix;
+    suffix = ((suffix == null) || (suffix.trim().isEmpty())) ? DEFAULT_SUFFIX : suffix;
     try {
       tempFile = Files.createTempFile(prefix, suffix);
     } catch (IOException ioe) {
@@ -87,7 +102,7 @@ public class IndexerUtil {
   }
 
   /**
-   * Remove temporary file. 
+   * Remove temporary file.
    *
    * @param tempFile Path to file
    */
@@ -99,5 +114,4 @@ public class IndexerUtil {
     }
     return;
   }
-
 }

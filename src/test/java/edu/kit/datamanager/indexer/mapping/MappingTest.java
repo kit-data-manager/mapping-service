@@ -70,4 +70,19 @@ public class MappingTest {
     assertEquals(expResult, result);
   }
   
+  /**
+   * Test of valueOf method, of class Mapping.
+   */
+  @Test
+  public void testValueOfInvalidValue() {
+    System.out.println("testValueOfInvalidValue");
+    String string = "Gemma";
+    try {
+      Mapping result = Mapping.valueOf(string);
+      assertTrue(false);
+    } catch (IllegalArgumentException iae) {
+      assertTrue(true);
+    }
+  }
+  
 }
