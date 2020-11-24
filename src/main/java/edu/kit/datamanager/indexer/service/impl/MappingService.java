@@ -107,6 +107,7 @@ public class MappingService {
     if (!findMapping.isPresent()) {
       throw new IndexerException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' doesn't exist!");
     }
+    mappingRecord.setMappingDocumentUri(findMapping.get().getMappingDocumentUri());
     saveMappingFile(content, mappingRecord);
     mappingRepo.save(mappingRecord);
   }
@@ -121,6 +122,7 @@ public class MappingService {
     if (!findMapping.isPresent()) {
       throw new IndexerException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' doesn't exist!");
     }
+    mappingRecord = findMapping.get();
     deleteMappingFile(mappingRecord);
     mappingRepo.delete(mappingRecord);
   }
@@ -208,7 +210,7 @@ public class MappingService {
    */
   private void saveMappingFile(String content, MappingRecord mapping) throws IOException {
     Path newMappingFile = null;
-    if (mapping != null) {
+    if ((content != null) && (mapping != null) && (mapping.getMappingId() != null) && (mapping.getMappingType()!= null)) {
       try {
         Mapping.valueOf(mapping.getMappingType());
         // 'delete' old file
@@ -231,6 +233,8 @@ public class MappingService {
         LOGGER.error(message, iae);
         throw new IndexerException(message, iae);
       }
+    } else {
+      throw new IndexerException("Error saving mapping file! (no content)");
     }
   }
 
