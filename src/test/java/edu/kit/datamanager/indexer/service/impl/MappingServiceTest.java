@@ -74,6 +74,9 @@ public class MappingServiceTest {
   ApplicationProperties applicationProperties;
 
   @Autowired
+  MappingService mappingService;
+
+  @Autowired
   IMappingRecordDao mappingRepo;
 
   @Autowired
