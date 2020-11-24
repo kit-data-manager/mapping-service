@@ -62,11 +62,9 @@ public class MappingUtil {
     int returnCode = FAILURE;
     resultFile = IndexerUtil.createTempFile(mapping + "_", ".mapping");
     try {
-      System.out.println("xxxxxxxxxxxxx" + configuration.getGemmaLocation());
       returnCode = mapFile(mappingFile, srcFile, resultFile, mapping);
     } catch (IndexerException ie) {
-       System.out.println("xxxxxxxxxxxxx" + ie.getMessage());
-     throw ie;
+      throw ie;
     } finally {
       if (returnCode != SUCCESS) {
         IndexerUtil.removeFile(resultFile);

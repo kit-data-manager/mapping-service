@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -36,8 +37,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
- * @author hartmann-v
+ * Tests for MappingUtil
  */
 public class MappingUtilTest {
 
@@ -80,6 +80,7 @@ public class MappingUtilTest {
 
   @Before
   public void setUp() {
+    IMappingTool.toolMapper.clear();
   }
 
   @After
@@ -201,6 +202,9 @@ public class MappingUtilTest {
     MappingUtil instance = new MappingUtil(conf);
     Optional<Path> result;
     result = instance.mapFile(MAPPING_FILE, SRC_FILE, Mapping.GEMMA.name());
+    assertFalse(result.isPresent());
+    Path invalidFile = Paths.get("invalid", "src", "file");
+    result = instance.mapFile(invalidFile, invalidFile, Mapping.GEMMA.name());
     assertFalse(result.isPresent());
     
     // try to map with valid configuration.

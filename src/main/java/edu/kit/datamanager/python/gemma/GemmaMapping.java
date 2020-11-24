@@ -15,19 +15,13 @@
  */
 package edu.kit.datamanager.python.gemma;
 
-import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.mapping.IMappingTool;
 import edu.kit.datamanager.python.util.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import java.io.File;
 import java.nio.file.Path;
-import java.util.Optional;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
 
 /**
  * Utilities class for GEMMA.
@@ -43,8 +37,10 @@ public class GemmaMapping implements IMappingTool {
 
   public GemmaMapping(ApplicationProperties configuration) {
     gemmaConfiguration = new GemmaConfiguration();
-    gemmaConfiguration.setGemmaLocation(configuration.getGemmaLocation());
-    gemmaConfiguration.setPythonLocation(configuration.getPythonLocation());
+    File gemmaFile = new File(configuration.getGemmaLocation());
+    File pythonExecutable = new File(configuration.getPythonLocation());
+    gemmaConfiguration.setGemmaLocation(gemmaFile.getAbsolutePath());
+    gemmaConfiguration.setPythonLocation(pythonExecutable.getAbsolutePath());
   }
 
   /**

@@ -6,6 +6,7 @@
 package edu.kit.datamanager.indexer.dao;
 
 import edu.kit.datamanager.indexer.domain.MappingRecord;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -14,5 +15,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  * @author Torridity
  */
 public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>, JpaSpecificationExecutor<MappingRecord>{
+  Optional<MappingRecord> findByMappingIdAndMappingType(String mappingId, String mappingType);
+  Iterable<MappingRecord> findByMappingId(String mappingId);
   
 }
