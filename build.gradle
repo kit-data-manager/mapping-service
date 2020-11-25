@@ -50,6 +50,14 @@ lombok {
     sha256 = ""
 }
 
+if (project.hasProperty('travis')) {
+    println 'Using travis profile for building ' + project.getName()
+    apply from: 'gradle/profile-travis.gradle'
+} else if (project.hasProperty('release')) {
+    println 'Using release profile for building ' + project.getName()
+    apply from: 'gradle/profile-release.gradle'   
+} 
+
 dependencies {
     implementation "org.javers:javers-spring-boot-starter-sql:3.9.0"
     implementation "org.springframework.boot:spring-boot-starter-data-rest"
