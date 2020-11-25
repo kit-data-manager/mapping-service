@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.indexer.web.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
@@ -82,10 +83,7 @@ public class MappingControllerTest {
   private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/";
   private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
   private static final String MAPPING_ID = "my_dc";
-  private static final String INVALID_SCHEMA = "invalid_dc";
-  private static final String RELATED_RESOURCE = "anyResourceId";
-  private static final String RELATED_RESOURCE_2 = "anyOtherResourceId";
-  private static final String MAPPING_TYPE = "gemma";
+ private static final String MAPPING_TYPE = "GEMMA";
   
   private MockMvc mockMvc;
   @Autowired
@@ -127,7 +125,7 @@ public class MappingControllerTest {
   @Test
   public void testCreateMapping() throws Exception {
     System.out.println("createMapping");
-    String mappingContent = FileUtils.readFileToString(new File("src/test/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
     MappingRecord record = new MappingRecord();
 //    record.setMappingId("my_id");
     record.setMappingId(MAPPING_ID);
@@ -139,11 +137,11 @@ public class MappingControllerTest {
     ObjectMapper mapper = new ObjectMapper();
 
     MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
-    MockMultipartFile metadataFile = new MockMultipartFile("document", mappingContent.getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
-            file(metadataFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*/**/*?version=1")).andReturn();
+            file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*/**/*?version=1")).andReturn();
   }
 
   /**
@@ -152,12 +150,13 @@ public class MappingControllerTest {
   @Test
   public void testGetMappingById() {
     System.out.println("getMappingById");
-    String id = "";
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
     WebRequest wr = null;
     HttpServletResponse hsr = null;
     MappingController instance = new MappingController();
     ResponseEntity<MappingRecord> expResult = null;
-    ResponseEntity<MappingRecord> result = instance.getMappingById(id, wr, hsr);
+    ResponseEntity<MappingRecord> result = instance.getMappingById(mappingId, mappingType, wr, hsr);
     assertEquals(expResult, result);
     // TODO review the generated test code and remove the default call to fail.
     fail("The test case is a prototype.");
@@ -169,12 +168,13 @@ public class MappingControllerTest {
   @Test
   public void testGetMappingDocumentById() {
     System.out.println("getMappingDocumentById");
-    String id = "";
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
     WebRequest wr = null;
     HttpServletResponse hsr = null;
     MappingController instance = new MappingController();
     ResponseEntity expResult = null;
-    ResponseEntity result = instance.getMappingDocumentById(id, wr, hsr);
+    ResponseEntity result = instance.getMappingDocumentById(mappingId, mappingType, wr, hsr);
     assertEquals(expResult, result);
     // TODO review the generated test code and remove the default call to fail.
     fail("The test case is a prototype.");
@@ -202,17 +202,22 @@ public class MappingControllerTest {
    * Test of updateMapping method, of class MappingController.
    */
   @Test
-  public void testUpdateMapping() {
+  public void testUpdateMapping() throws JsonProcessingException {
     System.out.println("updateMapping");
-    String id = "";
-    MappingRecord record = null;
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    MappingRecord record = new MappingRecord();
+    record.setMappingId(mappingId);
+    record.setMappingType(mappingType);
+    ObjectMapper mapper = new ObjectMapper();
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
     MultipartFile document = null;
     WebRequest request = null;
     HttpServletResponse response = null;
     UriComponentsBuilder uriBuilder = null;
     MappingController instance = new MappingController();
     ResponseEntity expResult = null;
-    ResponseEntity result = instance.updateMapping(id, record, document, request, response, uriBuilder);
+    ResponseEntity result = instance.updateMapping(recordFile, document, request, response, uriBuilder);
     assertEquals(expResult, result);
     // TODO review the generated test code and remove the default call to fail.
     fail("The test case is a prototype.");
@@ -224,12 +229,13 @@ public class MappingControllerTest {
   @Test
   public void testDeleteMapping() {
     System.out.println("deleteMapping");
-    String id = "";
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
     WebRequest wr = null;
     HttpServletResponse hsr = null;
     MappingController instance = new MappingController();
     ResponseEntity expResult = null;
-    ResponseEntity result = instance.deleteMapping(id, wr, hsr);
+    ResponseEntity result = instance.deleteMapping(mappingId, mappingType, wr, hsr);
     assertEquals(expResult, result);
     // TODO review the generated test code and remove the default call to fail.
     fail("The test case is a prototype.");
