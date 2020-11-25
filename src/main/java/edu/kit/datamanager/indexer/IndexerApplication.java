@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.python.gemma.GemmaConfiguration;
-import edu.kit.datamanager.indexer.configuration.IndexerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InjectionPoint;
@@ -31,12 +29,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.context.annotation.ComponentScan.Filter;
-import org.springframework.context.annotation.FilterType;
-
-import edu.kit.datamanager.indexer.consumer.DummyConsumer;
-import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
-import edu.kit.datamanager.messaging.client.Application;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -44,6 +36,8 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 @SpringBootApplication
 @EnableScheduling
 @ComponentScan({"edu.kit.datamanager.indexer"})
+// @ComponentScan({"edu.kit.datamanager.indexer", "edu.kit.datamanager.messaging.client"})
+//@ComponentScan({"edu.kit.datamanager.indexer", "edu.kit.datamanager.entities", "edu.kit.datamanager.configuration", "edu.kit.datamanager.messaging.client"})
 public class IndexerApplication {
 
 	@Bean
@@ -67,6 +61,11 @@ public class IndexerApplication {
     return new ApplicationProperties();
   }
 
+//  @Bean
+//  public IMessagingService messagingService(){
+//    return new RabbitMQMessagingService();
+//  }
+//
 	public static void main(String[] args) {
 		ApplicationContext ctx = SpringApplication.run(IndexerApplication.class, args);
 		System.out.println("Indexing service is running!");
