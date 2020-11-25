@@ -15,8 +15,10 @@
  */
 package edu.kit.datamanager.indexer.util;
 
+import com.google.common.io.Files;
 import edu.kit.datamanager.indexer.exception.IndexerException;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -64,13 +66,37 @@ public class IndexerUtilTest {
     assertNotNull(new IndexerUtil());
     URI resourceURL = new URI("https://www.example.org");
     Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
-    assertTrue(result.isPresent());
-    assertTrue(result.get().toFile().exists());
-    assertTrue(result.get().toFile().delete());
+    assertTrue("No file available!", result.isPresent());
+    assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(IndexerUtil.DEFAULT_SUFFIX));
+    assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadResourceWithPath() throws URISyntaxException {
+    System.out.println("downloadResource");
+    assertNotNull(new IndexerUtil());
+    URI resourceURL = new URI("https://www.example.org/index.html");
+    Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
+     assertTrue("No file available!", result.isPresent());
+    assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(".html"));
+    assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadInvalidResource() throws URISyntaxException {
+    System.out.println("testDownloadInvalidResource");
 
     try {
-      resourceURL = new URI("https://invalidhttpaddress.de");
-      result = IndexerUtil.downloadResource(resourceURL);
+      URI resourceURL = new URI("https://invalidhttpaddress.de");
+      Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
       assertTrue(false);
     } catch (IndexerException ie) {
       assertTrue(true);
@@ -82,17 +108,43 @@ public class IndexerUtilTest {
    * Test of downloadResource method, of class GemmaMapping.
    */
   @Test
-  public void testDownloadLocalResource() throws URISyntaxException {
-    System.out.println("downloadResource");
-    URI resourceURL = new File("src/test/resources/examples/gemma/simple.json").toURI();
+  public void testDownloadLocalResource() throws URISyntaxException, IOException {
+    System.out.println("testDownloadLocalResource");
+    File srcFile = new File("src/test/resources/examples/gemma/simple.json");
+    URI resourceURL = srcFile.toURI();
     Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
-    assertTrue(result.isPresent());
-    assertTrue(result.get().toFile().exists());
-    assertTrue(result.get().toFile().delete());
+    assertTrue("No file available!", result.isPresent());
+    assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(".json"));
+    assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
+  }
 
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadLocalResourceWithoutSuffix() throws URISyntaxException, IOException {
+    System.out.println("testDownloadLocalResource");
+    File srcFile = new File("src/test/resources/examples/gemma/simple.json");
+    Path createTempFile = IndexerUtil.createTempFile(null, "nosuffix");
+    Files.copy(srcFile, createTempFile.toFile());
+    Optional<Path> result = IndexerUtil.downloadResource(createTempFile.toUri());
+    assertTrue("No file available!", result.isPresent());
+    assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(IndexerUtil.DEFAULT_SUFFIX));
+    assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
+    assertTrue("Can't delete file '" + createTempFile.toString() + "'!", createTempFile.toFile().delete());
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadInvalidLocalResource() throws URISyntaxException, IOException {
+    System.out.println("testDownloadInvalidLocalResource");
     try {
-      resourceURL = new File("/invalid/path/to/local/file").toURI();
-      result = IndexerUtil.downloadResource(resourceURL);
+      URI resourceURL = new File("/invalid/path/to/local/file").toURI();
+      Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
       assertTrue(false);
     } catch (IndexerException ie) {
       assertTrue(true);
