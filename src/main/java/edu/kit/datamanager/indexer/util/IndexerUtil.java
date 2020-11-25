@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -58,17 +59,19 @@ public class IndexerUtil {
     Path downloadedFile = null;
     try {
       if (resourceURL != null) {
+        String suffix = FilenameUtils.getExtension(resourceURL.getPath());
+        suffix = suffix.trim().isEmpty() ? DEFAULT_SUFFIX : "." + suffix;
         if (resourceURL.getHost() != null) {
           content = SimpleServiceClient
                   .create(resourceURL.toString())
                   .accept(MediaType.TEXT_PLAIN)
                   .getResource(String.class);
-          downloadedFile = createTempFile("gemma", "txt");
+          downloadedFile = createTempFile("download", suffix);
           FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
         } else {
           // copy local file to new place.
           File srcFile = new File(resourceURL.getPath());
-          File destFile = IndexerUtil.createTempFile("download", "tmp").toFile();
+          File destFile = IndexerUtil.createTempFile("local", suffix).toFile();
           FileUtils.copyFile(srcFile, destFile);
           downloadedFile = destFile.toPath();
         }
