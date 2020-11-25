@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import edu.kit.datamanager.entities.EtagSupport;
 import edu.kit.datamanager.indexer.domain.acl.AclEntry;
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Entity;
@@ -57,6 +59,10 @@ public class MappingRecord implements EtagSupport, Serializable {
   @NotBlank(message = "The SHA-1 hash of the associated metadata file. The hash is used for comparison while updating.")
   private String documentHash;
 
+  /**
+   * Set new access control list.
+   * @param newAclList new list with acls.
+   */
   public void setAcl(Set<AclEntry> newAclList) {
     acl.clear();
     acl.addAll(newAclList);
