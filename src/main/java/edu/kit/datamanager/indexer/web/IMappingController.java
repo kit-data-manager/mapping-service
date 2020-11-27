@@ -72,7 +72,7 @@ public interface IMappingController {
             @ApiResponse(responseCode = "200", description = "OK and the record is returned if the record exists and the user has sufficient permission.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
             @ApiResponse(responseCode = "404", description = "Not found is returned, if no record for the provided id or version was found.")})
 
-  @RequestMapping(value = {"/{id}"}, method = {RequestMethod.GET}, produces = {"application/vnd.datamanager.mapping-record+json"})
+  @RequestMapping(value = {"/{mappingId}/{mappingType}"}, method = {RequestMethod.GET}, produces = {"application/vnd.datamanager.mapping-record+json"})
   @ResponseBody
   public ResponseEntity<MappingRecord> getMappingById(
           @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
@@ -116,7 +116,7 @@ public interface IMappingController {
             @ApiResponse(responseCode = "200", description = "OK is returned in case of a successful update, e.g. the record (if provided) was in the correct format and the document (if provided) matches the provided schema id. The updated record is returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
             @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record is invalid or if the validation using the provided schema failed."),
             @ApiResponse(responseCode = "404", description = "Not Found is returned if no record for the provided id or no schema for the provided schema id was found.")})
-  @RequestMapping(value = "/{id}", method = RequestMethod.PUT, produces = {"application/json"})
+  @RequestMapping(value = "/", method = RequestMethod.PUT, produces = {"application/json"})
   @Parameters({
     @Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)
   })
@@ -133,7 +133,7 @@ public interface IMappingController {
           + "In some cases, deleting a record can also be available for the owner or other privileged users or can be forbidden at all. ",
           responses = {
             @ApiResponse(responseCode = "204", description = "No Content is returned as long as no error occurs while deleting a record. Multiple delete operations to the same record will also return HTTP 204 even if the deletion succeeded in the first call.")})
-  @RequestMapping(value = {"/{id}"}, method = {RequestMethod.DELETE})
+  @RequestMapping(value = {"/{mappingId}/{mappingType}"}, method = {RequestMethod.DELETE})
   @Parameters({
     @Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)
   })
