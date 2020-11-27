@@ -19,6 +19,7 @@ import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.service.impl.MappingService;
+import java.util.Iterator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,9 +37,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
-
 /**
-  */
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -48,6 +48,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 })
 @ActiveProfiles("test")
 public class IMappingRecordDaoTest {
+
   @Autowired
   ApplicationProperties applicationProperties;
 
@@ -59,23 +60,24 @@ public class IMappingRecordDaoTest {
 
   public IMappingRecordDaoTest() {
   }
-  
+
   @BeforeClass
   public static void setUpClass() {
   }
-  
+
   @AfterClass
   public static void tearDownClass() {
   }
-  
+
   @Before
   public void setUp() {
+    mappingRepo.deleteAll();
   }
-  
+
   @After
   public void tearDown() {
   }
-    
+
   @Test
   public void testRepo() {
     assertEquals("Number of datasets: ", 0, mappingRepo.count());
@@ -109,67 +111,145 @@ public class IMappingRecordDaoTest {
     }
     assertEquals("Number of datasets: ", 1, mappingRepo.count());
     mappingRecord.setMappingDocumentUri(uri);
-     try {
+    try {
       mappingRepo.save(mappingRecord);
       assertTrue(true);
     } catch (DataIntegrityViolationException dive) {
       assertTrue("No exception expected!", false);
     }
     assertEquals("Number of datasets: ", 1, mappingRepo.count());
-    
+
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
-    
+
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
-    
+
     mappingRecord.setMappingId(id_2);
-     try {
+    try {
       mappingRepo.save(mappingRecord);
       assertTrue(true);
     } catch (DataIntegrityViolationException dive) {
       assertTrue("No exception expected!", false);
     }
     assertEquals("Number of datasets: ", 2, mappingRepo.count());
-    
+
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
-    
+
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
     mappingRecord.setMappingType(mappingType_2);
-     try {
+    try {
       mappingRepo.save(mappingRecord);
       assertTrue(true);
     } catch (DataIntegrityViolationException dive) {
       assertTrue("No exception expected!", false);
     }
     assertEquals("Number of datasets: ", 3, mappingRepo.count());
-    
+
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
-    
+
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
     mappingRecord.setMappingId(id);
-     try {
+    try {
       mappingRepo.save(mappingRecord);
       assertTrue(true);
     } catch (DataIntegrityViolationException dive) {
       assertTrue("No exception expected!", false);
     }
     assertEquals("Number of datasets: ", 4, mappingRepo.count());
-    
+
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
     assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
-    
+
     assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
   }
 
+  @Test
+  public void testFindByMappingId() {
+    assertEquals("Number of datasets: ", 0, mappingRepo.count());
+    String id = "anyId";
+    String mappingType = "anyMappingType";
+    String uri = "anyURI";
+    String id_2 = "anotherId";
+    String mappingType_2 = "anotherMappingType";
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setMappingId(id);
+    mappingRecord.setMappingType(mappingType);
+    try {
+      mappingRepo.save(mappingRecord);
+      assertTrue(true);
+    } catch (DataIntegrityViolationException dive) {
+      assertTrue("No exception expected!", false);
+    }
+    assertEquals("Number of datasets: ", 1, mappingRepo.count());
+    mappingRecord.setMappingDocumentUri(uri);
+    try {
+      mappingRepo.save(mappingRecord);
+      assertTrue(true);
+    } catch (DataIntegrityViolationException dive) {
+      assertTrue("No exception expected!", false);
+    }
+    assertEquals("Number of datasets: ", 1, mappingRepo.count());
 
+    assertTrue(mappingRepo.findByMappingId(id).iterator().hasNext());
+    assertTrue(!mappingRepo.findByMappingId(id_2).iterator().hasNext());
+
+    mappingRecord.setMappingId(id_2);
+    try {
+      mappingRepo.save(mappingRecord);
+      assertTrue(true);
+    } catch (DataIntegrityViolationException dive) {
+      assertTrue("No exception expected!", false);
+    }
+    assertEquals("Number of datasets: ", 2, mappingRepo.count());
+
+    assertTrue(mappingRepo.findByMappingId(id).iterator().hasNext());
+    assertTrue(mappingRepo.findByMappingId(id_2).iterator().hasNext());
+
+    assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
+    mappingRecord.setMappingType(mappingType_2);
+    try {
+      mappingRepo.save(mappingRecord);
+      assertTrue(true);
+    } catch (DataIntegrityViolationException dive) {
+      assertTrue("No exception expected!", false);
+    }
+    assertEquals("Number of datasets: ", 3, mappingRepo.count());
+
+    Iterator iterator4id = mappingRepo.findByMappingId(id).iterator();
+    Iterator iterator4id_2 = mappingRepo.findByMappingId(id_2).iterator();
+    assertTrue(iterator4id.hasNext());
+    iterator4id.next();
+    assertTrue(!iterator4id.hasNext());
+    assertTrue(iterator4id_2.hasNext());
+    iterator4id_2.next();
+    assertTrue(iterator4id_2.hasNext());
+
+    mappingRecord.setMappingId(id);
+    try {
+      mappingRepo.save(mappingRecord);
+      assertTrue(true);
+    } catch (DataIntegrityViolationException dive) {
+      assertTrue("No exception expected!", false);
+    }
+    assertEquals("Number of datasets: ", 4, mappingRepo.count());
+
+    iterator4id = mappingRepo.findByMappingId(id).iterator();
+    iterator4id_2 = mappingRepo.findByMappingId(id_2).iterator();
+    assertTrue(iterator4id.hasNext());
+    iterator4id.next();
+    assertTrue(iterator4id.hasNext());
+    assertTrue(iterator4id_2.hasNext());
+    iterator4id_2.next();
+    assertTrue(iterator4id_2.hasNext());
+  }
 }
