@@ -16,7 +16,6 @@
 package edu.kit.datamanager.indexer.web.impl;
 
 import edu.kit.datamanager.entities.PERMISSION;
-import edu.kit.datamanager.exceptions.CustomInternalServerError;
 import edu.kit.datamanager.exceptions.ResourceNotFoundException;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
@@ -35,21 +34,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
@@ -61,7 +54,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -93,7 +85,7 @@ public class MappingController implements IMappingController {
 
     LOG.trace("Performing createRecord({},...).", record);
 
-     MappingRecord recordDocument;
+    MappingRecord recordDocument;
     try {
       if (record == null || record.isEmpty()) {
         throw new IOException();
@@ -103,9 +95,9 @@ public class MappingController implements IMappingController {
       LOG.error("No metadata record provided. Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No mapping record provided.");
     }
-   if ((recordDocument.getMappingId() == null) || (recordDocument.getMappingType() == null)) {
-     String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
-      LOG.error(message +"Returning HTTP BAD_REQUEST.");
+    if ((recordDocument.getMappingId() == null) || (recordDocument.getMappingType() == null)) {
+      String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
+      LOG.error(message + "Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
@@ -157,7 +149,7 @@ public class MappingController implements IMappingController {
     fixMappingDocumentUri(recordDocument);
 
     URI locationUri;
-    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType(), null, null)).toUri();
+    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType(), null, null, null)).toUri();
 
     LOG.trace("Schema record successfully persisted. Returning result.");
     return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
@@ -167,10 +159,11 @@ public class MappingController implements IMappingController {
   public ResponseEntity<MappingRecord> getMappingById(
           @PathVariable(value = "mappingId") String mappingId,
           @PathVariable(value = "mappingType") String mappingType,
+          Pageable pgbl,
           WebRequest wr,
           HttpServletResponse hsr
   ) {
-    LOG.trace("Performing getMappingById({}).", id);
+    LOG.trace("Performing getMappingById({}, {}).", mappingId, mappingType);
     MappingRecord record = getMappingById(mappingId, mappingType);
     //if security enabled, check permission -> if not matching, return HTTP UNAUTHORIZED or FORBIDDEN
     LOG.trace("Get ETag of MappingRecord.");
@@ -188,9 +181,9 @@ public class MappingController implements IMappingController {
           WebRequest wr,
           HttpServletResponse hsr
   ) {
-    LOG.trace("Performing getMappingDocumentById({}).", id);
+    LOG.trace("Performing getMappingDocumentById({}, {}).", mappingId, mappingType);
 
-    LOG.trace("Obtaining mapping record with id {}.", id);
+    LOG.trace("Obtaining mapping record with id {}/{}.", mappingId, mappingType);
     MappingRecord record = getMappingById(mappingId, mappingType);
 
     URI mappingDocumentUri = URI.create(record.getMappingDocumentUri());
@@ -242,7 +235,7 @@ public class MappingController implements IMappingController {
   ) {
     LOG.trace("Performing updateMapping().", record);
 
-     MappingRecord recordDocument;
+    MappingRecord recordDocument;
     try {
       if (record == null || record.isEmpty()) {
         throw new IOException();
@@ -252,9 +245,9 @@ public class MappingController implements IMappingController {
       LOG.error("No metadata record provided. Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No mapping record provided.");
     }
-   if ((recordDocument.getMappingId() == null) || (recordDocument.getMappingType() == null)) {
-     String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
-      LOG.error(message +"Returning HTTP BAD_REQUEST.");
+    if ((recordDocument.getMappingId() == null) || (recordDocument.getMappingType() == null)) {
+      String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
+      LOG.error(message + "Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
@@ -283,7 +276,7 @@ public class MappingController implements IMappingController {
     String etag = recordDocument.getEtag();
 
     URI locationUri;
-    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType(), null, null)).toUri();
+    locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType(), null, null, null)).toUri();
 
     return ResponseEntity.ok().location(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
   }
@@ -320,8 +313,31 @@ public class MappingController implements IMappingController {
 //  public RestTemplate restTemplate() {
 //    return new RestTemplate();
 //  }
+
   /**
    * Get the record of given id / type.
+   *
+   * @param mappingId mappingId of the mapping
+   * @return record of given id / type.
+   * @throws ResourceNotFoundException Not found.
+   */
+  private List<MappingRecord> getMappingById(String mappingId) throws ResourceNotFoundException {
+    //if security enabled, check permission -> if not matching, return HTTP UNAUTHORIZED or FORBIDDEN
+    LOG.trace("Reading mapping record from database.");
+    Iterable<MappingRecord> record = mappingRecordDao.findByMappingId(mappingId);
+    List<MappingRecord> actualList = new ArrayList<>();
+    record.iterator().forEachRemaining(actualList::add);
+    if (!actualList.isEmpty()) {
+      String message = String.format("No mapping record found for mapping %s. Returning HTTP 404.", mappingId);
+      LOG.error(message);
+      throw new ResourceNotFoundException(message);
+    }
+    return actualList;
+  }
+
+  /**
+   * Get the record of given id / type.
+   *
    * @param mappingId mappingId of the mapping
    * @param mappingType mappingType of the mapping
    * @return record of given id / type.

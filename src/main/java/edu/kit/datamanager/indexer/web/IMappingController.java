@@ -76,7 +76,8 @@ public interface IMappingController {
   @ResponseBody
   public ResponseEntity<MappingRecord> getMappingById(
           @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
-          @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
+          @Parameter(description = "The type of the mapping.", required = false) @PathVariable(value = "mappingType") String mappingType,
+          Pageable pgbl,
           WebRequest wr,
           HttpServletResponse hsr);
 
@@ -101,7 +102,7 @@ public interface IMappingController {
           + "If no parameters are provided, all accessible records are listed. If versioning is enabled, only the most recent version is listed.",
           responses = {
             @ApiResponse(responseCode = "200", description = "OK and a list of records or an empty list of no record matches.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = MappingRecord.class))))})
-  @RequestMapping(value = {"/"}, method = {RequestMethod.GET})
+  @RequestMapping(value = {"/allMappings"}, method = {RequestMethod.GET})
   @PageableAsQueryParam
   @ResponseBody
   public ResponseEntity<List<MappingRecord>> getMappings(
