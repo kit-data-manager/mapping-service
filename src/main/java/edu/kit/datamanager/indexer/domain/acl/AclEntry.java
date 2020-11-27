@@ -33,7 +33,7 @@ import lombok.Data;
  * @author jejkal
  */
 @Entity
-@Table(name = "metadata_acl")
+@Table(name = "indexer_acl")
 @Data
 public class AclEntry{
 
