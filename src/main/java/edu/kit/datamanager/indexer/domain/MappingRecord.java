@@ -42,8 +42,7 @@ import org.springframework.http.MediaType;
 @IdClass(CompositeKey.class)
 @Data
 public class MappingRecord implements EtagSupport, Serializable {
-
-  public final static MediaType METADATA_RECORD_MEDIA_TYPE = MediaType.valueOf("application/vnd.datamanager.metadata-record+json");
+  public final static MediaType MAPPING_RECORD_MEDIA_TYPE = MediaType.valueOf("application/vnd.datamanager.mapping-record+json");
 
   @Id
   @NotBlank(message = "The unique identify of the record.")

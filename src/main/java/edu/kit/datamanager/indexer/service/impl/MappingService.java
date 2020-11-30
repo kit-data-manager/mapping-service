@@ -32,11 +32,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -170,8 +170,9 @@ public class MappingService {
    */
   public List<Path> executeMapping(URI contentUrl, String mappingId) {
     List<Path> returnValue = new ArrayList<>();
-
-    Iterator<MappingRecord> findMapping = mappingRepo.findByMappingId(mappingId).iterator();
+    String noMappingType = null;
+    
+    Iterator<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId),Arrays.asList(noMappingType)).iterator();
     if (findMapping.hasNext()) {
       LOGGER.trace("Execute Mapping for '{}', and mapping '{}'.", contentUrl.toString(), mappingId);
       String mappingType = findMapping.next().getMappingType();
