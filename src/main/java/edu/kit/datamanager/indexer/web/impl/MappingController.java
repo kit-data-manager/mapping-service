@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +54,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -186,7 +188,7 @@ public class MappingController implements IMappingController {
     LOG.trace("Obtaining mapping record with id {}/{}.", mappingId, mappingType);
     MappingRecord record = getMappingById(mappingId, mappingType);
 
-    URI mappingDocumentUri = URI.create(record.getMappingDocumentUri());
+    URI mappingDocumentUri = Paths.get(record.getMappingDocumentUri()).toUri();
 
     Path metadataDocumentPath = Paths.get(mappingDocumentUri);
     if (!Files.exists(metadataDocumentPath) || !Files.isRegularFile(metadataDocumentPath) || !Files.isReadable(metadataDocumentPath)) {
@@ -202,6 +204,8 @@ public class MappingController implements IMappingController {
 
   @Override
   public ResponseEntity<List<MappingRecord>> getMappings(
+          @RequestParam(value = "mappingId", required = false) String mappingId,
+          @RequestParam(value = "mappingType", required = false) String mappingType,
           Pageable pgbl,
           WebRequest wr,
           HttpServletResponse hsr,
@@ -210,7 +214,12 @@ public class MappingController implements IMappingController {
 
     //if security is enabled, include principal in query
     LOG.debug("Performing query for records.");
-    Page<MappingRecord> records = mappingRecordDao.findAll(pgbl);
+    Page<MappingRecord> records;
+    if ((mappingId == null) && (mappingType == null)) {
+      records = mappingRecordDao.findAll(pgbl);
+  } else {
+       records = mappingRecordDao.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(mappingType), pgbl);
+    }
 
     LOG.trace("Cleaning up schemaDocumentUri of query result.");
     List<MappingRecord> recordList = records.getContent();
@@ -226,7 +235,9 @@ public class MappingController implements IMappingController {
 
   @Override
   public ResponseEntity updateMapping(
-          @RequestPart(name = "record", required = true) MultipartFile record,
+          @PathVariable(value = "mappingId", required = true) String mappingId,
+          @PathVariable(value = "mappingType", required = true) String mappingType,
+          @RequestPart(name = "record", required = false) MultipartFile record,
           @RequestPart(name = "document", required = false)
           final MultipartFile document,
           WebRequest request,
@@ -313,27 +324,6 @@ public class MappingController implements IMappingController {
 //  public RestTemplate restTemplate() {
 //    return new RestTemplate();
 //  }
-
-  /**
-   * Get the record of given id / type.
-   *
-   * @param mappingId mappingId of the mapping
-   * @return record of given id / type.
-   * @throws ResourceNotFoundException Not found.
-   */
-  private List<MappingRecord> getMappingById(String mappingId) throws ResourceNotFoundException {
-    //if security enabled, check permission -> if not matching, return HTTP UNAUTHORIZED or FORBIDDEN
-    LOG.trace("Reading mapping record from database.");
-    Iterable<MappingRecord> record = mappingRecordDao.findByMappingId(mappingId);
-    List<MappingRecord> actualList = new ArrayList<>();
-    record.iterator().forEachRemaining(actualList::add);
-    if (!actualList.isEmpty()) {
-      String message = String.format("No mapping record found for mapping %s. Returning HTTP 404.", mappingId);
-      LOG.error(message);
-      throw new ResourceNotFoundException(message);
-    }
-    return actualList;
-  }
 
   /**
    * Get the record of given id / type.
