@@ -36,6 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
@@ -57,7 +58,7 @@ public interface IMappingController {
             @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record or the mappong is invalid."),
             @ApiResponse(responseCode = "409", description = "A Conflict is returned, if there is already a record for the related mapping id.")})
 
-  @RequestMapping(path = "/", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseBody
   public ResponseEntity<MappingRecord> createMapping(
           @Parameter(description = "Json representation of the mapping record.", required = true) @RequestPart(name = "record", required = true) final MultipartFile record,
@@ -76,7 +77,7 @@ public interface IMappingController {
   @ResponseBody
   public ResponseEntity<MappingRecord> getMappingById(
           @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
-          @Parameter(description = "The type of the mapping.", required = false) @PathVariable(value = "mappingType") String mappingType,
+          @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
           Pageable pgbl,
           WebRequest wr,
           HttpServletResponse hsr);
@@ -102,10 +103,12 @@ public interface IMappingController {
           + "If no parameters are provided, all accessible records are listed. If versioning is enabled, only the most recent version is listed.",
           responses = {
             @ApiResponse(responseCode = "200", description = "OK and a list of records or an empty list of no record matches.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = MappingRecord.class))))})
-  @RequestMapping(value = {"/allMappings"}, method = {RequestMethod.GET})
+  @RequestMapping(value = {""}, method = {RequestMethod.GET})
   @PageableAsQueryParam
   @ResponseBody
   public ResponseEntity<List<MappingRecord>> getMappings(
+          @Parameter(description = "The schema linked to the mapping.", required = false) @RequestParam(value = "mappingId") String mappingId,
+          @Parameter(description = "The type of the mapping.", required = false) @RequestParam(value = "mappingType") String mappingType,
           Pageable pgbl,
           WebRequest wr,
           HttpServletResponse hsr,
@@ -117,11 +120,13 @@ public interface IMappingController {
             @ApiResponse(responseCode = "200", description = "OK is returned in case of a successful update, e.g. the record (if provided) was in the correct format and the document (if provided) matches the provided schema id. The updated record is returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
             @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record is invalid or if the validation using the provided schema failed."),
             @ApiResponse(responseCode = "404", description = "Not Found is returned if no record for the provided id or no schema for the provided schema id was found.")})
-  @RequestMapping(value = "/", method = RequestMethod.PUT, produces = {"application/json"})
+  @RequestMapping(value = "/{mappingId}/{mappingType}", method = RequestMethod.PUT, produces = {"application/json"})
   @Parameters({
     @Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)
   })
   ResponseEntity<MappingRecord> updateMapping(
+          @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
+          @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
           @Parameter(description = "JSON representation of the metadata record.", required = false) @RequestPart(name = "record", required = true) final MultipartFile record,
           @Parameter(description = "The metadata document associated with the record. The document must match the schema defined in the record.", required = false) @RequestPart(name = "document", required = false) final MultipartFile document,
           final WebRequest request,
