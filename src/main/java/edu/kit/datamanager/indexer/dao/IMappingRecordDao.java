@@ -6,7 +6,10 @@
 package edu.kit.datamanager.indexer.dao;
 
 import edu.kit.datamanager.indexer.domain.MappingRecord;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -16,6 +19,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  */
 public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>, JpaSpecificationExecutor<MappingRecord>{
   Optional<MappingRecord> findByMappingIdAndMappingType(String mappingId, String mappingType);
-  Iterable<MappingRecord> findByMappingId(String mappingId);
+  Iterable<MappingRecord> findByMappingIdInOrMappingTypeIn(List<String> mappingId, List<String> mappingType);
+  Page<MappingRecord> findByMappingIdInOrMappingTypeIn(List<String> mappingId, List<String> mappingType, Pageable pgbl);
   
 }
