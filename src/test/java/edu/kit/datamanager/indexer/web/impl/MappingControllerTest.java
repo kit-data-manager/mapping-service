@@ -33,12 +33,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +43,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.JUnitRestDocumentation;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -64,12 +61,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.WebRequest;
 
 /**
  */
@@ -132,6 +130,7 @@ public class MappingControllerTest {
   @Test
   public void testCreateMapping() throws Exception {
     System.out.println("createMapping");
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
     String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
     MappingRecord record = new MappingRecord();
 //    record.setMappingId("my_id");
@@ -146,9 +145,11 @@ public class MappingControllerTest {
     MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
     MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
+      Assert.assertEquals(0, mappingsDir.list().length);
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
             file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+      Assert.assertEquals(1, mappingsDir.list().length);
   }
 
   /**
@@ -259,6 +260,7 @@ public class MappingControllerTest {
   @Test
   public void testCreateMappingWithAcl() throws Exception {
     System.out.println("testCreateMappingWithAcl");
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
     String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
     MappingRecord record = new MappingRecord();
 //    record.setMappingId("my_id");
@@ -273,9 +275,11 @@ public class MappingControllerTest {
     MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
     MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
+     Assert.assertEquals(0, mappingsDir.list().length);
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
             file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+     Assert.assertEquals(1, mappingsDir.list().length);
   }
 
   /**
@@ -397,65 +401,442 @@ public class MappingControllerTest {
     }
 
   }
-//
-//  /**
-//   * Test of updateMapping method, of class MappingController.
-//   */
-//  @Test
-//  public void testUpdateMapping() throws JsonProcessingException {
-//    System.out.println("updateMapping");
-//    String mappingId = MAPPING_ID;
-//    String mappingType = MAPPING_TYPE;
-//    MappingRecord record = new MappingRecord();
-//    record.setMappingId(mappingId);
-//    record.setMappingType(mappingType);
-//    ObjectMapper mapper = new ObjectMapper();
-//    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
-//    MultipartFile document = null;
-//    WebRequest request = null;
-//    HttpServletResponse response = null;
-//    UriComponentsBuilder uriBuilder = null;
-//    MappingController instance = new MappingController();
-//    ResponseEntity expResult = null;
-//    ResponseEntity result = instance.updateMapping(recordFile, document, request, response, uriBuilder);
-//    assertEquals(expResult, result);
-//    // TODO review the generated test code and remove the default call to fail.
-//    fail("The test case is a prototype.");
-//  }
-//
-//  /**
-//   * Test of deleteMapping method, of class MappingController.
-//   */
-//  @Test
-//  public void testDeleteMapping() {
-//    System.out.println("deleteMapping");
-//    String mappingId = MAPPING_ID;
-//    String mappingType = MAPPING_TYPE;
-//    WebRequest wr = null;
-//    HttpServletResponse hsr = null;
-//    MappingController instance = new MappingController();
-//    ResponseEntity expResult = null;
-//    ResponseEntity result = instance.deleteMapping(mappingId, mappingType, wr, hsr);
-//    assertEquals(expResult, result);
-//    // TODO review the generated test code and remove the default call to fail.
-//    fail("The test case is a prototype.");
-//  }
-//
-//  /**
-//   * Test of mergeRecords method, of class MappingController.
-//   */
-//  @Test
-//  public void testMergeRecords() {
-//    System.out.println("mergeRecords");
-//    MappingRecord managed = null;
-//    MappingRecord provided = null;
-//    MappingController instance = new MappingController();
-//    MappingRecord expResult = null;
-//    MappingRecord result = instance.mergeRecords(managed, provided);
-//    assertEquals(expResult, result);
-//    // TODO review the generated test code and remove the default call to fail.
-//    fail("The test case is a prototype.");
-//  }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMapping() throws JsonProcessingException, Exception {
+    System.out.println("updateMapping");
+    testCreateMapping();
+     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+   String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    Set<AclEntry> aclEntries = new HashSet<>();
+    aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+    aclEntries.add(new AclEntry("someoneelse", PERMISSION.ADMINISTRATE));
+    record.setAcl(aclEntries);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
+     Assert.assertEquals("Two files expected after update", 2, mappingsDir.list().length);
+    ObjectMapper map = new ObjectMapper();
+    MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
+    Assert.assertNotNull(resultRecord);
+    Assert.assertEquals(mappingId, resultRecord.getMappingId());
+    Assert.assertEquals(mappingType, resultRecord.getMappingType());
+    Assert.assertTrue(resultRecord.getMappingDocumentUri().contains(putMappingIdUrl));
+    result = this.mockMvc.perform(get(resultRecord.getMappingDocumentUri())).andDo(print()).andExpect(status().isOk()).andReturn();
+    String newMapping = result.getResponse().getContentAsString();
+    Assert.assertNotNull(newMapping);
+    Assert.assertEquals("Check for new content: ", mappingContent, newMapping);
+  }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithoutDocument() throws JsonProcessingException, Exception {
+    System.out.println("updateMapping");
+    testCreateMapping();
+      File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+  String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    Set<AclEntry> aclEntries = new HashSet<>();
+    aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+    aclEntries.add(new AclEntry("someoneelse", PERMISSION.ADMINISTRATE));
+    record.setAcl(aclEntries);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
+      Assert.assertEquals("No file update", 1, mappingsDir.list().length);
+   ObjectMapper map = new ObjectMapper();
+    MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
+    Assert.assertNotNull(resultRecord);
+    Assert.assertEquals(mappingId, resultRecord.getMappingId());
+    Assert.assertEquals(mappingType, resultRecord.getMappingType());
+    Assert.assertTrue(resultRecord.getMappingDocumentUri().contains(putMappingIdUrl));
+    result = this.mockMvc.perform(get(resultRecord.getMappingDocumentUri())).andDo(print()).andExpect(status().isOk()).andReturn();
+    String oldMapping = result.getResponse().getContentAsString();
+    Assert.assertNotNull(oldMapping);
+    Assert.assertEquals("Check for new content: ", mappingContent, oldMapping);
+  }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithoutRecord() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithoutRecord");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
+  }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithWrongRecord1() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithWrongRecord1");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    record.setMappingId("somethingelse");
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
+  }
+@Test
+  public void testUpdateMappingWithWrongRecord2() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithWrongRecord2");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    record.setMappingType("somethingelse");
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
+  }
+@Test
+  public void testUpdateMappingWithWrongRecord3() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithWrongRecord3");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + "unknownMaping" + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
+  }
+@Test
+  public void testUpdateMappingWithWrongRecord4() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithWrongRecord4");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId  + "/" + "unknownType";
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
+  }
+
+ 
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithInvalidRecord() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithInvalidRecord");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    record.setMappingId(null);
+    record.setMappingType(null);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
+  }
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithInvalidRecord2() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithInvalidRecord2");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    record.setMappingDocumentUri("/tmp/invalid/path/to/document");
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
+    ObjectMapper map = new ObjectMapper();
+    MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
+    Assert.assertNotNull(resultRecord);
+    Assert.assertEquals(mappingId, resultRecord.getMappingId());
+    Assert.assertEquals(mappingType, resultRecord.getMappingType());
+    Assert.assertTrue(resultRecord.getMappingDocumentUri().contains(putMappingIdUrl));
+    result = this.mockMvc.perform(get(resultRecord.getMappingDocumentUri())).andDo(print()).andExpect(status().isOk()).andReturn();
+    String newMapping = result.getResponse().getContentAsString();
+    Assert.assertNotNull(newMapping);
+    Assert.assertEquals("Check for new content: ", mappingContent, newMapping);
+  }
+ /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithWrongEtag() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithWrongEtag");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = "wrongEtag";
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    Set<AclEntry> aclEntries = new HashSet<>();
+    aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+    aclEntries.add(new AclEntry("someoneelse", PERMISSION.ADMINISTRATE));
+    record.setAcl(aclEntries);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
+  }
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testUpdateMappingWithoutEtag() throws JsonProcessingException, Exception {
+    System.out.println("testUpdateMappingWithoutEtag");
+    testCreateMapping();
+    String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = "notUsed";
+    String body = result.getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+    MappingRecord record = mapper.readValue(body, MappingRecord.class);
+    Set<AclEntry> aclEntries = new HashSet<>();
+    aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+    aclEntries.add(new AclEntry("someoneelse", PERMISSION.ADMINISTRATE));
+    record.setAcl(aclEntries);
+    String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
+
+    MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+    MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+    String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
+            file(recordFile).
+            file(mappingFile).with(putMultipart())).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
+  }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testDeleteMapping() throws JsonProcessingException, Exception {
+    System.out.println("testDeleteMapping");
+    testCreateMapping();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+   String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+
+    String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNoContent()).andReturn();
+     Assert.assertEquals(1, mappingsDir.list().length);
+      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+      Assert.assertNotEquals("File should be renamed: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isNotFound()).andReturn();
+    Assert.assertEquals("Entry should be deleted", 0, mappingRecordDao.count());
+ }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testDeleteMappingUnknownMappingId() throws JsonProcessingException, Exception {
+    System.out.println("testDeleteMappingUnknownMappingId");
+    testCreateMapping();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+   String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+
+    String deleteMappingIdUrl = "/api/v1/mapping/" + "unknownMappingId" + "/" + mappingType;
+    result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
+     Assert.assertEquals(1, mappingsDir.list().length);
+      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+      Assert.assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+ }
+
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testDeleteMappingUnknownMappingType() throws JsonProcessingException, Exception {
+    System.out.println("testDeleteMappingUnknownMappingType");
+    testCreateMapping();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+   String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+
+    String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + "unknownMappingType";
+    result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
+     Assert.assertEquals(1, mappingsDir.list().length);
+      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+      Assert.assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+ }
+  /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testDeleteMappingMissingEtag() throws JsonProcessingException, Exception {
+    System.out.println("testDeleteMappingMissingEtag");
+    testCreateMapping();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+   String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = result.getResponse().getHeader("ETag");
+
+    String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(delete(deleteMappingIdUrl)).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
+     Assert.assertEquals(1, mappingsDir.list().length);
+      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+      Assert.assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+ }
+ /**
+   * Test of updateMapping method, of class MappingController.
+   */
+  @Test
+  public void testDeleteMappingWrongEtag() throws JsonProcessingException, Exception {
+    System.out.println("testDeleteMappingWrongEtag");
+    testCreateMapping();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+   String mappingId = MAPPING_ID;
+    String mappingType = MAPPING_TYPE;
+    String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    String etag = "somethingTotallyWrong";
+
+    String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+    result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
+     Assert.assertEquals(1, mappingsDir.list().length);
+      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+      Assert.assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
+    Assert.assertEquals("Still one entry", 1, mappingRecordDao.count());
+  }
 
   private void create2Mappings() throws Exception {
     System.out.println("createMapping");
@@ -482,6 +863,13 @@ public class MappingControllerTest {
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
             file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+  }
+
+  private static RequestPostProcessor putMultipart() { // it's nice to extract into a helper
+    return (MockHttpServletRequest request) -> {
+      request.setMethod("PUT");
+      return request;
+    };
   }
 
 }

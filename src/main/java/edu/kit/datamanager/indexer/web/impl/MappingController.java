@@ -261,7 +261,13 @@ public class MappingController implements IMappingController {
       LOG.error(message + "Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
-
+    if ((!recordDocument.getMappingId().equals(mappingId)) || (!recordDocument.getMappingType().equals(mappingType))) {
+       String message = "Mandatory attribute mappingId and/or mappingType are not identical to path parameters. "
+               + " (" + recordDocument.getMappingId() + "<-->" + mappingId + ", " + recordDocument.getMappingType() + "<-->" + mappingType + ")";
+      LOG.error(message + "Returning HTTP BAD_REQUEST.");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+     
+    }
     LOG.trace("Obtaining most recent metadata record with id {}.", id);
     MappingRecord existingRecord = getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType());
     //if authorization enabled, check principal -> return HTTP UNAUTHORIZED or FORBIDDEN if not matching
@@ -302,7 +308,7 @@ public class MappingController implements IMappingController {
     LOG.trace("Performing deleteRecord({}).", id);
 
     try {
-      LOG.trace("Obtaining most recent schema record with id {}.", id);
+      LOG.trace("Obtaining most mapping record with {}/{}.", mappingId, mappingType);
       MappingRecord existingRecord = getMappingById(mappingId, mappingType);
       LOG.trace("Checking provided ETag.");
       ControllerUtils.checkEtag(wr, existingRecord);
@@ -312,9 +318,11 @@ public class MappingController implements IMappingController {
 
     } catch (ResourceNotFoundException ex) {
       //exception is hidden for DELETE
-      LOG.debug("No metadata schema with id {} found. Skipping deletion.", id);
+      LOG.debug("No metadata schema with id {}/{} found. Skipping deletion.", mappingId, mappingType);
+      throw ex;
     } catch (IOException ex) {
       LOG.error("Error removing mapping", ex);
+      throw new IndexerException("Unknown error removing map!");
     }
 
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
