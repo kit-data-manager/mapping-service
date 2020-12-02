@@ -81,7 +81,7 @@ public class IndexerUtilTest {
     assertNotNull(new IndexerUtil());
     URI resourceURL = new URI("https://www.example.org/index.html");
     Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
-     assertTrue("No file available!", result.isPresent());
+    assertTrue("No file available!", result.isPresent());
     assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
     assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(".html"));
     assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
@@ -111,6 +111,7 @@ public class IndexerUtilTest {
   public void testDownloadLocalResource() throws URISyntaxException, IOException {
     System.out.println("testDownloadLocalResource");
     File srcFile = new File("src/test/resources/examples/gemma/simple.json");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
     URI resourceURL = srcFile.toURI();
     Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
     assertTrue("No file available!", result.isPresent());
@@ -123,17 +124,51 @@ public class IndexerUtilTest {
    * Test of downloadResource method, of class GemmaMapping.
    */
   @Test
-  public void testDownloadLocalResourceWithoutSuffix() throws URISyntaxException, IOException {
+  public void testDownloadLocalJsonFileWithoutSuffix() throws URISyntaxException, IOException {
     System.out.println("testDownloadLocalResource");
     File srcFile = new File("src/test/resources/examples/gemma/simple.json");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
     Path createTempFile = IndexerUtil.createTempFile(null, "nosuffix");
     Files.copy(srcFile, createTempFile.toFile());
     Optional<Path> result = IndexerUtil.downloadResource(createTempFile.toUri());
     assertTrue("No file available!", result.isPresent());
     assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
-    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(IndexerUtil.DEFAULT_SUFFIX));
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(".json"));
     assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
     assertTrue("Can't delete file '" + createTempFile.toString() + "'!", createTempFile.toFile().delete());
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadLocalXMLFileWithoutSuffix() throws URISyntaxException, IOException {
+    System.out.println("testDownloadLocalResource");
+    File srcFile = new File("src/test/resources/examples/gemma/simple.xml");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
+    Path createTempFile = IndexerUtil.createTempFile(null, "nosuffix");
+    Files.copy(srcFile, createTempFile.toFile());
+    Optional<Path> result = IndexerUtil.downloadResource(createTempFile.toUri());
+    assertTrue("No file available!", result.isPresent());
+    assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(".xml"));
+    assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
+    assertTrue("Can't delete file '" + createTempFile.toString() + "'!", createTempFile.toFile().delete());
+  }
+
+  /**
+   * Test of downloadResource method, of class GemmaMapping.
+   */
+  @Test
+  public void testDownloadLocalResourceWithoutSuffix() throws URISyntaxException, IOException {
+    System.out.println("testDownloadLocalResource");
+    File srcFile = new File("src/test/resources/examples/anyContentWithoutSuffix");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
+    Optional<Path> result = IndexerUtil.downloadResource(srcFile.getAbsoluteFile().toURI());
+    assertTrue("No file available!", result.isPresent());
+    assertTrue("File '" + result.get().toString() + "' doesn't exist!", result.get().toFile().exists());
+    assertTrue("Wrong suffix for file '" + result.get().toString() + "'!", result.get().toString().endsWith(IndexerUtil.DEFAULT_SUFFIX));
+    assertTrue("Can't delete file '" + result.get().toString() + "'!", result.get().toFile().delete());
   }
 
   /**
@@ -210,6 +245,70 @@ public class IndexerUtilTest {
     assertTrue(createTempFile.toFile().exists());
     IndexerUtil.removeFile(createTempFile);
     assertFalse(createTempFile.toFile().exists());
+  }
+
+  /**
+   * Test of fixFileExtension method, of class IndexerUtil.
+   */
+  @Test
+  public void testFixFileExtensionXml() throws IOException {
+    System.out.println("testFixFileExtensionXml");
+    File srcFile = new File("src/test/resources/examples/gemma/simple.xml");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
+    String[] extensions = {"nosuffix", "xml", ".xml ", ".xsd", ".json"};
+    for (String extension : extensions) {
+      Path createTempFile = IndexerUtil.createTempFile(null, extension);
+      Files.copy(srcFile, createTempFile.toFile());
+      Path result = IndexerUtil.fixFileExtension(createTempFile);
+      assertTrue(result.toString().endsWith(".xml"));
+      assertTrue("Can't delete file '" + result.toString() + "'!", result.toFile().delete());
+    }
+  }
+
+  @Test
+  public void testFixFileExtensionJson() throws IOException {
+    System.out.println("testFixFileExtensionJson");
+    File srcFile = new File("src/test/resources/examples/gemma/simple.json");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
+    String[] extensions = {"nosuffix", "json", ".json ", ".xml"};
+    for (String extension : extensions) {
+      Path createTempFile = IndexerUtil.createTempFile(null, extension);
+      Files.copy(srcFile, createTempFile.toFile());
+      Path result = IndexerUtil.fixFileExtension(createTempFile);
+      assertTrue(result.toString().endsWith(".json"));
+      assertTrue("Can't delete file '" + result.toString() + "'!", result.toFile().delete());
+
+    }
+  }
+
+  @Test
+  public void testFixFileExtensionUnknown() throws IOException {
+    System.out.println("testFixFileExtensionUnknown");
+    File srcFile = new File("src/test/resources/examples/anyContentWithoutSuffix");
+    assertTrue("File doesn't exist: " + srcFile.toString(), srcFile.exists());
+    String[] extensions = {"nosuffix", "json", ".json ", ".xml"};
+    for (String extension : extensions) {
+      Path createTempFile = IndexerUtil.createTempFile(null, extension);
+      Files.copy(srcFile, createTempFile.toFile());
+      Path result = IndexerUtil.fixFileExtension(createTempFile);
+      assertTrue(result.toString().endsWith(extension));
+      assertTrue("Can't delete file '" + result.toString() + "'!", result.toFile().delete());
+
+    }
+  }
+
+  @Test
+  public void testFixFileExtensionWrongFile() throws IOException {
+    System.out.println("testFixFileExtensionUnknown");
+    File srcFile = new File("/tmp");
+    Path result = IndexerUtil.fixFileExtension(srcFile.toPath());
+    assertEquals(result, srcFile.toPath());
+    srcFile = new File("/invalid/path/for/file");
+    result = IndexerUtil.fixFileExtension(srcFile.toPath());
+    assertEquals(result, srcFile.toPath());
+    srcFile = null;
+    result = IndexerUtil.fixFileExtension(null);
+    assertNull(result);
   }
 
 }
