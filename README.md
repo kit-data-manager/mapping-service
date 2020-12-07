@@ -26,6 +26,17 @@ You might want to take a look at testbed4inf, which should make it easy to satis
 - an elasticsearch instance
 
 ### Setup
+#### Install Gemma
+```
+sudo apt-get install --assume-yes python3 python3-pip 
+pip3 install xmltodict wget
+```
+
+#### Install and Start Elasticsearch
+```
+docker pull elasticsearch:7.9.3
+docker run -d --name elasticsearch4metastore  -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.9.3
+```
 
 ## More information
 
