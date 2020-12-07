@@ -88,8 +88,11 @@ public class MappingService {
    * @param mappingRecord record of the mapping
    */
   public void createMapping(String content, MappingRecord mappingRecord) throws IOException {
-    Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
-    if (findMapping.isPresent()) {
+    // Right now only one mapping per mappingID is allowed. May change in future.
+    //   Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
+    Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingRecord.getMappingId()), Arrays.asList((String) null));
+    if (findMapping.iterator().hasNext()) {
+      mappingRecord = findMapping.iterator().next();
       throw new IndexerException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' already exists!");
     }
     saveMappingFile(content, mappingRecord);
@@ -128,7 +131,8 @@ public class MappingService {
   }
 
   /**
-   * Execute mapping and get the location of result file.
+   * Execute mapping and get the location of result file. If no according
+   * mapping is found the src file will be returned.
    *
    * @param contentUrl Content of the src file.
    * @param mappingId filename of the mapping
@@ -140,7 +144,9 @@ public class MappingService {
     Optional<Path> returnValue = Optional.ofNullable(null);
     Optional<Path> download = IndexerUtil.downloadResource(contentUrl);
     MappingRecord mappingRecord = null;
+
     if (download.isPresent()) {
+      LOGGER.trace("Execute Mapping for '{}', and mapping '{}/{}'.", contentUrl.toString(), mappingId, mappingType);
       Path srcFile = download.get();
       // Get mapping file
       Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingIdAndMappingType(mappingId, mappingType);
@@ -152,9 +158,11 @@ public class MappingService {
         returnValue = mappingUtil.mapFile(mappingFile, srcFile, mappingType);
         // remove downloaded file
         IndexerUtil.removeFile(srcFile);
+      } else {
+        returnValue = Optional.of(srcFile);
       }
     } else {
-      String message = contentUrl != null? "Error: Downloading content from '" + contentUrl.toString() + "'!": "Error: No URL provided!"; 
+      String message = contentUrl != null ? "Error: Downloading content from '" + contentUrl.toString() + "'!" : "Error: No URL provided!";
       throw new IndexerException(message);
     }
     return returnValue;
@@ -171,16 +179,17 @@ public class MappingService {
   public List<Path> executeMapping(URI contentUrl, String mappingId) {
     List<Path> returnValue = new ArrayList<>();
     String noMappingType = null;
-    
-    Iterator<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId),Arrays.asList(noMappingType)).iterator();
+
+    Iterator<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(noMappingType)).iterator();
+    String mappingType = null;
     if (findMapping.hasNext()) {
-      LOGGER.trace("Execute Mapping for '{}', and mapping '{}'.", contentUrl.toString(), mappingId);
-      String mappingType = findMapping.next().getMappingType();
-      Optional<Path> executeMapping = executeMapping(contentUrl, mappingId, mappingType);
-      if (executeMapping.isPresent()) {
-        returnValue.add(executeMapping.get());
-      }
+      mappingType = findMapping.next().getMappingType();
     }
+    Optional<Path> executeMapping = executeMapping(contentUrl, mappingId, mappingType);
+    if (executeMapping.isPresent()) {
+      returnValue.add(executeMapping.get());
+    }
+
     return returnValue;
   }
 
@@ -211,7 +220,7 @@ public class MappingService {
    */
   private void saveMappingFile(String content, MappingRecord mapping) throws IOException {
     Path newMappingFile = null;
-    if ((content != null) && (mapping != null) && (mapping.getMappingId() != null) && (mapping.getMappingType()!= null)) {
+    if ((content != null) && (mapping != null) && (mapping.getMappingId() != null) && (mapping.getMappingType() != null)) {
       try {
         Mapping.valueOf(mapping.getMappingType());
         // 'delete' old file

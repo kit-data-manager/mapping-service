@@ -413,7 +413,7 @@ public class MappingServiceTest {
    * Test of executeMapping method, of class MappingService.
    */
   @Test
-  public void testExecuteMappingWithWrongMappingId() {
+  public void testExecuteMappingWithWrongMappingId() throws IOException {
     System.out.println("testExecuteMappingWithWrongMappingId");
     URI contentUrl = null;
     String mappingId = "unknownMapping";
@@ -426,9 +426,15 @@ public class MappingServiceTest {
     }
     File srcFile = new File("src/test/resources/examples/gemma/simple.json");
     contentUrl = srcFile.toURI();
-    Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
+    String expectedResult = FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
 
-    assertTrue("No result available", !result.isPresent());
+    Optional<Path> resultPath = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
+
+    assertTrue("Result not available", resultPath.isPresent());
+    assertTrue(resultPath.get().toFile().exists());
+    String result = FileUtils.readFileToString(resultPath.get().toFile(), StandardCharsets.UTF_8);
+    assertEquals("Expected result: ", expectedResult, result);
+    assertTrue(resultPath.get().toFile().delete());
   }
 
   /**
@@ -449,13 +455,20 @@ public class MappingServiceTest {
   }
 
   @Test
-  public void testExecuteMappingWithoutExistingMapping() throws URISyntaxException {
+  public void testExecuteMappingWithoutExistingMapping() throws URISyntaxException, IOException {
     System.out.println("executeMapping");
     File srcFile = new File("src/test/resources/examples/gemma/simple.json");
     URI contentUrl = srcFile.toURI();
     String mappingId = Mapping.GEMMA.name();
-    Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
-    assertTrue("No result available", !result.isPresent());
+    String expectedResult = FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
+
+    Optional<Path> resultPath = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
+
+    assertTrue("Result not available", resultPath.isPresent());
+    assertTrue(resultPath.get().toFile().exists());
+    String result = FileUtils.readFileToString(resultPath.get().toFile(), StandardCharsets.UTF_8);
+    assertEquals("Expected result: ", expectedResult, result);
+    assertTrue(resultPath.get().toFile().delete());
   }
 
   /**
@@ -483,7 +496,8 @@ public class MappingServiceTest {
     assertEquals("Expected result: ", expectedResult, result);
     assertTrue(resultPath.get().toFile().delete());
   }
- @Test
+
+  @Test
   public void testExecuteMappingWithoutgivenMapping() throws URISyntaxException, IOException {
     System.out.println("executeMapping");
     MappingRecord mappingRecord = new MappingRecord();

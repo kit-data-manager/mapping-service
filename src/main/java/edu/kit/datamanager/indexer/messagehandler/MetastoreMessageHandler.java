@@ -23,20 +23,14 @@ import edu.kit.datamanager.indexer.consumer.IConsumerEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
-import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.Template;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
+import edu.kit.datamanager.indexer.exception.IndexerException;
 import edu.kit.datamanager.indexer.service.impl.MappingService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.logging.Level;
-
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,10 +78,17 @@ public class MetastoreMessageHandler implements IMessageHandler {
           URI resourceUri = new URI(resourceUrlAsString);
           
             List<Path> pathWithAllMappings = mappingService.executeMapping(resourceUri, mappingId);
+            if (pathWithAllMappings.isEmpty()) {
+              return RESULT.FAILED;
+            }
           
         } catch (URISyntaxException ex) {
           String errorMessage = String.format("Error downloading content from '%s': %s", resourceUrlAsString, ex.getMessage());
-            LOG.error("Error downloading content from '{}': {}", resourceUrlAsString, ex.getMessage());
+            LOG.error(errorMessage, ex);
+            return RESULT.FAILED;
+        } catch (IndexerException iex) {
+          String errorMessage = String.format("Error while mapping content from '%s': %s", resourceUrlAsString, iex.getMessage());
+            LOG.error(errorMessage, iex);
             return RESULT.FAILED;
         }
            return RESULT.SUCCEEDED;
@@ -98,122 +99,4 @@ public class MetastoreMessageHandler implements IMessageHandler {
         boolean everythingWorks = true;
         return everythingWorks;
     }
-//
-//    /**
-//     * Transforms a given PID to a filename where the record with this PID can be
-//     * stored.
-//     * 
-//     * @param pid the given PID.
-//     * @return if the PID was not empty or null, it will return a filename. Empty
-//     *         otherwise.
-//     */
-//    private Optional<String> pidToFilename(String pid) {
-//        if (pid == null || pid.isEmpty()) {
-//            return Optional.empty();
-//        }
-//        pid = this.pidToSimpleString(pid);
-//        String filename = String.format("%s%s.json", "record", pid);
-//        return Optional.of(filename);
-//    }
-//
-//    private String pidToSimpleString(String pid) {
-//        pid = pid.replace('/', '_');
-//        pid = pid.replace('\\', '_');
-//        pid = pid.replace('|', '_');
-//        pid = pid.replace('.', '_');
-//        pid = pid.replace(':', '_');
-//        pid = pid.replace(',', '_');
-//        pid = pid.replace('%', '_');
-//        pid = pid.replace('!', '_');
-//        pid = pid.replace('$', '_');
-//        return pid;
-//    }
-//
-//    /**
-//     * Downloads the file behind the given URI and returns its content as a string.
-//     * 
-//     * @param resourceURL the given URI
-//     * @return the content of the file (the body of the response) as a string. null
-//     *         if a problem occurred.
-//     */
-//    private Optional<String> downloadResource(String resourceURL) {
-//        URL url;
-//        try {
-//            url = new URL(resourceURL);
-//        } catch (Exception e) {
-//            return Optional.empty();
-//        }
-//        String theResource = SimpleServiceClient
-//            .create(url.toString())
-//            .accept(MediaType.APPLICATION_JSON)
-//            // TODO I think this function actually might throw an exception. Handle?
-//            .getResource(String.class);
-//        return Optional.of(theResource);
-//    }
-//
-//    private Optional<String> uploadToElastic(String json, String document_id) {
-//        String elasticIndex = properties.getElasticIndex();
-//        String typeAndId = String.format("/_doc/%s?pretty", document_id);
-//        try {
-////            URL elasticURL = new URL(properties.getElasticUrl() + elasticIndex + typeAndId);
-////            HttpRequest request = HttpRequest.newBuilder()
-////                .uri(elasticURL.toURI())
-////                .header("Content-Type", "application/json")
-////                .PUT(HttpRequest.BodyPublishers.ofString(json))
-////                .build();
-////            HttpClient client =  HttpClient();
-////            HttpResponse response = client.send(request, HttpResponse.BodyHandlers.ofString());
-//////            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-//            return Optional.of("todo"); //response.body());
-//        } catch (Exception e) {
-//            LOG.error("Could not send to url", e);
-//            return Optional.empty();
-//        }
-//    }
-//
-//    /**
-//     * Stores the given content in a file with the given name within the systems
-//     * temporary directory.
-//     * 
-//     * @param content  the given content
-//     * @param filename the given filename
-//     * @return the absolute path to the stored file on success.
-//     */
-//    private Optional<Path> storeAsTempFile(String content, String filename) {
-//        if (content == null || filename == null) {
-//            LOG.error("Did not receive any resource in the response body. Unable to continue.");
-//            return Optional.empty();
-//        }
-//
-//        File directory = Paths.get(System.getProperty("java.io.tmpdir")).toFile();
-//        File target = new File(directory, filename);
-//        
-//        return this.storeAsFile(content, target);
-//    }
-//
-//    private Optional<Path> storeAsElasticFile(String content, String filename) {
-//        String elastic_dir = System.getProperty("user.dir") + properties.getElasticFilesStorage();
-//
-//        if (content == null || filename == null) {
-//            LOG.error("Did not receive any resource in the response body. Unable to continue.");
-//            return Optional.empty();
-//        }
-//
-//        File directory = Paths.get(elastic_dir).toFile();
-//        File target = new File(directory, filename);
-//        return this.storeAsFile(content, target);
-//    }
-//    
-//    private Optional<Path> storeAsFile(String content, File file) {
-//        Path target_path = Paths.get(file.getAbsolutePath());
-//        try {
-//            LOG.trace("Writing data resource to file {}.", target_path);
-//            FileOutputStream out = new FileOutputStream(file);
-//            out.write(content.getBytes());
-//            out.close();
-//        } catch (Exception e) {
-//            LOG.error("Failed to write data resource to temporary file.", e);
-//        }
-//        return Optional.ofNullable(target_path);
-//    }
 }

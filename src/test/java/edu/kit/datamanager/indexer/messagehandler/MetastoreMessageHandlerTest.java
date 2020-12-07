@@ -19,9 +19,11 @@ import edu.kit.datamanager.entities.messaging.BasicMessage;
 import edu.kit.datamanager.entities.messaging.DataResourceMessage;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
+import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.service.impl.MappingService;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
 import edu.kit.datamanager.util.AuthenticationHelper;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.After;
@@ -59,6 +61,10 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @ActiveProfiles("test")
 public class MetastoreMessageHandlerTest {
 
+  private static final String MAPPING_ID = "schemaID";
+  private static final String UNKNOWN_MAPPING_ID = "anyMappingID";
+  private static final String MAPPING_TYPE = "GEMMA";
+
   @Autowired
   ApplicationProperties applicationProperties;
 
@@ -92,20 +98,43 @@ public class MetastoreMessageHandlerTest {
    */
   @Test
   public void testHandle() {
+    File mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping");
+    File srcFile = new File("src/test/resources/examples/gemma/simple.json");
+    assertTrue(mappingFile.exists());
+    assertTrue(srcFile.exists());
+    MappingRecord mappingRecord = new MappingRecord();
+    mappingRecord.setMappingDocumentUri(mappingFile.getAbsolutePath());
+    mappingRecord.setMappingId(MAPPING_ID);
+    mappingRecord.setMappingType(MAPPING_TYPE);
+    mappingRepo.save(mappingRecord);
     System.out.println("handle");
     Map<String, String> map = new HashMap<>();
     BasicMessage message = new DataResourceMessage();
     message.setMetadata(map);
     message.setAction("CREATE");
     MetastoreMessageHandler instance = new MetastoreMessageHandler(applicationProperties, mappingService4Test);
+    // REJECTED
     RESULT expResult = RESULT.REJECTED;
     RESULT result = instance.handle(message);
     assertEquals(expResult, result);
     map.put("resolvingUrl", "anyUrl");
     result = instance.handle(message);
     assertEquals(expResult, result);
-    map.put("schemaId", "anyId");
-    expResult = RESULT.REJECTED;
+    // FAILED
+    expResult = RESULT.FAILED;
+    map.put("schemaId", MAPPING_ID);
+    result = instance.handle(message);
+    assertEquals(expResult, result);
+    map.put("resolvingUrl", "://invalid.url.any");
+    result = instance.handle(message);
+    assertEquals(expResult, result);
+    // SUCCEEDED
+    expResult = RESULT.SUCCEEDED;
+    map.put("schemaId", UNKNOWN_MAPPING_ID);
+    map.put("resolvingUrl", srcFile.getAbsolutePath());
+    result = instance.handle(message);
+    assertEquals(expResult, result);
+    map.put("schemaId", MAPPING_ID);
     result = instance.handle(message);
     assertEquals(expResult, result);
   }
