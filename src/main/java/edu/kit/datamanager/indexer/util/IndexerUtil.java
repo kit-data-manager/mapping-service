@@ -106,7 +106,7 @@ public class IndexerUtil {
     try {
       if ((pathToFile != null) && (pathToFile.toFile().exists())) {
         String contentOfFile = FileUtils.readFileToString(pathToFile.toFile(), StandardCharsets.UTF_8);
-        String newExtension = guessExtension(contentOfFile.getBytes());
+        String newExtension = guessFileExtension(contentOfFile.getBytes());
         if (newExtension != null) {
           if (!pathToFile.toString().endsWith(newExtension)) {
             renamedFile = Paths.get(pathToFile.toString() + newExtension);
@@ -156,7 +156,7 @@ public class IndexerUtil {
     return;
   }
 
-  private static String guessExtension(byte[] schema) {
+  private static String guessFileExtension(byte[] schema) {
     // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
     int length = schema.length > MAX_LENGTH_OF_HEADER ? MAX_LENGTH_OF_HEADER : schema.length;
     String schemaAsString = new String(schema, 0, length);
