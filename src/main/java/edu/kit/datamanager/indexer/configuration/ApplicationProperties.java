@@ -30,14 +30,34 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Validated
 @EqualsAndHashCode(callSuper = true)
-public class ApplicationProperties extends GenericPluginProperties{
- @Value("${metastore.indexer.gemma.pythonLocation}")
+public class ApplicationProperties extends GenericPluginProperties {
+
+  /**
+   * The absolute path to the python interpreter.
+   */
+  @Value("${metastore.indexer.gemma.pythonLocation}")
   private String pythonLocation;
-
+  /**
+   * The path to the gemma mapping script 'mapping_single.py'
+   */
   @Value("${metastore.indexer.gemma.gemmaLocation}")
- private String gemmaLocation;
-
+  private String gemmaLocation;
+  /**
+   * The absolute path where the mappings are stored.
+   */
   @Value("${metastore.indexer.mappingsLocation}")
- private String mappingsLocation;
+  private String mappingsLocation;
+
+  /**
+   * The base URL of the elasticsearch service, including port.
+   */
+  @Value("${indexer.elastic.baseUrl:http://localhost:9200}")
+  String elasticsearchUrl;
+
+  /**
+   * The elastic index ("database") where the records will be stored into.
+   */
+  @Value("${indexer.elastic.index:kitdm}")
+  String elasticsearchIndex;
 
 }
