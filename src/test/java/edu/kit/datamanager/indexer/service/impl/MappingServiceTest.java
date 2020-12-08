@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -116,12 +117,12 @@ public class MappingServiceTest {
   }
 
   @Test
-  public void testConstructor() {
+  public void testConstructor() throws URISyntaxException {
     assertNotNull(new MappingService(applicationProperties));
   }
 
   @Test
-  public void testConstructorRelativePath() throws IOException {
+  public void testConstructorRelativePath() throws IOException, URISyntaxException {
 //    System.out.println("***********************************************");   
 //    System.out.println("Number of records" + mappingRepo.count());
 //    MappingRecord mappingRecord = new MappingRecord();
@@ -131,10 +132,10 @@ public class MappingServiceTest {
 //     System.out.println("Number of records" + mappingRepo.count());
 //    System.out.println("***********************************************");   
     try {
-      String relativePath = "tmp/relativePath";
+      URL relativePath = new URL("file:tmp/relativePath");
       ApplicationProperties ap = new ApplicationProperties();
       ap.setMappingsLocation(relativePath);
-      File file = new File(relativePath);
+      File file = new File(relativePath.getPath());
       assertFalse(file.exists());
       MappingService ms = new MappingService(ap);
       assertTrue(file.exists());
@@ -146,7 +147,7 @@ public class MappingServiceTest {
   }
 
   @Test
-  public void testConstructorFailing() throws IOException {
+  public void testConstructorFailing() throws IOException, URISyntaxException {
     try {
       new MappingService(null);
       assertTrue(false);
@@ -155,7 +156,7 @@ public class MappingServiceTest {
     }
     try {
       ApplicationProperties ap = new ApplicationProperties();
-      ap.setMappingsLocation("/forbidden");
+      ap.setMappingsLocation(new URL("file:///forbidden"));
       new MappingService(ap);
       assertTrue(false);
     } catch (IndexerException ie) {
@@ -178,10 +179,10 @@ public class MappingServiceTest {
     mappingRecord.setMappingType(mappingType);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(0, mappingsDir.list().length);
-    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), mappingId);
+    Path expResult = Paths.get(applicationProperties.getMappingsLocation().getPath(), mappingId);
     try {
       mappingService4Test.createMapping(content, mappingRecord);
       assertEquals(1, mappingsDir.list().length);
@@ -208,8 +209,8 @@ public class MappingServiceTest {
     mappingRecord.setMappingType(mappingType);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(0, mappingsDir.list().length);
     try {
       mappingService4Test.createMapping(content, mappingRecord);
@@ -237,8 +238,8 @@ public class MappingServiceTest {
     mappingRecord.setMappingType(mappingType);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(0, mappingsDir.list().length);
     try {
       mappingService4Test.createMapping(content, mappingRecord);
@@ -263,10 +264,10 @@ public class MappingServiceTest {
     mappingRecord.setMappingType(mappingType);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(0, mappingsDir.list().length);
-    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), mappingId);
+    Path expResult = Paths.get(applicationProperties.getMappingsLocation().getPath(), mappingId);
     try {
       mappingService4Test.createMapping(content, mappingRecord);
       assertEquals(1, mappingsDir.list().length);
@@ -304,10 +305,10 @@ public class MappingServiceTest {
     mappingRecord.setMappingType(mappingType);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(0, mappingsDir.list().length);
-    Path expResult = Paths.get(applicationProperties.getMappingsLocation(), mappingId);
+    Path expResult = Paths.get(applicationProperties.getMappingsLocation().getPath(), mappingId);
     try {
       mappingService4Test.updateMapping(content, mappingRecord);
       assertTrue(false);
@@ -349,8 +350,8 @@ public class MappingServiceTest {
     MappingRecord mappingRecord = mappingRepo.findAll().get(0);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(1, mappingsDir.list().length);
     File mappingFile = new File(mappingRecord.getMappingDocumentUri());
     try {
@@ -382,8 +383,8 @@ public class MappingServiceTest {
     mappingRecord.setMappingType(mappingType);
 
 //    MappingService instance = new MappingService(applicationProperties);
-    String mappingsLocation = applicationProperties.getMappingsLocation();
-    File mappingsDir = Paths.get(mappingsLocation).toFile();
+    URL mappingsLocation = applicationProperties.getMappingsLocation();
+    File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
     assertEquals(0, mappingsDir.list().length);
     try {
       mappingService4Test.deleteMapping(mappingRecord);

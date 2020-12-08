@@ -22,8 +22,10 @@ import edu.kit.datamanager.indexer.exception.IndexerException;
 import edu.kit.datamanager.indexer.mapping.Mapping;
 import edu.kit.datamanager.indexer.mapping.MappingUtil;
 import edu.kit.datamanager.indexer.util.IndexerUtil;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,7 +78,7 @@ public class MappingService {
   private final static Logger LOGGER = LoggerFactory.getLogger(MappingService.class);
 
   @Autowired
-  public MappingService(ApplicationProperties applicationProperties) {
+  public MappingService(ApplicationProperties applicationProperties) throws URISyntaxException {
     this.applicationProperties = applicationProperties;
     init(applicationProperties);
   }
@@ -189,11 +191,11 @@ public class MappingService {
    *
    * @param applicationProperties Properties holding mapping directory setting.
    */
-  private void init(ApplicationProperties applicationProperties) {
+  private void init(ApplicationProperties applicationProperties) throws URISyntaxException {
     if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
       mappingUtil = new MappingUtil(applicationProperties);
       try {
-        mappingsDirectory = Files.createDirectories(Paths.get(applicationProperties.getMappingsLocation())).toAbsolutePath();
+        mappingsDirectory = Files.createDirectories(new File(applicationProperties.getMappingsLocation().getPath()).getAbsoluteFile().toPath());
       } catch (IOException e) {
         throw new IndexerException("Could not initialize directory '" + applicationProperties.getMappingsLocation() + "' for mapping.", e);
       }

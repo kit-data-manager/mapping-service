@@ -5,6 +5,8 @@
  */
 package edu.kit.datamanager.python.gemma;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,13 +43,13 @@ public class GemmaConfigurationTest {
    * Test of getPythonLocation method, of class GemmaConfiguration.
    */
   @Test
-  public void testSetAndGetPythonLocation() {
+  public void testSetAndGetPythonLocation() throws MalformedURLException {
     System.out.println("getPythonLocation");
     GemmaConfiguration instance = new GemmaConfiguration();
-    String expResult = null;
-    String result = instance.getPythonLocation();
+    URL expResult = null;
+    URL result = instance.getPythonLocation();
     assertEquals(expResult, result);
-    expResult = "pythonLocation";
+    expResult = new URL("file:pythonLocation");
     instance.setPythonLocation(expResult);
     result = instance.getPythonLocation();
     assertEquals(expResult, result);
@@ -57,13 +59,13 @@ public class GemmaConfigurationTest {
    * Test of getGemmaLocation method, of class GemmaConfiguration.
    */
   @Test
-  public void testSetAndGetGemmaLocation() {
+  public void testSetAndGetGemmaLocation() throws MalformedURLException {
     System.out.println("getGemmaLocation");
     GemmaConfiguration instance = new GemmaConfiguration();
-     String expResult = null;
-    String result = instance.getGemmaLocation();
+     URL expResult = null;
+    URL result = instance.getGemmaLocation();
     assertEquals(expResult, result);
-    expResult = "pythonLocation";
+    expResult = new URL("file:pythonLocation");
     instance.setGemmaLocation(expResult);
     result = instance.getGemmaLocation();
     assertEquals(expResult, result);
