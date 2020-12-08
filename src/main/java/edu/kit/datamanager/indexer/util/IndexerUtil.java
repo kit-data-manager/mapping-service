@@ -23,7 +23,11 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -45,7 +49,12 @@ public class IndexerUtil {
   /**
    * Logger for this class.
    */
-  private final static Logger LOGGER = LoggerFactory.getLogger(IndexerUtil.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(IndexerUtil.class);
+
+  private static final int MAX_LENGTH_OF_HEADER = 100;
+
+  private static final Pattern JSON_FIRST_BYTE = Pattern.compile("(\\R\\s)*\\s*\\{\\s*\"(.|\\s)*", Pattern.MULTILINE);//^\\s{\\s*\".*");
+  private static final Pattern XML_FIRST_BYTE = Pattern.compile("((.|\\s)*<\\?xml[^<]*)?\\s*<\\s*(\\w+:)?\\w+(.|\\s)*", Pattern.MULTILINE);
 
   /**
    * Downloads or copy the file behind the given URI and returns its path on
@@ -80,7 +89,36 @@ public class IndexerUtil {
       LOGGER.error("Error reading URI '" + resourceURL.toString() + "'", tw);
       throw new IndexerException("Error downloading resource from '" + resourceURL.toString() + "'!", tw);
     }
+    downloadedFile = fixFileExtension(downloadedFile);
+
     return Optional.ofNullable(downloadedFile);
+  }
+
+  /**
+   * Fix extension of file if possible.
+   *
+   * @param pathToFile the given URI
+   * @return the path to the (renamed) file.
+   */
+  public static Path fixFileExtension(Path pathToFile) {
+    Path returnFile = pathToFile;
+    Path renamedFile = pathToFile;
+    try {
+      if ((pathToFile != null) && (pathToFile.toFile().exists())) {
+        String contentOfFile = FileUtils.readFileToString(pathToFile.toFile(), StandardCharsets.UTF_8);
+        String newExtension = guessFileExtension(contentOfFile.getBytes());
+        if (newExtension != null) {
+          if (!pathToFile.toString().endsWith(newExtension)) {
+            renamedFile = Paths.get(pathToFile.toString() + newExtension);
+            FileUtils.moveFile(pathToFile.toFile(), renamedFile.toFile());
+            returnFile = renamedFile;
+          }
+        }
+      }
+    } catch (IOException ex) {
+      LOGGER.error("Error moving file '{}' to '{}'.", pathToFile.toString(), renamedFile.toString());
+    }
+    return returnFile;
   }
 
   /**
@@ -116,5 +154,23 @@ public class IndexerUtil {
       throw new IndexerException("Error removing file '" + tempFile.toString() + "'!", ioe);
     }
     return;
+  }
+
+  private static String guessFileExtension(byte[] schema) {
+    // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
+    int length = schema.length > MAX_LENGTH_OF_HEADER ? MAX_LENGTH_OF_HEADER : schema.length;
+    String schemaAsString = new String(schema, 0, length);
+    LOGGER.trace("Guess type for '{}'", schemaAsString);
+
+    Matcher m = JSON_FIRST_BYTE.matcher(schemaAsString);
+    if (m.matches()) {
+      return ".json";
+    } else {
+      m = XML_FIRST_BYTE.matcher(schemaAsString);
+      if (m.matches()) {
+        return ".xml";
+      }
+    }
+    return null;
   }
 }
