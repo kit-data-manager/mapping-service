@@ -62,19 +62,4 @@ public class GemmaMapping implements IMappingTool {
      int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
    return returnCode;
   }
-  
-  public static void main(String[] args) throws MalformedURLException, URISyntaxException {
-    URL url = new URL("file:src/main/resources/test.txt");
-    File gemmaFile = new File(url.getPath());
-    System.out.println(gemmaFile.toURI().toString()); 
-    System.out.println(gemmaFile.toURI().toURL().toString()); 
-    System.out.println(gemmaFile.toURI().toURL().getPath().toString()); 
-    gemmaFile = new File(url.getPath());
-    System.out.println(gemmaFile.toURI().toString()); 
-    System.out.println(gemmaFile.toURI().toURL().toString()); 
-    System.out.println(gemmaFile.toURI().toURL().getPath().toString()); 
-     File mappingsDir = Paths.get(url.getPath()).toFile().getAbsoluteFile();
-     System.out.println(mappingsDir.toString());
- }
-
 }
