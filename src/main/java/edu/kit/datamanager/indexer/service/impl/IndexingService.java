@@ -18,14 +18,16 @@ package edu.kit.datamanager.indexer.service.impl;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.exception.IndexerException;
 import edu.kit.datamanager.indexer.mapping.MappingUtil;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +81,7 @@ public class IndexingService {
     if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
       mappingUtil = new MappingUtil(applicationProperties);
       try {
-        mappingsDirectory = Files.createDirectories(Paths.get(applicationProperties.getMappingsLocation())).toAbsolutePath();
+        mappingsDirectory = Files.createDirectories(new File(applicationProperties.getMappingsLocation().getPath()).getAbsoluteFile().toPath());
       } catch (IOException e) {
         throw new IndexerException("Could not initialize directory '" + applicationProperties.getMappingsLocation() + "' for mapping.", e);
       }
@@ -127,7 +129,7 @@ public class IndexingService {
    * @return 
    */
     private boolean uploadToElastic(String jsonDocument, String index, String document_id) {
-        String baseUrl = applicationProperties.getElasticsearchUrl();
+        String baseUrl = applicationProperties.getElasticsearchUrl().toString();
         String ingestUrl = String.format("%s/%s/_doc/{id}", baseUrl, index);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON); 
@@ -138,22 +140,6 @@ public class IndexingService {
                                entity,
                                String.class,
                                urlEncode(document_id));
-//  RestTemplate<String> response = restTemplate.exchange(uriBuilder.toUriString(), HttpMethod.PUT, new HttpEntity<>(jsonDocument, headers), String.class);
-//    collectResponseHeaders(response.getHeaders());
-//    LOGGER.trace("Request returned with status {}. Returning response body.", response.getStatusCodeValue());
-//    return response.getBody();
-//          SimpleServiceClient ssc = SimpleServiceClient.create(ingestUrl);
-//          ssc.
-//            URL elasticURL = new URL(ingestUrl);
-//            HttpRequest request = HttpRequest.Builder()
-//                .uri(elasticURL.toURI())
-//                .header("Content-Type", "application/json")
-//                .PUT(HttpRequest.BodyPublishers.ofString(json))
-//                .build();
-//            HttpClient client =  HttpClient();
-//            HttpResponse response = client.send(request, HttpResponse.BodyHandlers.ofString());
-////            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-//            return Optional.of("todo"); //response.body());
        } catch (Exception e) {
             LOGGER.error("Could not send to url", e);
             return false;
@@ -161,7 +147,7 @@ public class IndexingService {
        return true;
     }
      public ResponseEntity<String> getFromElastic(String index, String document_id) {
-        String baseUrl = applicationProperties.getElasticsearchUrl();
+        String baseUrl = applicationProperties.getElasticsearchUrl().toString();
         String accessUrl = String.format("%s/%s/_doc/{id}", baseUrl, index);
       ResponseEntity<String> entity = restTemplate.getForEntity(accessUrl,
                                                                   String.class,
@@ -189,10 +175,10 @@ public class IndexingService {
     }
     return decodedString;
   }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException {
     ApplicationProperties ap = new ApplicationProperties();
-    ap.setElasticsearchUrl("http://localhost:9200");
-    ap.setMappingsLocation("/tmp/test");
+    ap.setElasticsearchUrl(new URL("http://localhost:9200"));
+    ap.setMappingsLocation(new URL("file:///tmp/test"));
     IndexingService is = new IndexingService(ap);
     is.uploadToElastic("{\"name\" : \"volker\" }", "test", "volker hartmann");
     ResponseEntity<String> fromElastic = is.getFromElastic("test", "volker hartmann");

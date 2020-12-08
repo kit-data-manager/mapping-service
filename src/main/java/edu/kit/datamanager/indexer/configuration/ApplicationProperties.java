@@ -57,8 +57,9 @@ public class ApplicationProperties extends GenericPluginProperties {
   /**
    * The base URL of the elasticsearch service, including port.
    */
+  @edu.kit.datamanager.annotations.ElasticsearchURL
   @Value("${indexer.elastic.baseUrl:http://localhost:9200}")
-  String elasticsearchUrl;
+  URL elasticsearchUrl;
 
   /**
    * The elastic index ("database") where the records will be stored into.
