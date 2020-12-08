@@ -19,7 +19,11 @@ import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.mapping.IMappingTool;
 import edu.kit.datamanager.python.util.*;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +39,12 @@ public class GemmaMapping implements IMappingTool {
   
   GemmaConfiguration gemmaConfiguration;
 
-  public GemmaMapping(ApplicationProperties configuration) {
+  public GemmaMapping(ApplicationProperties configuration) throws URISyntaxException, MalformedURLException {
     gemmaConfiguration = new GemmaConfiguration();
-    File gemmaFile = new File(configuration.getGemmaLocation());
-    File pythonExecutable = new File(configuration.getPythonLocation());
-    gemmaConfiguration.setGemmaLocation(gemmaFile.getAbsolutePath());
-    gemmaConfiguration.setPythonLocation(pythonExecutable.getAbsolutePath());
+    File gemmaFile = new File(configuration.getGemmaLocation().getPath());
+    File pythonExecutable = new File(configuration.getPythonLocation().getPath());
+    gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
+    gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
   }
 
   /**
@@ -55,8 +59,22 @@ public class GemmaMapping implements IMappingTool {
    */
   public int mapFile(Path mappingFile, Path srcFile, Path resultFile){
     LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", srcFile, mappingFile, resultFile);
-     int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation(), gemmaConfiguration.getGemmaLocation(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
+     int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
    return returnCode;
   }
+  
+  public static void main(String[] args) throws MalformedURLException, URISyntaxException {
+    URL url = new URL("file:src/main/resources/test.txt");
+    File gemmaFile = new File(url.getPath());
+    System.out.println(gemmaFile.toURI().toString()); 
+    System.out.println(gemmaFile.toURI().toURL().toString()); 
+    System.out.println(gemmaFile.toURI().toURL().getPath().toString()); 
+    gemmaFile = new File(url.getPath());
+    System.out.println(gemmaFile.toURI().toString()); 
+    System.out.println(gemmaFile.toURI().toURL().toString()); 
+    System.out.println(gemmaFile.toURI().toURL().getPath().toString()); 
+     File mappingsDir = Paths.get(url.getPath()).toFile().getAbsoluteFile();
+     System.out.println(mappingsDir.toString());
+ }
 
 }

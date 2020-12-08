@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,8 +51,8 @@ public class GemmaMappingTest {
           + "  \"Publication Date\": \"2019\"\n"
           + "}";
 
-  private static String PYTHON_EXECUTABLE;
-  private static String GEMMA_CLASS;
+  private static URL PYTHON_EXECUTABLE;
+  private static URL GEMMA_CLASS;
 
   public GemmaMappingTest() {
   }
@@ -70,8 +72,8 @@ public class GemmaMappingTest {
       throw new IOException("Python seems not to be available!");
     }
     System.out.println("Location of python: " + pythonExecutable);
-    PYTHON_EXECUTABLE = pythonExecutable.trim();
-    GEMMA_CLASS = new File("src/test/resources/python/mapping_single.py").getAbsoluteFile().toString();
+    PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).toURI().toURL();
+    GEMMA_CLASS = new File("src/test/resources/python/mapping_single.py").toURI().toURL();
   }
 
   @AfterClass
@@ -100,7 +102,7 @@ public class GemmaMappingTest {
    * Test of mapFile method, of class GemmaMapping.
    */
   @Test
-  public void testRunGemma() throws IOException {
+  public void testRunGemma() throws IOException, URISyntaxException {
     GemmaConfiguration conf = new GemmaConfiguration();
     System.out.println("runGemma");
     Path mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();
@@ -122,7 +124,7 @@ public class GemmaMappingTest {
    * Test of mapFile method, of class GemmaMapping.
    */
   @Test
-  public void testRunGemmaXmlMapping() throws IOException {
+  public void testRunGemmaXmlMapping() throws IOException, URISyntaxException {
     GemmaConfiguration conf = new GemmaConfiguration();
     System.out.println("testRunGemmaXmlMapping");
     Path mappingFile = new File("src/test/resources/mapping/gemma/simple.xml.mapping").getAbsoluteFile().toPath();
@@ -146,7 +148,7 @@ public class GemmaMappingTest {
    * Test of mapFile method, of class GemmaMapping.
    */
   @Test
-  public void testRunGemmaWrongMapping() throws IOException {
+  public void testRunGemmaWrongMapping() throws IOException, URISyntaxException {
     GemmaConfiguration conf = new GemmaConfiguration();
     System.out.println("testRunGemmaWrongMapping");
     Path mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();

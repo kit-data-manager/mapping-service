@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
@@ -39,8 +40,8 @@ import static org.junit.Assert.*;
  */
 public class IMappingToolTest {
 
-  private static String PYTHON_EXECUTABLE;
-  private static String GEMMA_CLASS;
+  private static URL PYTHON_EXECUTABLE;
+  private static URL GEMMA_CLASS;
 
   private static final String RESULT = "{\n"
           + "  \"Publisher\": \"The publisher\",\n"
@@ -65,8 +66,8 @@ public class IMappingToolTest {
       throw new IOException("Python seems not to be available!");
     }
     System.out.println("Location of python: " + pythonExecutable);
-    PYTHON_EXECUTABLE = pythonExecutable.trim();
-    GEMMA_CLASS = new File("src/test/resources/python/mapping_single.py").getAbsoluteFile().toString();
+    PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).getAbsoluteFile().toURI().toURL();
+    GEMMA_CLASS = new URL("file:src/test/resources/python/mapping_single.py");
   }
 
   @AfterClass

@@ -16,6 +16,7 @@
 package edu.kit.datamanager.indexer.configuration;
 
 import edu.kit.datamanager.configuration.GenericPluginProperties;
+import java.net.URL;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,13 +32,16 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @EqualsAndHashCode(callSuper = true)
 public class ApplicationProperties extends GenericPluginProperties{
+  @edu.kit.datamanager.annotations.ExecutableFileURL
  @Value("${metastore.indexer.gemma.pythonLocation}")
-  private String pythonLocation;
+  private URL pythonLocation;
 
+  @edu.kit.datamanager.annotations.LocalFileURL
   @Value("${metastore.indexer.gemma.gemmaLocation}")
- private String gemmaLocation;
+ private URL gemmaLocation;
 
+  @edu.kit.datamanager.annotations.LocalFolderURL
   @Value("${metastore.indexer.mappingsLocation}")
- private String mappingsLocation;
+ private URL mappingsLocation;
 
 }
