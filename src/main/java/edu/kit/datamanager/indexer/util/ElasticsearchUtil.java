@@ -68,8 +68,4 @@ public class ElasticsearchUtil {
     return validElasticSearchServer;
   }
 
-  public static void main(String[] args) throws MalformedURLException {
-    ElasticsearchUtil.testForElasticsearch(new URL("http://localhost:9200"));
-  }
-
 }
