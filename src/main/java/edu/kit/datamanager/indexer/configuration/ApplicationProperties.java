@@ -31,17 +31,39 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Validated
 @EqualsAndHashCode(callSuper = true)
-public class ApplicationProperties extends GenericPluginProperties{
+public class ApplicationProperties extends GenericPluginProperties {
+
+  /**
+   * The absolute path to the python interpreter.
+   */
   @edu.kit.datamanager.annotations.ExecutableFileURL
- @Value("${metastore.indexer.gemma.pythonLocation}")
+  @Value("${metastore.indexer.gemma.pythonLocation}")
   private URL pythonLocation;
 
+  /**
+   * The path to the gemma mapping script 'mapping_single.py'
+   */
   @edu.kit.datamanager.annotations.LocalFileURL
   @Value("${metastore.indexer.gemma.gemmaLocation}")
- private URL gemmaLocation;
+  private URL gemmaLocation;
 
+  /**
+   * The absolute path where the mappings are stored.
+   */
   @edu.kit.datamanager.annotations.LocalFolderURL
   @Value("${metastore.indexer.mappingsLocation}")
- private URL mappingsLocation;
+  private URL mappingsLocation;
+
+  /**
+   * The base URL of the elasticsearch service, including port.
+   */
+  @Value("${indexer.elastic.baseUrl:http://localhost:9200}")
+  String elasticsearchUrl;
+
+  /**
+   * The elastic index ("database") where the records will be stored into.
+   */
+  @Value("${indexer.elastic.index:kitdm}")
+  String elasticsearchIndex;
 
 }
