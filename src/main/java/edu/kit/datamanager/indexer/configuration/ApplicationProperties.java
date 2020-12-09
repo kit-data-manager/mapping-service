@@ -16,6 +16,7 @@
 package edu.kit.datamanager.indexer.configuration;
 
 import edu.kit.datamanager.configuration.GenericPluginProperties;
+import java.net.URL;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,24 +36,30 @@ public class ApplicationProperties extends GenericPluginProperties {
   /**
    * The absolute path to the python interpreter.
    */
+  @edu.kit.datamanager.annotations.ExecutableFileURL
   @Value("${metastore.indexer.gemma.pythonLocation}")
-  private String pythonLocation;
+  private URL pythonLocation;
+
   /**
    * The path to the gemma mapping script 'mapping_single.py'
    */
+  @edu.kit.datamanager.annotations.LocalFileURL
   @Value("${metastore.indexer.gemma.gemmaLocation}")
-  private String gemmaLocation;
+  private URL gemmaLocation;
+
   /**
    * The absolute path where the mappings are stored.
    */
+  @edu.kit.datamanager.annotations.LocalFolderURL
   @Value("${metastore.indexer.mappingsLocation}")
-  private String mappingsLocation;
+  private URL mappingsLocation;
 
   /**
    * The base URL of the elasticsearch service, including port.
    */
+  @edu.kit.datamanager.annotations.ElasticsearchURL
   @Value("${indexer.elastic.baseUrl:http://localhost:9200}")
-  String elasticsearchUrl;
+  URL elasticsearchUrl;
 
   /**
    * The elastic index ("database") where the records will be stored into.

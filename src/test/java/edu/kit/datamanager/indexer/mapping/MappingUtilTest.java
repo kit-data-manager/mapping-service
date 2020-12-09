@@ -18,12 +18,12 @@ package edu.kit.datamanager.indexer.mapping;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.exception.IndexerException;
 import edu.kit.datamanager.indexer.util.IndexerUtil;
-import edu.kit.datamanager.python.gemma.GemmaMapping;
 import edu.kit.datamanager.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,8 +41,8 @@ import static org.junit.Assert.*;
  */
 public class MappingUtilTest {
 
-  private static String PYTHON_EXECUTABLE;
-  private static String GEMMA_CLASS;
+  private static URL PYTHON_EXECUTABLE;
+  private static URL GEMMA_CLASS;
 
   private final static Path MAPPING_FILE = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();
   private final static Path SRC_FILE = new File("src/test/resources/examples/gemma/simple.json").getAbsoluteFile().toPath();
@@ -70,8 +70,8 @@ public class MappingUtilTest {
       throw new IOException("Python seems not to be available!");
     }
     System.out.println("Location of python: " + pythonExecutable);
-    PYTHON_EXECUTABLE = pythonExecutable.trim();
-    GEMMA_CLASS = new File("src/test/resources/python/mapping_single.py").getAbsoluteFile().toString();
+    PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).getAbsoluteFile().toURI().toURL();
+    GEMMA_CLASS = new URL("file:src/test/resources/python/mapping_single.py");
   }
 
   @AfterClass
@@ -197,7 +197,7 @@ public class MappingUtilTest {
     System.out.println("mapFile");
     ApplicationProperties conf = new ApplicationProperties();
     // try to map with invalid configuration
-    conf.setGemmaLocation("/tmp/invalid_class.py");
+    conf.setGemmaLocation(new URL("file:///tmp/invalid_class.py"));
     conf.setPythonLocation(PYTHON_EXECUTABLE);
     MappingUtil instance = new MappingUtil(conf);
     Optional<Path> result;
