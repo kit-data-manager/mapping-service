@@ -1,5 +1,9 @@
 # Indexing-service
 
+[![Build Status](https://travis-ci.com/kit-data-manager/indexing-service.svg?branch=master)](https://travis-ci.com/kit-data-manager/indexing-service)
+[![Coverage Status](https://coveralls.io/repos/github/kit-data-manager/indexing-service/badge.svg?branch=master)](https://coveralls.io/github/kit-data-manager/indexing-service?branch=master)
+![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)
+
 A standalone service which receives messages about changes in pid records, maps them to a common format and ingests them into engines like elasticsearch.
 
 ![Visualization of use case structure.](use-case.drawio.svg)
