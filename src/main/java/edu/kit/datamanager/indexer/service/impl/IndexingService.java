@@ -19,16 +19,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.exception.IndexerException;
-import edu.kit.datamanager.indexer.mapping.MappingUtil;
 import edu.kit.datamanager.indexer.util.ElasticsearchUtil;
-import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +45,13 @@ public class IndexingService {
    * Instance holding all settings.
    */
   private final ApplicationProperties applicationProperties;
-
+  /**
+   * Template for REST calls.
+   */
   private RestTemplate restTemplate = new RestTemplate();
-
+  /**
+   * Base URL to elasticsearch server.
+   */
   private String baseUrl;
 
   /**
@@ -61,6 +59,11 @@ public class IndexingService {
    */
   private final static Logger LOGGER = LoggerFactory.getLogger(IndexingService.class);
 
+  /**
+   * Constructor
+   *
+   * @param applicationProperties configuration for service.
+   */
   @Autowired
   public IndexingService(ApplicationProperties applicationProperties) {
     this.applicationProperties = applicationProperties;
@@ -83,36 +86,6 @@ public class IndexingService {
     }
   }
 
-//    /**
-//     * Transforms a given PID to a filename where the record with this PID can be
-//     * stored.
-//     * 
-//     * @param pid the given PID.
-//     * @return if the PID was not empty or null, it will return a filename. Empty
-//     *         otherwise.
-//     */
-//    private Optional<String> pidToFilename(String pid) {
-//        if (pid == null || pid.isEmpty()) {
-//            return Optional.empty();
-//        }
-////        pid = this.pidToSimpleString(pid);
-//        String filename = String.format("%s%s.json", "record", pid);
-//        return Optional.of(filename);
-//    }
-//
-//    private String pidToSimpleString(String pid) {
-//        pid = pid.replace('/', '_');
-//        pid = pid.replace('\\', '_');
-//        pid = pid.replace('|', '_');
-//        pid = pid.replace('.', '_');
-//        pid = pid.replace(':', '_');
-//        pid = pid.replace(',', '_');
-//        pid = pid.replace('%', '_');
-//        pid = pid.replace('!', '_');
-//        pid = pid.replace('$', '_');
-//        return pid;
-//    }
-//
   /**
    * Upload a document to elasticsearch.
    *
@@ -122,7 +95,20 @@ public class IndexingService {
    * @return
    */
   public boolean uploadToElastic(String jsonDocument, String index, String document_id) {
-    String ingestUrl = String.format("%s/%s/_doc/{id}", baseUrl, index);
+    return uploadToElastic(jsonDocument, index, "_doc", document_id);
+  }
+
+  /**
+   * Upload a document to elasticsearch.
+   *
+   * @param jsonDocument JSON document
+   * @param index index of the document (one index per schema)
+   * @param type type of the document
+   * @param document_id id of the document
+   * @return
+   */
+  public boolean uploadToElastic(String jsonDocument, String index, String type, String document_id) {
+    String ingestUrl = String.format("%s/%s/%s/{id}", baseUrl, type, index);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<String> entity = new HttpEntity<String>(jsonDocument, headers);
@@ -139,6 +125,14 @@ public class IndexingService {
     return true;
   }
 
+  /**
+   * Read document from elasticsearch server with given index and document_id.
+   * document_id will be urlencoded before get is executed.
+   *
+   * @param index index of the document
+   * @param document_id id of the document
+   * @return response from server.
+   */
   public ResponseEntity<String> getFromElastic(String index, String document_id) {
     String accessUrl = String.format("%s/%s/_doc/{id}", baseUrl, index);
     ResponseEntity<String> entity = restTemplate.getForEntity(accessUrl,
@@ -149,10 +143,15 @@ public class IndexingService {
     return entity;
   }
 
+  /**
+   * Extract document from the response from elasticsearch server.
+   *
+   * @param response response of server.
+   * @return String containing document if available. (null otherwise)
+   */
   public String getDocumentFromResponse(ResponseEntity<String> response) {
     String jsonDocument = null;
     if (response.getStatusCode() == HttpStatus.OK) {
-      System.out.println("++++" + response.getBody() + "++++++");
       JsonObject jsonObject = new Gson().fromJson(response.getBody(), JsonObject.class);
 
       jsonDocument = jsonObject.getAsJsonObject("_source").toString();
@@ -160,6 +159,12 @@ public class IndexingService {
     return jsonDocument;
   }
 
+  /**
+   * Encode string for URL.
+   *
+   * @param forbiddenString String to encode.
+   * @return encoded string.
+   */
   private String urlEncode(String forbiddenString) {
     String encodedString = forbiddenString;
     try {
@@ -170,13 +175,19 @@ public class IndexingService {
     return encodedString;
   }
 
-  private String urlDecode(String urlEncodedString) {
-    String decodedString = urlEncodedString;
-    try {
-      decodedString = URLDecoder.decode(urlEncodedString, StandardCharsets.UTF_8.toString());
-    } catch (UnsupportedEncodingException ex) {
-      LOGGER.error(null, ex);
-    }
-    return decodedString;
-  }
+//  /**
+//   * Decode string from URL
+//   *
+//   * @param urlEncodedString String to decode.
+//   * @return decoded string.
+//   */
+//  private String urlDecode(String urlEncodedString) {
+//    String decodedString = urlEncodedString;
+//    try {
+//      decodedString = URLDecoder.decode(urlEncodedString, StandardCharsets.UTF_8.toString());
+//    } catch (UnsupportedEncodingException ex) {
+//      LOGGER.error(null, ex);
+//    }
+//    return decodedString;
+//  }
 }

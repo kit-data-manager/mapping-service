@@ -15,7 +15,7 @@
  */
 package edu.kit.datamanager.indexer.util;
 
-import java.net.MalformedURLException;
+import edu.kit.datamanager.validator.ElasticsearchIndexValidator;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +66,24 @@ public class ElasticsearchUtil {
       }
     }
     return validElasticSearchServer;
+  }
+
+  /**
+   * Test if string is a valid elasticsearch index. If not - change to lower
+   * case - replace all invalid characters by '_'
+   *
+   * @param elasticsearchIndex
+   * @return valid index
+   */
+  public static String testForValidIndex(String elasticsearchIndex) {
+    String validIndex = elasticsearchIndex;
+    
+    boolean valid = new ElasticsearchIndexValidator().isValid(validIndex, null);
+    if (!valid) {
+      String pattern = "[" + ElasticsearchIndexValidator.SPECIAL_CHARACTERS + "]";
+      validIndex = validIndex.toLowerCase().replaceAll(pattern, "_");
+    }
+    return validIndex;
   }
 
 }

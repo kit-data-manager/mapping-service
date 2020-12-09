@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 public class ElasticsearchIndexValidator implements ConstraintValidator<ElasticsearchIndex, String> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchIndexValidator.class);
+  
+  public static final String SPECIAL_CHARACTERS = "  \"*\\<|,>/?{}\\[\\]`A-Z";
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
@@ -38,12 +40,11 @@ public class ElasticsearchIndexValidator implements ConstraintValidator<Elastics
       return validElasticsearchIndex;
     }
     // index mustn't contain the following special character;
-    String specialCharacters = "  \"*\\<|,>/?{}\\[\\]`A-Z";
-    Pattern p = Pattern.compile("[" + specialCharacters + "]");
+    Pattern p = Pattern.compile("[" + SPECIAL_CHARACTERS + "]");
     Matcher m = p.matcher(value);
 
     if (m.find()) {
-      LOGGER.error("Index must not contain one of the following characters: '{}'!", specialCharacters);
+      LOGGER.error("Index must not contain one of the following characters: '{}'!", SPECIAL_CHARACTERS);
     } else {
       validElasticsearchIndex = true;
     }

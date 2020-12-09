@@ -66,6 +66,13 @@ public class ApplicationProperties extends GenericPluginProperties {
    */
   @edu.kit.datamanager.annotations.ElasticsearchIndex
   @Value("${metastore.indexer.elastic.index:kitdm}")
+  String elasticsearchIndex;
+
+  /**
+   * The elasticsearch type of the document.
+   */
+  @edu.kit.datamanager.annotations.ElasticsearchIndex
+  @Value("${metastore.indexer.elastic.type:_doc}")
   String elasticsearchType;
 
 }
