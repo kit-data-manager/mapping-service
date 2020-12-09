@@ -78,6 +78,21 @@ public class IndexingServiceTest {
     } catch (IndexerException ie) {
       assertTrue(true);
     }
+    ap.setElasticsearchUrl(new URL("http://localhost:9200/"));
+    try {
+      new IndexingService(ap);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    ap.setElasticsearchUrl(new URL("http://localhost:9200/"));
+    try {
+      new IndexingService(ap);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    // Test with correct values
     ap.setElasticsearchUrl(new URL("http://localhost:9200"));
     try {
       assertNotNull(new IndexingService(ap));

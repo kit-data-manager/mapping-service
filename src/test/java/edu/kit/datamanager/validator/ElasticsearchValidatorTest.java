@@ -95,6 +95,7 @@ public class ElasticsearchValidatorTest {
   @Test
   public void testIsNotURL() throws MalformedURLException {
     System.out.println("testIsNotURL");
+    // space is not allowed
     URL value = new URL("file: src/test/resources/examples/gemma/simple.json");
     ConstraintValidatorContext context = null;
     ElasticsearchValidator instance = new ElasticsearchValidator();

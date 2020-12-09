@@ -52,9 +52,8 @@ public class IndexingService {
    */
   private final ApplicationProperties applicationProperties;
 
-  
   private RestTemplate restTemplate = new RestTemplate();
-  
+
   private String baseUrl;
 
   /**
@@ -74,12 +73,13 @@ public class IndexingService {
    * @param applicationProperties Properties holding mapping directory setting.
    */
   private void init(ApplicationProperties applicationProperties) {
-    if ((applicationProperties != null) && (applicationProperties.getElasticsearchUrl()!= null)) {
-      boolean testForElasticsearch = ElasticsearchUtil.testForElasticsearch(applicationProperties.getElasticsearchUrl());
+    boolean testForElasticsearch = false;
+    if ((applicationProperties != null) && (applicationProperties.getElasticsearchUrl() != null)) {
+      testForElasticsearch = ElasticsearchUtil.testForElasticsearch(applicationProperties.getElasticsearchUrl());
       baseUrl = applicationProperties.getElasticsearchUrl().toString();
-      if (!testForElasticsearch) {
-        throw new IndexerException("Could not connect to elasticsearch using URL '" + baseUrl + "'!");
-      }
+    }
+    if (!testForElasticsearch) {
+      throw new IndexerException("Could not connect to elasticsearch using URL '" + baseUrl + "'!");
     }
   }
 
@@ -154,7 +154,7 @@ public class IndexingService {
     if (response.getStatusCode() == HttpStatus.OK) {
       System.out.println("++++" + response.getBody() + "++++++");
       JsonObject jsonObject = new Gson().fromJson(response.getBody(), JsonObject.class);
-      
+
       jsonDocument = jsonObject.getAsJsonObject("_source").toString();
     }
     return jsonDocument;
