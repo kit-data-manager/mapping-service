@@ -8,6 +8,10 @@ build/
 ### Spring boot ###
 **/application.properties
 
+### Gemma/python ###
+gemma
+**/__pycache__
+
 ### STS ###
 .apt_generated
 .classpath
