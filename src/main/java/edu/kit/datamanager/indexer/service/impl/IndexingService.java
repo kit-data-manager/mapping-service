@@ -108,7 +108,7 @@ public class IndexingService {
    * @return
    */
   public boolean uploadToElastic(String jsonDocument, String index, String type, String document_id) {
-    String ingestUrl = String.format("%s/%s/%s/{id}", baseUrl, type, index);
+    String ingestUrl = String.format("%s/%s/%s/{id}", baseUrl, index, type);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<String> entity = new HttpEntity<String>(jsonDocument, headers);
@@ -134,7 +134,20 @@ public class IndexingService {
    * @return response from server.
    */
   public ResponseEntity<String> getFromElastic(String index, String document_id) {
-    String accessUrl = String.format("%s/%s/_doc/{id}", baseUrl, index);
+    return getFromElastic(index, "_doc", document_id);
+  }
+
+  /**
+   * Read document from elasticsearch server with given index and document_id.
+   * document_id will be urlencoded before get is executed.
+   *
+   * @param index index of the document
+   * @param type type of the document
+   * @param document_id id of the document
+   * @return response from server.
+   */
+  public ResponseEntity<String> getFromElastic(String index, String type, String document_id) {
+    String accessUrl = String.format("%s/%s/%s/{id}", baseUrl, index, type);
     ResponseEntity<String> entity = restTemplate.getForEntity(accessUrl,
             String.class,
             urlEncode(document_id));

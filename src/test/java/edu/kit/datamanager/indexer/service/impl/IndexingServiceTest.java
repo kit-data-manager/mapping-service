@@ -113,6 +113,21 @@ public class IndexingServiceTest {
    * Test of getFromElastic method, of class IndexingService.
    */
   @Test
+  public void testGetFromElasticSimpleId() throws MalformedURLException {
+    System.out.println("getFromElastic");
+    String jsonDocument = "{\"name\":\"volker\"}";
+    String index = "junittest";
+    String documentId = "idwithoutspaces";
+    ApplicationProperties ap = new ApplicationProperties();
+    ap.setElasticsearchUrl(new URL("http://localhost:9200"));
+    IndexingService is = new IndexingService(ap);
+    is.uploadToElastic(jsonDocument, index, documentId);
+    ResponseEntity<String> fromElastic = is.getFromElastic(index, documentId);
+    assertEquals("HTTP status is not 200!", fromElastic.getStatusCodeValue(), HttpStatus.OK.value());
+    String result = is.getDocumentFromResponse(fromElastic);
+    assertEquals("Index document is not identical to json document!", jsonDocument, result);
+  }
+  @Test
   public void testGetFromElastic() throws MalformedURLException {
     System.out.println("getFromElastic");
     String jsonDocument = "{\"name\":\"volker\"}";

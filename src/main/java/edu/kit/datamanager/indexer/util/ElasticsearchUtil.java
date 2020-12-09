@@ -55,7 +55,6 @@ public class ElasticsearchUtil {
           LOGGER.trace("Elasticsearch server at '{}' seems to be up and running!", baseUrl);
           validElasticSearchServer = true;
         }
-        LOGGER.trace("URL seems to be invalid: '{}'!", baseUrl);
       } catch (Exception ex) {
         LOGGER.error("Error accessing elasticsearch server!", ex);
       }
@@ -63,6 +62,9 @@ public class ElasticsearchUtil {
       if (baseUrl.trim().endsWith("/")) {
         LOGGER.error("Please remove trailing '/' from URL '{}'!", baseUrl);
         validElasticSearchServer = false;
+      }
+      if (!validElasticSearchServer) {
+        LOGGER.trace("URL seems to be invalid: '{}'!", baseUrl);
       }
     }
     return validElasticSearchServer;
@@ -77,7 +79,7 @@ public class ElasticsearchUtil {
    */
   public static String testForValidIndex(String elasticsearchIndex) {
     String validIndex = elasticsearchIndex;
-    
+
     boolean valid = new ElasticsearchIndexValidator().isValid(validIndex, null);
     if (!valid) {
       String pattern = "[" + ElasticsearchIndexValidator.SPECIAL_CHARACTERS + "]";
