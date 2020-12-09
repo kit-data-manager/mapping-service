@@ -9,7 +9,7 @@ build/
 **/application.properties
 
 ### Gemma/python ###
-gemma
+/gemma
 **/__pycache__
 
 ### STS ###
