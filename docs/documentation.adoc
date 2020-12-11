@@ -9,7 +9,7 @@ v{version}, KIT Data Manager Development Team, {date}
 :sectlinks:
 :sectnums:
 
-[introduction]
+[[Introduction]]
 = RESTful API Description
 
 == Introduction
