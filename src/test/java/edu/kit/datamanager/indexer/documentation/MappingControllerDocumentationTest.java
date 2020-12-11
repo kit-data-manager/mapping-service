@@ -17,6 +17,8 @@ package edu.kit.datamanager.indexer.documentation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.kit.datamanager.indexer.dao.IAclEntryDao;
+import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
 import edu.kit.datamanager.indexer.domain.acl.AclEntry;
 import static edu.kit.datamanager.indexer.mapping.Mapping.GEMMA;
@@ -82,12 +84,18 @@ import org.springframework.web.context.WebApplicationContext;
   WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41500"})
+@TestPropertySource(properties = {"spring.datasource.url=jdbc:h2:mem:db_doc;DB_CLOSE_DELAY=-1"})
 @TestPropertySource(properties = {"metastore.indexer.mappingsLocation=file:///tmp/metastore2/restdocu/mapping"})
 public class MappingControllerDocumentationTest {
 
   private MockMvc mockMvc;
   @Autowired
   private WebApplicationContext context;
+
+  @Autowired
+  private IMappingRecordDao mappingRecordDao;
+  @Autowired
+  private IAclEntryDao aclEntryDao;
   @Autowired
   private FilterChainProxy springSecurityFilterChain;
 
@@ -101,6 +109,8 @@ public class MappingControllerDocumentationTest {
 
   @Before
   public void setUp() throws JsonProcessingException {
+    mappingRecordDao.deleteAll();
+    aclEntryDao.deleteAll();
     try {
       try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING)))) {
         walk.sorted(Comparator.reverseOrder())

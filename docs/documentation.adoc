@@ -28,7 +28,7 @@ The second part shows the HTTP request sent to the server including arguments an
 In between, special characteristics of the calls are explained together with additional, optional arguments or alternative responses.
 
 [NOTE]
-For technical reasons, all metadata resources shown in the examples contain all fields, e.g. also empty lists or fields with value 'null'. You may ignore most of them
+For technical reasons, all mapping records shown in the examples contain all fields, e.g. also empty lists or fields with value 'null'. You may ignore most of them
 as long as they are not needed. Some of them will be assigned by the server, others remain empty or null as long as you don't assign any value to them. 
 All fields mandatory at creation time are explained in the resource creation example.
 
@@ -36,8 +36,9 @@ All fields mandatory at creation time are explained in the resource creation exa
 [[ChapterMappingRegistration]]
 === Mapping Registration and Management
 
-In this first section, the handling of mapping resources is explained. It all starts with creating your first xml mapping resource. The model of a mapping schema record looks
-like this:
+In this first section, the handling of mapping resources is explained. It all starts with creating your first xml mapping resource. 
+As Gemma supports both (JSON and XML as source) it's used here to show how it works. It's similar for other mapping technologies. 
+The model of a mapping schema record looks like this:
 [source,options="nowrap"]
 ----
 {
@@ -60,7 +61,7 @@ At least the following elements are expected to be provided by the user:
 
 In addition, ACL may be useful to make schema editable by others. (This will be of interest while updating an existing schema)
 
-=== Registering an XML Mapping
+==== Registering an XML Mapping
 
 The following example shows the creation of the first xsd schema only providing mandatory fields mentioned above:
 [source,options="nowrap"]
@@ -103,11 +104,11 @@ provided document, adding missing information where possible and persisting the 
 
 include::{snippets}/post-xml-mapping/http-response.adoc[]
 
-What you see is, that the metadata schema record looks different from the original document. All remaining elements received a value by the server. 
+What you see is, that the mapping record looks different from the original document. All remaining elements received a value by the server. 
 Furthermore, you'll find an ETag header with the current ETag of the resource. This value is returned by POST, GET and PUT calls and must be provided for 
 all calls modifying the resource, e.g. POST, PUT and DELETE, in order to avoid conflicts.
 
-=== Registering an JSON Mapping
+==== Registering an JSON Mapping
 
 Now we register a mapping for JSON documents. This looks quite similar:
 [source,options="nowrap"]
@@ -150,9 +151,26 @@ provided document, adding missing information where possible and persisting the 
 
 include::{snippets}/post-json-mapping/http-response.adoc[]
 
-What you see is, that the metadata schema record looks different from the original document. All remaining elements received a value by the server. 
+What you see is, that the mapping record looks different from the original document. All remaining elements received a value by the server. 
 Furthermore, you'll find an ETag header with the current ETag of the resource. This value is returned by POST, GET and PUT calls and must be provided for 
 all calls modifying the resource, e.g. POST, PUT and DELETE, in order to avoid conflicts.
+
+==== Getting Mapping Record
+
+[NOTE]
+To access the mapping record you have to provide a special content type ('application/vnd.datamanager.mapping-record+json').
+
+Accessing the just ingested record do the following:
+
+include::{snippets}/get-single-mapping/curl-request.adoc[]
+
+In the actual HTTP request there is nothing special. You just access the path of the resource using the base path plus mappingId and mappingType.
+
+include::{snippets}/get-single-mapping/http-request.adoc[]
+
+As a result, you receive the mapping record shown already after your post.
+
+include::{snippets}/get-single-mapping/http-response.adoc[]
 
 ==== Getting a List of Mapping Records
 
@@ -164,7 +182,7 @@ In the actual HTTP request there is nothing special. You just access the path of
 
 include::{snippets}/get-all-mappings/http-request.adoc[]
 
-As a result, you receive a list of metadata schema records. 
+As a result, you receive a list of mapping records. 
 
 include::{snippets}/get-all-mappings/http-response.adoc[]
 
@@ -179,3 +197,86 @@ The modified HTTP request  with pagination looks like follows:
 
 include::{snippets}/get-all-mappings-pagination/http-request.adoc[]
 
+==== Getting Mapping File
+
+Accessing the just ingested mapping file do the following:
+
+include::{snippets}/get-mapping-file/curl-request.adoc[]
+
+In the actual HTTP request there is nothing special. You just access the path of the resource using the base path plus mappingId and mappingType.
+
+include::{snippets}/get-mapping-file/http-request.adoc[]
+
+As a result, you receive the mapping record shown already after your post.
+
+include::{snippets}/get-mapping-file/http-response.adoc[]
+
+==== Updating a Mapping File
+
+[WARNING]
+This should be used with extreme caution.
+The new mapping should only add optional elements otherwise otherwise it will break old
+mapping records. Therefor it's not accessible from remote. 
+
+For updating an existing mapping record/file a valid ETag is needed. The actual ETag 
+is available via the HTTP GET call of the mapping record. (see above)
+Just send an HTTP POST with the updated mapping file and/or mapping record (Only for changing ACL
+which is not supported right now as this service should not be accessible by public).
+[source,options="nowrap"]
+----
+record-json.json
+{
+  "mappingId":"my_first_json",
+  "mappingType":"GEMMA"
+}
+----
+[source,options="nowrap"]
+----
+my_first_json4gemma_v2.mapping:
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/product.schema.json",
+  "title": "Simple Mapping Version 2",
+  "description": "Data resource mapping from json",
+  "type": "object",
+  "properties":{
+  "Publisher":{
+   "path": "publisher",
+   "type": "string"
+   },
+   "PublicationDate":{
+   "path": "publicationDate",
+   "type": "string"
+   }
+  }
+}
+----
+
+include::{snippets}/update-mapping/curl-request.adoc[]
+
+In the actual HTTP request there is nothing special. You just access the path of the resource using the base path with mappingId and mappingType.
+
+include::{snippets}/update-mapping/http-request.adoc[]
+
+As a result, you receive the updated mapping record and in the HTTP response header
+the (old) location URL and the new ETag. 
+
+include::{snippets}/update-mapping/http-response.adoc[]
+
+==== Getting new Version of Mapping File
+
+To get the new version of the mapping file just send an HTTP GET with the linked
+'mappingId' amd 'mappingType': 
+
+include::{snippets}/get-schemav2/curl-request.adoc[]
+
+In the actual HTTP request there is nothing special. You just access the path of the resource using the base path and the 'schemaId'.
+
+include::{snippets}/get-schemav2/http-request.adoc[]
+
+As a result, you receive the XSD schema send before. 
+
+include::{snippets}/get-schemav2/http-response.adoc[]
+
+== Mapping Files and Ingest them to Elasticsearch
+The mapping will be done via messages. See separate documentation. 

@@ -14,8 +14,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
- *
- * @author Torridity
  */
 public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>, JpaSpecificationExecutor<MappingRecord>{
   Optional<MappingRecord> findByMappingIdAndMappingType(String mappingId, String mappingType);
