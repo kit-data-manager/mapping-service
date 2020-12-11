@@ -268,15 +268,15 @@ include::{snippets}/update-mapping/http-response.adoc[]
 To get the new version of the mapping file just send an HTTP GET with the linked
 'mappingId' amd 'mappingType': 
 
-include::{snippets}/get-schemav2/curl-request.adoc[]
+include::{snippets}/get-mapping-filev2/curl-request.adoc[]
 
 In the actual HTTP request there is nothing special. You just access the path of the resource using the base path and the 'schemaId'.
 
-include::{snippets}/get-schemav2/http-request.adoc[]
+include::{snippets}/get-mapping-filev2/http-request.adoc[]
 
 As a result, you receive the XSD schema send before. 
 
-include::{snippets}/get-schemav2/http-response.adoc[]
+include::{snippets}/get-mapping-filev2/http-response.adoc[]
 
 == Mapping Files and Ingest them to Elasticsearch
 The mapping will be done via messages. See separate documentation. 
