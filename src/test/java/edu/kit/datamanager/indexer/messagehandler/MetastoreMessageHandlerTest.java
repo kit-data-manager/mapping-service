@@ -121,24 +121,24 @@ public class MetastoreMessageHandlerTest {
     RESULT expResult = RESULT.REJECTED;
     RESULT result = instance.handle(message);
     assertEquals(expResult, result);
-    map.put("resolvingUrl", "anyUrl");
+    map.put(MetastoreMessageHandler.RESOURCE_URL, "anyUrl");
     result = instance.handle(message);
     assertEquals(expResult, result);
     // FAILED
     expResult = RESULT.FAILED;
-    map.put("schemaId", MAPPING_ID);
+    map.put(MetastoreMessageHandler.MAPPING_ID, MAPPING_ID);
     result = instance.handle(message);
     assertEquals(expResult, result);
-    map.put("resolvingUrl", "://invalid.url.any");
+    map.put(MetastoreMessageHandler.RESOURCE_URL, "://invalid.url.any");
     result = instance.handle(message);
     assertEquals(expResult, result);
     // SUCCEEDED
     expResult = RESULT.SUCCEEDED;
-    map.put("schemaId", UNKNOWN_MAPPING_ID);
-    map.put("resolvingUrl", srcFile.getAbsolutePath());
+    map.put(MetastoreMessageHandler.MAPPING_ID, UNKNOWN_MAPPING_ID);
+    map.put(MetastoreMessageHandler.RESOURCE_URL, srcFile.getAbsolutePath());
     result = instance.handle(message);
     assertEquals(expResult, result);
-    map.put("schemaId", MAPPING_ID);
+    map.put(MetastoreMessageHandler.MAPPING_ID, MAPPING_ID);
     result = instance.handle(message);
     assertEquals(expResult, result);
   }
