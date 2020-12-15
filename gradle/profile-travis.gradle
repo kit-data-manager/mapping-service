@@ -39,9 +39,7 @@ jacocoTestReport {
     afterEvaluate {
         //exclude some classes/package from code coverage report
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [\
-            '**/SchemaSynchronization*'
-                    ])
+            fileTree(dir: it)
             }))
     }
 }
