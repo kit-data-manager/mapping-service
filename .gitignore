@@ -5,6 +5,13 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Spring boot ###
+**/application.properties
+
+### Gemma/python ###
+/gemma
+**/__pycache__
+
 ### STS ###
 .apt_generated
 .classpath
