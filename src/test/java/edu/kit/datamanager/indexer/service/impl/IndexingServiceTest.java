@@ -78,6 +78,28 @@ public class IndexingServiceTest {
     } catch (IndexerException ie) {
       assertTrue(true);
     }
+    ap.setElasticsearchUrl(new URL("http://localhost:9200/"));
+    try {
+      new IndexingService(ap);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    ap.setElasticsearchUrl(new URL("http://localhost:9200/"));
+    try {
+      new IndexingService(ap);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    ap.setElasticsearchUrl(new URL("http://localhost:9200/kitdm"));
+    try {
+      new IndexingService(ap);
+      assertTrue(false);
+    } catch (IndexerException ie) {
+      assertTrue(true);
+    }
+    // Test with correct values
     ap.setElasticsearchUrl(new URL("http://localhost:9200"));
     try {
       assertNotNull(new IndexingService(ap));
@@ -91,14 +113,13 @@ public class IndexingServiceTest {
    * Test of getFromElastic method, of class IndexingService.
    */
   @Test
-  public void testGetFromElastic() throws MalformedURLException {
+  public void testGetFromElasticSimpleId() throws MalformedURLException {
     System.out.println("getFromElastic");
     String jsonDocument = "{\"name\":\"volker\"}";
     String index = "junittest";
-    String documentId = "id with spaces";
+    String documentId = "idwithoutspaces";
     ApplicationProperties ap = new ApplicationProperties();
     ap.setElasticsearchUrl(new URL("http://localhost:9200"));
-    ap.setMappingsLocation(new URL("file:///tmp/test"));
     IndexingService is = new IndexingService(ap);
     is.uploadToElastic(jsonDocument, index, documentId);
     ResponseEntity<String> fromElastic = is.getFromElastic(index, documentId);
@@ -108,17 +129,17 @@ public class IndexingServiceTest {
   }
 
   @Test
-  public void testGetFromElasticInvalidUrl() throws MalformedURLException {
+  public void testGetFromElastic() throws MalformedURLException {
     System.out.println("getFromElastic");
     String jsonDocument = "{\"name\":\"volker\"}";
     String index = "junittest";
     String documentId = "id with spaces";
     ApplicationProperties ap = new ApplicationProperties();
-    ap.setElasticsearchUrl(new URL("http://localhost:9201"));
+    ap.setElasticsearchUrl(new URL("http://localhost:9200"));
     IndexingService is = new IndexingService(ap);
     is.uploadToElastic(jsonDocument, index, documentId);
     ResponseEntity<String> fromElastic = is.getFromElastic(index, documentId);
-    assertNotEquals("HTTP status is not 200!", fromElastic.getStatusCodeValue(), HttpStatus.OK.value());
+    assertEquals("HTTP status is not 200!", fromElastic.getStatusCodeValue(), HttpStatus.OK.value());
     String result = is.getDocumentFromResponse(fromElastic);
     assertEquals("Index document is not identical to json document!", jsonDocument, result);
   }

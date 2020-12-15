@@ -15,7 +15,6 @@
  */
 package edu.kit.datamanager.indexer.util;
 
-import edu.kit.datamanager.validator.ElasticsearchValidator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.validation.ConstraintValidatorContext;
@@ -31,25 +30,26 @@ import static org.junit.Assert.*;
  * @author hartmann-v
  */
 public class ElasticsearchUtilTest {
-  
+
   public ElasticsearchUtilTest() {
   }
-  
+
   @BeforeClass
   public static void setUpClass() {
   }
-  
+
   @AfterClass
   public static void tearDownClass() {
   }
-  
+
   @Before
   public void setUp() {
   }
-  
+
   @After
   public void tearDown() {
   }
+
   /**
    * Test constructor:
    */
@@ -59,6 +59,7 @@ public class ElasticsearchUtilTest {
     ElasticsearchUtil eu = new ElasticsearchUtil();
     assertNotNull(eu);
   }
+
   /**
    * Test of isValid method, of class ElasticsearchValidator.
    */
@@ -70,6 +71,7 @@ public class ElasticsearchUtilTest {
     boolean result = ElasticsearchUtil.testForElasticsearch(value);
     assertEquals(expResult, result);
   }
+
   @Test
   public void testIsInvalidUrl() throws MalformedURLException {
     System.out.println("testIsInvalidUrl");
@@ -90,6 +92,7 @@ public class ElasticsearchUtilTest {
     boolean result = ElasticsearchUtil.testForElasticsearch(value);
     assertEquals(expResult, result);
   }
+
   @Test
   public void testIsNotURL() throws MalformedURLException {
     System.out.println("testIsNotURL");
@@ -98,6 +101,7 @@ public class ElasticsearchUtilTest {
     boolean result = ElasticsearchUtil.testForElasticsearch(value);
     assertEquals(expResult, result);
   }
+
   @Test
   public void testIsNotURL2() throws MalformedURLException {
     System.out.println("testIsNotURL");
@@ -106,5 +110,84 @@ public class ElasticsearchUtilTest {
     boolean result = ElasticsearchUtil.testForElasticsearch(value);
     assertEquals(expResult, result);
   }
-  
+
+  @Test
+  public void testForValidIndexValid() {
+    System.out.println("testForValidIndexValid");
+    String value = new String("valid_with_small_letters");
+    ConstraintValidatorContext context = null;
+
+    String expResult = value;
+    String result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+  }
+
+  @Test
+  public void testForValidIndexWithInvalidIndex() {
+    System.out.println("testForValidIndexWithInvalidIndex");
+    String value = new String("testBigLetter");
+    ConstraintValidatorContext context = null;
+
+    String expResult = "testbigletter";
+    String result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial character");
+    expResult = "testspecial_character";
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial\"character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial*character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial<character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial>character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial|character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial,character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial/character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial?character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial{character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial}character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial[character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial]character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+    value = new String("testspecial`character");
+    result = ElasticsearchUtil.testForValidIndex(value);
+    assertEquals(expResult, result);
+  }
+
+  @Test
+  public void testForValidIndexIsNull() {
+    System.out.println("testIsNull");
+    String value = null;
+    ConstraintValidatorContext context = null;
+
+    try {
+      String result = ElasticsearchUtil.testForValidIndex(value);
+      assertTrue(false);
+    } catch (NullPointerException npe) {
+      assertTrue(true);
+    }
+  }
+
 }

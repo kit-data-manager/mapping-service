@@ -26,11 +26,16 @@ import org.springframework.stereotype.Component;
 import com.github.jknack.handlebars.Handlebars;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.exception.IndexerException;
+import edu.kit.datamanager.indexer.service.impl.IndexingService;
 import edu.kit.datamanager.indexer.service.impl.MappingService;
+import edu.kit.datamanager.indexer.util.ElasticsearchUtil;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,63 +45,80 @@ import org.slf4j.LoggerFactory;
 @Component
 public class MetastoreMessageHandler implements IMessageHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MetastoreMessageHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetastoreMessageHandler.class);
 
-    private Handlebars hb;
+  private Handlebars hb;
 
-    @Autowired
-    private ApplicationProperties properties;
-    
-    @Autowired
-    private MappingService mappingService;
+  @Autowired
+  private ApplicationProperties properties;
 
-    @Autowired
-    private IConsumerEngine consumer;
+  @Autowired
+  private MappingService mappingService;
 
-    MetastoreMessageHandler(ApplicationProperties configuration, MappingService mappingService) {
-         properties = configuration;
-         this.mappingService = mappingService;
+  @Autowired
+  private IndexingService elasticsearchService;
+
+  @Autowired
+  private IConsumerEngine consumer;
+
+  MetastoreMessageHandler(ApplicationProperties configuration, MappingService mappingService, IndexingService indexingService) {
+    properties = configuration;
+    this.mappingService = mappingService;
+    this.elasticsearchService = indexingService;
+  }
+
+  @Override
+  public RESULT handle(BasicMessage message) {
+    LOG.debug("Successfully received message with routing key {}.", message.getRoutingKey());
+
+    String resourceUrlAsString = message.getMetadata().get("resolvingUrl");
+    String mappingId = message.getMetadata().get("schemaId");
+    if ((resourceUrlAsString == null) || (mappingId == null)) {
+      LOG.debug("Reject message: Missing properties!");
+      return RESULT.REJECTED;
     }
-
-    @Override
-    public RESULT handle(BasicMessage message) {
-          LOG.debug("Successfully received message with routing key {}.", message.getRoutingKey());
-          
-          String resourceUrlAsString = message.getMetadata().get("resolvingUrl");
-          String mappingId = message.getMetadata().get("schemaId");
-          if ((resourceUrlAsString == null) || (mappingId == null)) {
-            LOG.debug("Reject message: Missing properties!");
-            return RESULT.REJECTED;
-          }
-          if (!MessageHandlerUtils.isAddressed(this.getHandlerIdentifier(), message)) {
-            LOG.debug("Reject message: Not addressed correctly!");
-            return RESULT.REJECTED;
-          }
-        try {
-          LOG.debug("This message is for me: {}", message);
-
-          URI resourceUri = new URI(resourceUrlAsString);
-          
-            List<Path> pathWithAllMappings = mappingService.executeMapping(resourceUri, mappingId);
-            if (pathWithAllMappings.isEmpty()) {
-              return RESULT.FAILED;
-            }
-          
-        } catch (URISyntaxException ex) {
-          String errorMessage = String.format("Error downloading content from '%s': %s", resourceUrlAsString, ex.getMessage());
-            LOG.error(errorMessage, ex);
-            return RESULT.FAILED;
-        } catch (IndexerException iex) {
-          String errorMessage = String.format("Error while mapping content from '%s': %s", resourceUrlAsString, iex.getMessage());
-            LOG.error(errorMessage, iex);
-            return RESULT.FAILED;
-        }
-           return RESULT.SUCCEEDED;
-   }
-
-    @Override
-    public boolean configure() {
-        boolean everythingWorks = true;
-        return everythingWorks;
+    if (!MessageHandlerUtils.isAddressed(this.getHandlerIdentifier(), message)) {
+      LOG.debug("Reject message: Not addressed correctly!");
+      return RESULT.REJECTED;
     }
+    Path resultPath = null;
+    try {
+      LOG.debug("This message is for me: {}", message);
+
+      URI resourceUri = new URI(resourceUrlAsString);
+      // right now only one mapping is allowed.
+      List<Path> pathWithAllMappings = mappingService.executeMapping(resourceUri, mappingId);
+      if (pathWithAllMappings.isEmpty()) {
+        return RESULT.FAILED;
+      }
+      resultPath = pathWithAllMappings.get(0);
+      String index = ElasticsearchUtil.testForValidIndex(mappingId);
+      if (index.equals(mappingId)) {
+        LOG.warn("MappingId '{}' was transformed to '{}' due to restrictions of elasticsearch!", mappingId, index);
+      }
+
+      String jsonDocument = FileUtils.readFileToString(resultPath.toFile(), StandardCharsets.UTF_8);
+      elasticsearchService.uploadToElastic(jsonDocument, index, properties.getElasticsearchType(), resourceUrlAsString);
+
+    } catch (URISyntaxException ex) {
+      String errorMessage = String.format("Error downloading content from '%s': %s", resourceUrlAsString, ex.getMessage());
+      LOG.error(errorMessage, ex);
+      return RESULT.FAILED;
+    } catch (IOException ioex) {
+      String errorMessage = String.format("Error reading mapping file from '%s'", resultPath.toString());
+      LOG.error(errorMessage, ioex);
+      return RESULT.FAILED;
+    } catch (IndexerException iex) {
+      String errorMessage = String.format("Error while mapping content from '%s': %s", resourceUrlAsString, iex.getMessage());
+      LOG.error(errorMessage, iex);
+      return RESULT.FAILED;
+    }
+    return RESULT.SUCCEEDED;
+  }
+
+  @Override
+  public boolean configure() {
+    boolean everythingWorks = true;
+    return everythingWorks;
+  }
 }

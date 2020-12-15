@@ -35,7 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -144,6 +143,9 @@ public class MappingController implements IMappingController {
       throw new IndexerException("Error: Can't read content of document!");
     }
 
+    LOG.trace("Get mapping record.");
+    recordDocument = mappingRecordDao.findByMappingIdAndMappingType(recordDocument.getMappingId(), recordDocument.getMappingType()).get();
+
     LOG.trace("Get ETag of MappingRecord.");
     String etag = recordDocument.getEtag();
 
@@ -217,8 +219,8 @@ public class MappingController implements IMappingController {
     Page<MappingRecord> records;
     if ((mappingId == null) && (mappingType == null)) {
       records = mappingRecordDao.findAll(pgbl);
-  } else {
-       records = mappingRecordDao.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(mappingType), pgbl);
+    } else {
+      records = mappingRecordDao.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(mappingType), pgbl);
     }
 
     LOG.trace("Cleaning up schemaDocumentUri of query result.");
@@ -262,11 +264,11 @@ public class MappingController implements IMappingController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
     if ((!recordDocument.getMappingId().equals(mappingId)) || (!recordDocument.getMappingType().equals(mappingType))) {
-       String message = "Mandatory attribute mappingId and/or mappingType are not identical to path parameters. "
-               + " (" + recordDocument.getMappingId() + "<-->" + mappingId + ", " + recordDocument.getMappingType() + "<-->" + mappingType + ")";
+      String message = "Mandatory attribute mappingId and/or mappingType are not identical to path parameters. "
+              + " (" + recordDocument.getMappingId() + "<-->" + mappingId + ", " + recordDocument.getMappingType() + "<-->" + mappingType + ")";
       LOG.error(message + "Returning HTTP BAD_REQUEST.");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-     
+
     }
     LOG.trace("Obtaining most recent metadata record with id {}.", id);
     MappingRecord existingRecord = getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType());

@@ -15,11 +15,7 @@
  */
 package edu.kit.datamanager.validator;
 
-import edu.kit.datamanager.python.util.PythonUtils;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.validation.ConstraintValidatorContext;
@@ -95,6 +91,7 @@ public class ElasticsearchValidatorTest {
   @Test
   public void testIsNotURL() throws MalformedURLException {
     System.out.println("testIsNotURL");
+    // space is not allowed
     URL value = new URL("file: src/test/resources/examples/gemma/simple.json");
     ConstraintValidatorContext context = null;
     ElasticsearchValidator instance = new ElasticsearchValidator();

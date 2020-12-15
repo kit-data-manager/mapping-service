@@ -223,11 +223,14 @@ public class MappingService {
   private void saveMappingFile(String content, MappingRecord mapping) throws IOException {
     Path newMappingFile = null;
     if ((content != null) && (mapping != null) && (mapping.getMappingId() != null) && (mapping.getMappingType() != null)) {
+      LOGGER.debug("Storing mapping file with id '{}' and type '{}'", mapping.getMappingId(), mapping.getMappingType());
+      LOGGER.trace("Content of mapping: '{}'", content);
       try {
         Mapping.valueOf(mapping.getMappingType());
         // 'delete' old file
         deleteMappingFile(mapping);
         newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getMappingId() + "_" + mapping.getMappingType() + ".mapping");
+        LOGGER.trace("Write content to '{}'", newMappingFile.toString());
         FileUtils.writeStringToFile(newMappingFile.toFile(), content, StandardCharsets.UTF_8);
         mapping.setMappingDocumentUri(newMappingFile.toString());
         byte[] data = content.getBytes();
@@ -259,9 +262,11 @@ public class MappingService {
    */
   private void deleteMappingFile(MappingRecord mapping) throws IOException {
     if ((mapping != null) && (mapping.getMappingDocumentUri() != null)) {
+      LOGGER.debug("Delete mapping file '{}'", mapping.getMappingDocumentUri());
       Path deleteFile = Paths.get(mapping.getMappingDocumentUri());
       if (deleteFile.toFile().exists()) {
         Path newFileName = Paths.get(deleteFile.getParent().toString(), deleteFile.getFileName() + date2String());
+        LOGGER.trace("Move mapping file fo '{}'", newFileName.toString());
         FileUtils.moveFile(deleteFile.toFile(), newFileName.toFile());
       }
     }

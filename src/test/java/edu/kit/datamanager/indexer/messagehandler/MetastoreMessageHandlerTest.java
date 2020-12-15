@@ -20,6 +20,7 @@ import edu.kit.datamanager.entities.messaging.DataResourceMessage;
 import edu.kit.datamanager.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.indexer.domain.MappingRecord;
+import edu.kit.datamanager.indexer.service.impl.IndexingService;
 import edu.kit.datamanager.indexer.service.impl.MappingService;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
 import edu.kit.datamanager.util.AuthenticationHelper;
@@ -73,6 +74,9 @@ public class MetastoreMessageHandlerTest {
 
   @Autowired
   MappingService mappingService4Test;
+  
+  @Autowired
+  IndexingService indexingService4Test;
 
   public MetastoreMessageHandlerTest() {
   }
@@ -112,7 +116,7 @@ public class MetastoreMessageHandlerTest {
     BasicMessage message = new DataResourceMessage();
     message.setMetadata(map);
     message.setAction("CREATE");
-    MetastoreMessageHandler instance = new MetastoreMessageHandler(applicationProperties, mappingService4Test);
+    MetastoreMessageHandler instance = new MetastoreMessageHandler(applicationProperties, mappingService4Test, indexingService4Test);
     // REJECTED
     RESULT expResult = RESULT.REJECTED;
     RESULT result = instance.handle(message);
@@ -145,7 +149,7 @@ public class MetastoreMessageHandlerTest {
   @Test
   public void testConfigure() {
     System.out.println("configure");
-    MetastoreMessageHandler instance = new MetastoreMessageHandler(applicationProperties, mappingService4Test);
+    MetastoreMessageHandler instance = new MetastoreMessageHandler(applicationProperties, mappingService4Test, indexingService4Test);
     boolean expResult = true;
     boolean result = instance.configure();
     assertEquals(expResult, result);
