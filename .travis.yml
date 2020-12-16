@@ -1,6 +1,6 @@
 language: java
 
-dist: focal
+dist: bionic
 
 jdk:
 # Enable all versions which should be supported
