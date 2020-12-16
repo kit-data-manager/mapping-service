@@ -79,8 +79,8 @@ dependencies {
     implementation("org.json:json:20200518")
   
     // datamanager
-    implementation("edu.kit.datamanager:generic-message-consumer:0.1.2")
-    implementation "edu.kit.datamanager:service-base:0.1.2"
+    implementation("edu.kit.datamanager:generic-message-consumer:0.2.0")
+    implementation "edu.kit.datamanager:service-base:0.2.0"
 
     runtimeOnly    'org.apache.httpcomponents:httpclient:4.5.6'
 

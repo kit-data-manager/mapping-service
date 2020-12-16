@@ -2,7 +2,7 @@
 # START GLOBAL DECLARATION
 ####################################################
 ARG REPO_NAME_DEFAULT=indexing-service
-ARG REPO_PORT_DEFAULT=8030
+ARG REPO_PORT_DEFAULT=8050
 ARG SERVICE_ROOT_DIRECTORY_DEFAULT=/spring/
 ####################################################
 # END GLOBAL DECLARATION
@@ -39,6 +39,8 @@ ENV SERVICE_DIRECTORY=$SERVICE_ROOT_DIRECTORY_DEFAULT$REPO_NAME
 RUN mkdir -p /git/${REPO_NAME}
 WORKDIR /git/${REPO_NAME}
 COPY . .
+RUN cp settings/application-docker.properties settings/application-default.properties
+
 # Build service in given directory
 RUN bash ./build.sh $SERVICE_DIRECTORY
 

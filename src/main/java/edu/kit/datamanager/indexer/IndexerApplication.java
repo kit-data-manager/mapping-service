@@ -35,7 +35,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan({"edu.kit.datamanager.indexer"})
+@ComponentScan({"edu.kit.datamanager.indexer", "edu.kit.datamanager.messaging.client.configuration", "edu.kit.datamanager.messaging.client.receiver", "edu.kit.datamanager.configuration"})
 // @ComponentScan({"edu.kit.datamanager.indexer", "edu.kit.datamanager.messaging.client"})
 //@ComponentScan({"edu.kit.datamanager.indexer", "edu.kit.datamanager.entities", "edu.kit.datamanager.configuration", "edu.kit.datamanager.messaging.client"})
 public class IndexerApplication {

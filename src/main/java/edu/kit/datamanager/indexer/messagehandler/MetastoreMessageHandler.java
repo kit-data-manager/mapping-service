@@ -60,6 +60,9 @@ public class MetastoreMessageHandler implements IMessageHandler {
 
   @Autowired
   private IConsumerEngine consumer;
+  
+  public static final String RESOURCE_URL = "resolvingUrl";
+  public static final String MAPPING_ID = "documentType";
 
   MetastoreMessageHandler(ApplicationProperties configuration, MappingService mappingService, IndexingService indexingService) {
     properties = configuration;
@@ -71,8 +74,8 @@ public class MetastoreMessageHandler implements IMessageHandler {
   public RESULT handle(BasicMessage message) {
     LOG.debug("Successfully received message with routing key {}.", message.getRoutingKey());
 
-    String resourceUrlAsString = message.getMetadata().get("resolvingUrl");
-    String mappingId = message.getMetadata().get("schemaId");
+    String resourceUrlAsString = message.getMetadata().get(RESOURCE_URL);
+    String mappingId = message.getMetadata().get(MAPPING_ID);
     if ((resourceUrlAsString == null) || (mappingId == null)) {
       LOG.debug("Reject message: Missing properties!");
       return RESULT.REJECTED;
