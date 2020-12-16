@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.1] - date 2020-12-15
+## [0.0.3] - date 2020-12-16
+### Added
+- Dockerfile for dockerhub
+- Travis for CI
+
+## [0.0.2] - date 2020-12-15
 First version supporting registering of mappings (Gemma only)
 and mapping of metadata documents delivered by RabbitMQ
 ### Added
@@ -15,5 +20,6 @@ and mapping of metadata documents delivered by RabbitMQ
 - Ingest to elasticsearch
 
 [Unreleased]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.1...HEAD
-[0.1.0]: https://github.com/kit-data-manager/metastore2/indexing-service/tag/v0.0.1
+[0.0.3]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/kit-data-manager/metastore2/indexing-service/tag/v0.0.2
 
