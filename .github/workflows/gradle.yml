@@ -1,0 +1,39 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up OpenJDK 13
+      uses: actions/setup-java@v1
+      with:
+        java-version: 13
+    - name: Pull elasticsearch image from docker
+      run: docker pull elasticsearch:7.9.3
+    - name: Create and run elasticsearch container
+      run: docker run -d --name elasticsearch4metastore  -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.9.3
+    - name: Install python
+      run: sudo apt-get install --assume-yes python3 python3-setuptools python3-pip 
+    - name: Update pip
+      run: pip3 install --upgrade pip
+    - name: Install libraries via pip (xmltodict and wget)
+      run: pip3 install xmltodict wget
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew -Ptravis clean check jacocoTestReport
+    - name: Coverall
+      run: ./gradlew coveralls
+      
