@@ -10,16 +10,19 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  build-jdk:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        # Use both LTS releases and latest one
+        jdk: [ 8, 13 ]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up OpenJDK 13
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Set up OpenJDK
       uses: actions/setup-java@v1
       with:
-        java-version: 13
+        java-version: ${{ matrix.jdk }}
     - name: Pull elasticsearch image from docker
       run: docker pull elasticsearch:7.9.3
     - name: Create and run elasticsearch container
@@ -34,6 +37,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew -Ptravis clean check jacocoTestReport
-    - name: Coverall
-      run: ./gradlew coveralls
+    - name: Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        files: ./build/reports/jacoco/test/jacocoTestReport.xml #optional
       
