@@ -1,7 +1,7 @@
 # Indexing-service
 
 ![GitHub](../../actions/workflows/gradle.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/kit-data-manager/indexing-service/badge.svg?branch=master)](https://coveralls.io/github/kit-data-manager/indexing-service?branch=master)
+[![codecov](https://codecov.io/gh/kit-data-manager/indexing-service/branch/master/graph/badge.svg?token=J9TP8YSZU6)](https://codecov.io/gh/kit-data-manager/indexing-service)
 ![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)
 
 :warning:
