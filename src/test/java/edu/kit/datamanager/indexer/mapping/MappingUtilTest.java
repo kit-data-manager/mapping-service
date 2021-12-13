@@ -71,6 +71,7 @@ public class MappingUtilTest {
     }
     System.out.println("Location of python: " + pythonExecutable);
     PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).getAbsoluteFile().toURI().toURL();
+//    PYTHON_EXECUTABLE = new File("/opt/homebrew/bin/python3".trim()).getAbsoluteFile().toURI().toURL();
     GEMMA_CLASS = new URL("file:src/test/resources/python/mapping_single.py");
   }
 
