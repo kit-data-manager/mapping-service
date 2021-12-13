@@ -17,8 +17,5 @@ input_file = sys.argv[2]
 output_filename = sys.argv[3] 
 #output_filename = "output.json" 
 
-
 print("\n \n \n MAPPING DOCUMENT: {} \n \n \n".format(input_file))
 mapping_functions.map_response(schema, input_file, output_filename)
-
-
