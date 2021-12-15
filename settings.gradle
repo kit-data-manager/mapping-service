@@ -1,1 +1,18 @@
-rootProject.name = 'indexing-service'
+plugins {
+    id "com.gradle.enterprise" version "3.7.2"
+}
+
+gradleEnterprise {
+//    buildScan {
+//        capture {
+//            buildLogging = false
+//            testLogging = false
+//        }
+//    }
+    buildScan {
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "no"
+    }
+}
+
+rootProject.name = 'mapping-service'

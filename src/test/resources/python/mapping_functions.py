@@ -94,7 +94,8 @@ def json2dict(file):
     """
     with open(file, "r", encoding='utf-8') as read_file:
         # encoding='utf-8' to take into account Greek letters
-        d = json.load(read_file, encoding='utf-8')
+#         d = json.load(read_file, encoding='utf-8')
+        d = json.load(read_file)
     return d
 
 
