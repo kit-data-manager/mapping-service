@@ -22,7 +22,7 @@ import java.net.URISyntaxException;
         @ApiResponse(responseCode = "403", description = "Forbidden is returned if the caller has no sufficient privileges.")})
 public interface IServiceController {
 
-    @Operation(summary = "Map a document with an existing mapping.", description = "TThis endpoint enables the mapping of documents via a file upload. " +
+    @Operation(summary = "Map a document with an existing mapping.", description = "This endpoint enables the mapping of documents via a file upload. " +
             "The prerequisite for this is a mapping that has already been created in advance via the \"/api/v1/mapping\" endpoint. " +
             "The identifiers of this mapping must then be passed in this endpoint as parameters together with the document to be mapped as an upload. " +
             "The result is returned as a response and is not stored on the server.",
