@@ -29,9 +29,4 @@ public class SpringRestConfiguration implements RepositoryRestConfigurer{
   public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
     config.setRepositoryDetectionStrategy(RepositoryDetectionStrategy.RepositoryDetectionStrategies.ALL);
   }
-
-//  @Override
-//  public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config){
-//    config.setRepositoryDetectionStrategy(RepositoryDetectionStrategy.RepositoryDetectionStrategies.ALL);
-//  }
 }

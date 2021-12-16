@@ -35,11 +35,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 //import org.junit.runner.RunWith;
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,6 +54,7 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
@@ -72,6 +75,8 @@ import org.springframework.web.context.WebApplicationContext;
 /**
  */
 //@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
+@EnableRuleMigrationSupport
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT) //RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
@@ -95,8 +100,8 @@ public class MappingControllerTest {
 //  private FilterChainProxy springSecurityFilterChain;
   @Autowired
   private IMappingRecordDao mappingRecordDao;
-//  @Rule
-//  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
+  @Rule
+  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
 
   public MappingControllerTest() {
   }
@@ -115,8 +120,8 @@ public class MappingControllerTest {
       ex.printStackTrace();
     }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context)
-//            .addFilters(springSecurityFilterChain)
-//            .apply(documentationConfiguration(this.restDocumentation))
+            .addFilters(new FilterChainProxy())
+            .apply(documentationConfiguration(this.restDocumentation))
             .build();
   }
 

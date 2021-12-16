@@ -33,11 +33,14 @@ import org.junit.jupiter.api.Test;
 //import org.powermock.core.classloader.annotations.PowerMockIgnore;
 //import org.powermock.core.classloader.annotations.PrepareForTest;
 //import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -49,6 +52,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 //@PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
 //@PowerMockIgnore({"javax.crypto.*", "javax.management.*"})
 //@PrepareForTest(AuthenticationHelper.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {
@@ -90,6 +94,7 @@ public class MetastoreMessageHandlerTest {
     mappingRecord.setMappingDocumentUri(mappingFile.getAbsolutePath());
     mappingRecord.setMappingId(MAPPING_ID);
     mappingRecord.setMappingType(MAPPING_TYPE);
+    mappingRecord.setDocumentHash(mappingRecord.getDocumentHash());
     mappingRepo.save(mappingRecord);
     System.out.println("handle");
     Map<String, String> map = new HashMap<>();

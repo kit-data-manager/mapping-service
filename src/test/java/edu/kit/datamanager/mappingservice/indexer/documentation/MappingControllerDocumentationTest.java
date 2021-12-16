@@ -35,9 +35,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.aspectj.lang.annotation.Before;
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -57,6 +61,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 //import org.springframework.test.context.junit5.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
@@ -74,8 +79,10 @@ import org.springframework.web.context.WebApplicationContext;
 /**
  *
  */
-//@ActiveProfiles("doc")
+@ActiveProfiles({"doc", "test"})
 //@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
+@EnableRuleMigrationSupport
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT) //RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
@@ -83,7 +90,6 @@ import org.springframework.web.context.WebApplicationContext;
   DirtiesContextTestExecutionListener.class,
   TransactionalTestExecutionListener.class,
   WithSecurityContextTestExecutionListener.class})
-@ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41500"})
 @TestPropertySource(properties = {"spring.datasource.url=jdbc:h2:mem:db_doc;DB_CLOSE_DELAY=-1"})
 @TestPropertySource(properties = {"metastore.indexer.mappingsLocation=file:///tmp/metastore2/restdocu/mapping"})
@@ -98,11 +104,12 @@ public class MappingControllerDocumentationTest {
   private IMappingRecordDao mappingRecordDao;
   @Autowired
   private IAclEntryDao aclEntryDao;
-//  @Autowired
-//  private FilterChainProxy springSecurityFilterChain;
-//
-//  @Rule
-//  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
+
+  @Autowired
+  private FilterChainProxy springSecurityFilterChain;
+
+  @Rule
+  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
 
   private final static String EXAMPLE_SCHEMA_ID_XML = "my_first_xsd";
   private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/restdocu/";
@@ -124,8 +131,9 @@ public class MappingControllerDocumentationTest {
       ex.printStackTrace();
     }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context)
-//            .addFilters(springSecurityFilterChain)
-//            .apply(documentationConfiguration(this.restDocumentation))
+            .addFilters(new FilterChainProxy())
+            .apply(documentationConfiguration(this.restDocumentation))
+            .addFilters(springSecurityFilterChain)
             .build();
   }
 
@@ -151,7 +159,12 @@ public class MappingControllerDocumentationTest {
     assertEquals(0, mappingsDir.list().length);
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
-            file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andDo(document("post-xml-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+            file(mappingFile)).
+            andDo(print()).
+            andExpect(status().isCreated()).
+            andDo(document("post-xml-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).
+            andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).
+            andReturn();
     assertEquals(1, mappingsDir.list().length);
     // register a second mapping for json schema 
     record.setMappingId(EXAMPLE_SCHEMA_ID_JSON);

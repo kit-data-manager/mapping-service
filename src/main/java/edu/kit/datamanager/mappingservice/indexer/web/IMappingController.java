@@ -52,7 +52,7 @@ import org.springframework.web.util.UriComponentsBuilder;
   @ApiResponse(responseCode = "403", description = "Forbidden is returned if the caller has no sufficient privileges.")})
 public interface IMappingController {
 
-  @Operation(summary = "Create a new mapping for elasticsearch.", description = "This endpoint allows to create a new mapping as file upload. The record metadata mainly contains "
+  @Operation(summary = "Create a new mapping.", description = "This endpoint allows to create a new mapping as file upload. The record metadata mainly contains "
           + "the mapping identifier and (optional) the mapping type. As a starting point only gemma mappings are allowed. For future versions other mappings like handlebar or xslt might be provided also.",
           responses = {
             @ApiResponse(responseCode = "201", description = "Created is returned only if the record has been validated, persisted and the mapping document was successfully validated and stored.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),

@@ -47,13 +47,7 @@ public class MappingServiceApplication {
 	}
 
 	public static void main(String[] args) {
-		ApplicationContext ctx = SpringApplication.run(MappingServiceApplication.class, args);
-//		SpringApplication.run(MappingServiceApplication.class, args);
+		SpringApplication.run(MappingServiceApplication.class, args);
 		System.out.println("Mapping service is running!");
 	}
-
-//	public static void main(String[] args) {
-//		SpringApplication.run(MappingServiceApplication.class, args);
-//	}
-
 }

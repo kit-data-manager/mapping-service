@@ -1,97 +1,88 @@
 plugins {
-	id 'org.springframework.boot' version '2.6.1'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'org.asciidoctor.convert' version '1.5.8'
-	id 'java'
-	id 'jacoco'
-	id 'org.owasp.dependencycheck' version '3.1.2'
-	id 'net.researchgate.release' version '2.8.1'
+//    id 'io.franzbecker.gradle-lombok' version '5.0.0'
+    id 'org.springframework.boot' version '2.6.1'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.asciidoctor.convert' version '1.5.8'
+    id 'java'
+    id 'jacoco'
+    id 'org.owasp.dependencycheck' version '3.1.2'
+    id 'net.researchgate.release' version '2.8.1'
 }
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
 version = '0.0.1-SNAPSHOT'
-//sourceCompatibility = '17'
+sourceCompatibility = '17'
 
 println "Building ${name} version: ${version}"
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenLocal()
-	mavenCentral()
+    mavenLocal()
+    mavenCentral()
 }
 
 ext {
-	set('snippetsDir', file("build/generated-snippets"))
+    set('snippetsDir', file("build/generated-snippets"))
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-	testImplementation(platform('org.junit:junit-bom:5.8.2'))
-	testImplementation('org.junit.jupiter:junit-jupiter')
-	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-	implementation 'javax.validation:validation-api:2.0.0.Final'
-	implementation "org.springframework.boot:spring-boot-starter-data-rest"
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "org.springdoc:springdoc-openapi-ui"
+    implementation "org.springdoc:springdoc-openapi-data-rest"
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+    implementation 'org.javers:javers-spring-boot-starter-sql:6.5.3'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation('com.github.jknack:handlebars:4.3.0')
+    implementation("org.json:json:20200518")
+    implementation("edu.kit.datamanager:generic-message-consumer:0.2.0")
+    implementation "edu.kit.datamanager:service-base:0.2.0"
 
-	//	----------------- from indexing service -----------------
+    testImplementation(platform('org.junit:junit-bom:5.8.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('org.junit.jupiter:junit-jupiter-migrationsupport:5.8.0')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation "org.powermock:powermock-module-junit4:2.0.0-beta.5"
+    testImplementation "org.powermock:powermock-api-mockito2:2.0.0-beta.5"
+    testImplementation "org.junit.vintage:junit-vintage-engine"
 
-//	implementation "org.javers:javers-spring-boot-starter-sql"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    annotationProcessor 'org.projectlombok:lombok'
 
-	implementation "org.springdoc:springdoc-openapi-ui"
-	implementation "org.springdoc:springdoc-openapi-data-rest"
+    compileOnly 'org.projectlombok:lombok'
 
-//	implementation "org.apache.tika:tika-core"
-//	implementation "org.javers:javers-core"
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.apache.httpcomponents:httpclient'
 
-	implementation('com.github.jknack:handlebars:4.3.0')
-	implementation("org.json:json:20200518")
-
-	// datamanager
-	implementation("edu.kit.datamanager:generic-message-consumer:0.2.0")
-	implementation "edu.kit.datamanager:service-base:0.2.0"
-
-	runtimeOnly    'org.apache.httpcomponents:httpclient'
-
-	testImplementation "org.springframework.security:spring-security-test"
-
-	testImplementation "org.mockito:mockito-core"
-//	testImplementation "org.powermock:powermock-module-junit-jupiter"
-//	testImplementation "org.powermock:powermock-api-mockito2:2.0.0-beta.5"
-//	testImplementation "junit:junit:4.13.1"
-
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-//	testImplementation 'org.asciidoctor:asciidoctor-gradle-plugin'
-	asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
-	asciidoctor 'com.github.allati.asciidoctor.monotree:asciidoctor-extension-monotree'
+    asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    asciidoctor 'com.github.allati.asciidoctor.monotree:asciidoctor-extension-monotree'
 }
 
 test {
-	outputs.dir snippetsDir
-	finalizedBy jacocoTestReport
-//	environment "spring.config.location", "classpath:/test-config/"
-	useJUnitPlatform()
+    outputs.dir snippetsDir
+    finalizedBy jacocoTestReport
+    useJUnitPlatform()
 }
 
 jacoco {
-	toolVersion = "0.8.5"
+    toolVersion = "0.8.5"
 }
 
 asciidoctor {
-	inputs.dir snippetsDir
-	dependsOn test
+    inputs.dir snippetsDir
+    dependsOn test
 }

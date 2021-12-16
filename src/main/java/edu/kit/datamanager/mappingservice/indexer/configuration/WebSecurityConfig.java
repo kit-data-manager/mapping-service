@@ -93,15 +93,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
     web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
   }
 
-//  @Bean
-//  CorsConfigurationSource corsConfigurationSource(){
-//    final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//    CorsConfiguration config = new CorsConfiguration();
-//    config.addAllowedOrigin("http://localhost:3000");
-//
-//    source.registerCorsConfiguration("/**", config);
-//    return source;
-//  }
   @Bean
   public FilterRegistrationBean corsFilter(){
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -118,33 +109,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
     bean.setOrder(0);
     return bean;
   }
-
-//  @Bean
-//  CorsConfigurationSource corsConfigurationSource(){
-//    CorsConfiguration configuration = new CorsConfiguration();
-//    configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-//    configuration.setAllowedMethods(Arrays.asList("GET", "POST, PATCH, DELETE, OPTIONS, HEAD"));
-//    configuration.setAllowedHeaders(Arrays.asList("content-range", "authorization", "location"));
-//    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//    source.registerCorsConfiguration("/**", configuration);
-//    return source;
-//  }
-//  @Bean
-//  CorsFilter corsFilter(){
-//    CorsFilter filter = new CorsFilter();
-//    return filter;
-//  }
-//  @Bean
-//    public WebMvcConfigurer corsConfigurer() {
-//        return new WebMvcConfigurerAdapter() {
-//            @Override
-//            public void addCorsMappings(CorsRegistry registry) {
-//                registry.addMapping("/greeting-javaconfig").allowedOrigins("http://localhost:9000");
-//            }
-//        };
-//    }
-//  @Bean
-//  public UserRepositoryImpl userRepositoryImpl(){
-//    return new UserRepositoryImpl();
-//  }
 }
