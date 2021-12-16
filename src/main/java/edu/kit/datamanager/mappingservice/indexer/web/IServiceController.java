@@ -36,10 +36,10 @@ public interface IServiceController {
 
     @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
-    public ResponseEntity<MappingRecord> mapDocument(
-            @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document", required = true) final MultipartFile document,
-            @Parameter(description = "The mappingID of the already defined mapping schema.", required = true) @RequestPart(name = "mappingID", required = true) final String mappingId,
-            @Parameter(description = "The mappingType of the already defined mapping schema.", required = true) @RequestPart(name = "mappingType", required = true) final String mappingtype,
+    ResponseEntity<MappingRecord> mapDocument(
+            @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
+            @Parameter(description = "The mappingID of the already defined mapping schema.", required = true) @RequestPart(name = "mappingID") final String mappingId,
+            @Parameter(description = "The mappingType of the already defined mapping schema.", required = true) @RequestPart(name = "mappingType") final String mappingtype,
             final HttpServletRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;
