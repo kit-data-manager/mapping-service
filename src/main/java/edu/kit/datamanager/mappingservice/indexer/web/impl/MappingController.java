@@ -329,11 +329,6 @@ public class MappingController implements IMappingController {
 
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
-//
-//  @Bean
-//  public RestTemplate restTemplate() {
-//    return new RestTemplate();
-//  }
 
   /**
    * Get the record of given id / type.

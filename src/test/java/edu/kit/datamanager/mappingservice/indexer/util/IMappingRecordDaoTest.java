@@ -18,15 +18,15 @@ package edu.kit.datamanager.mappingservice.indexer.util;
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.indexer.service.impl.MappingService;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 //import org.junit.runner.RunWith;
+import edu.kit.datamanager.mappingservice.indexer.service.impl.MappingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;

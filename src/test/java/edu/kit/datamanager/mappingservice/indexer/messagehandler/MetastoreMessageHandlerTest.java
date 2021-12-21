@@ -23,35 +23,25 @@ import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.indexer.service.impl.IndexingService;
 import edu.kit.datamanager.mappingservice.indexer.service.impl.MappingService;
 import edu.kit.datamanager.messaging.client.handler.IMessageHandler.RESULT;
-import edu.kit.datamanager.util.AuthenticationHelper;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-//import org.powermock.core.classloader.annotations.PowerMockIgnore;
-//import org.powermock.core.classloader.annotations.PrepareForTest;
-//import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 /**
  */
-//@RunWith(SpringRunner.class)
-//@PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
-//@PowerMockIgnore({"javax.crypto.*", "javax.management.*"})
-//@PrepareForTest(AuthenticationHelper.class)
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -94,7 +84,6 @@ public class MetastoreMessageHandlerTest {
     mappingRecord.setMappingDocumentUri(mappingFile.getAbsolutePath());
     mappingRecord.setMappingId(MAPPING_ID);
     mappingRecord.setMappingType(MAPPING_TYPE);
-    mappingRecord.setDocumentHash(mappingRecord.getDocumentHash());
     mappingRepo.save(mappingRecord);
     System.out.println("handle");
     Map<String, String> map = new HashMap<>();

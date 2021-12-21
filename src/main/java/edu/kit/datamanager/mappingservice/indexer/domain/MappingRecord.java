@@ -45,17 +45,17 @@ public class MappingRecord implements EtagSupport, Serializable {
   public final static MediaType MAPPING_RECORD_MEDIA_TYPE = MediaType.valueOf("application/vnd.datamanager.mapping-record+json");
 
   @Id
-  @NotBlank(message = "The unique identify of the record.")
+//  @NotBlank(message = "The unique identify of the record.")
   private String mappingId;
   @Id
-  @NotBlank(message = "Type of the mapping, e.g. GEMMA, XSLT, handlebars, ....")
+// TODO @NotBlank(message = "Type of the mapping, e.g. GEMMA, XSLT, handlebars, ....")
   private String mappingType;
   @NotNull(message = "A list of access control entries for resticting access.")
   @OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
    private final Set<AclEntry> acl = new HashSet<>();
-  @NotBlank(message = "The metadata document uri, e.g. pointing to a local file.")
+//  @NotBlank(message = "The metadata document uri, e.g. pointing to a local file.")
   private String mappingDocumentUri;
-  @NotBlank(message = "The SHA-1 hash of the associated metadata file. The hash is used for comparison while updating.")
+//  @NotBlank(message = "The SHA-1 hash of the associated metadata file. The hash is used for comparison while updating.")
   private String documentHash;
 
   /**

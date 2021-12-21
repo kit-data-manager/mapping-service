@@ -18,9 +18,39 @@ package edu.kit.datamanager.mappingservice.indexer.web.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.entities.PERMISSION;
+import edu.kit.datamanager.mappingservice.MappingServiceApplication;
 import edu.kit.datamanager.mappingservice.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.indexer.domain.acl.AclEntry;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.operation.preprocess.Preprocessors;
+import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.test.context.web.ServletTestExecutionListener;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -33,57 +63,28 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.apache.commons.io.FileUtils;
-//import org.junit.runner.RunWith;
-import org.junit.Rule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.restdocs.JUnitRestDocumentation;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
-import org.springframework.security.web.FilterChainProxy;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
-import org.springframework.test.context.web.ServletTestExecutionListener;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  */
-//@RunWith(SpringRunner.class)
-@ExtendWith(SpringExtension.class)
+@ExtendWith({ RestDocumentationExtension.class, SpringExtension.class })
 @EnableRuleMigrationSupport
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT) //RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = MappingServiceApplication.class) //RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
-  DependencyInjectionTestExecutionListener.class,
-  DirtiesContextTestExecutionListener.class,
-  TransactionalTestExecutionListener.class,
-  WithSecurityContextTestExecutionListener.class})
+        DependencyInjectionTestExecutionListener.class,
+        DirtiesContextTestExecutionListener.class,
+        TransactionalTestExecutionListener.class,
+        WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41300"})
 public class MappingControllerTest {
@@ -94,20 +95,12 @@ public class MappingControllerTest {
   private static final String MAPPING_TYPE = "GEMMA";
 
   private MockMvc mockMvc;
-  @Autowired
-  private WebApplicationContext context;
-//  @Autowired
-//  private FilterChainProxy springSecurityFilterChain;
+  
   @Autowired
   private IMappingRecordDao mappingRecordDao;
-  @Rule
-  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
-
-  public MappingControllerTest() {
-  }
-
+  
   @BeforeEach
-  public void setUp() {
+  public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
     mappingRecordDao.deleteAll();
     try {
       try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING)))) {
@@ -119,9 +112,13 @@ public class MappingControllerTest {
     } catch (IOException ex) {
       ex.printStackTrace();
     }
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context)
-            .addFilters(new FilterChainProxy())
-            .apply(documentationConfiguration(this.restDocumentation))
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .apply(documentationConfiguration(restDocumentation)
+                    .uris().withPort(8095)
+                    .and().operationPreprocessors()
+                    .withRequestDefaults(prettyPrint())
+                    .withResponseDefaults(Preprocessors.removeHeaders("X-Content-Type-Options", "X-XSS-Protection", "X-Frame-Options"), prettyPrint()))
+            .alwaysDo(document("{method-name}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
             .build();
   }
 
@@ -146,11 +143,15 @@ public class MappingControllerTest {
     MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
     MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-      assertEquals(0, mappingsDir.list().length);
+    assertEquals(0, mappingsDir.list().length);
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
-            file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
-      assertEquals(1, mappingsDir.list().length);
+            file(mappingFile)).
+            andDo(print()).
+            andExpect(status().isCreated()).
+            andExpect(redirectedUrlPattern("http://*:*/api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).
+            andReturn();
+    assertEquals(1, mappingsDir.list().length);
   }
 
   /**
@@ -276,11 +277,11 @@ public class MappingControllerTest {
     MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
     MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-     assertEquals(0, mappingsDir.list().length);
+    assertEquals(0, mappingsDir.list().length);
     this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
             file(recordFile).
             file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
-     assertEquals(1, mappingsDir.list().length);
+    assertEquals(1, mappingsDir.list().length);
   }
 
   /**
@@ -410,8 +411,8 @@ public class MappingControllerTest {
   public void testUpdateMapping() throws JsonProcessingException, Exception {
     System.out.println("updateMapping");
     testCreateMapping();
-     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-   String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -432,7 +433,7 @@ public class MappingControllerTest {
     result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
             file(recordFile).
             file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
-     assertEquals( 2, mappingsDir.list().length);
+    assertEquals(2, mappingsDir.list().length);
     ObjectMapper map = new ObjectMapper();
     MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
     assertNotNull(resultRecord);
@@ -442,7 +443,7 @@ public class MappingControllerTest {
     result = this.mockMvc.perform(get(resultRecord.getMappingDocumentUri())).andDo(print()).andExpect(status().isOk()).andReturn();
     String newMapping = result.getResponse().getContentAsString();
     assertNotNull(newMapping);
-    assertEquals("Check for new content: ", mappingContent, newMapping);
+    assertEquals(mappingContent, newMapping);
   }
 
   /**
@@ -452,8 +453,8 @@ public class MappingControllerTest {
   public void testUpdateMappingWithoutDocument() throws JsonProcessingException, Exception {
     System.out.println("updateMapping");
     testCreateMapping();
-      File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-  String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -472,8 +473,8 @@ public class MappingControllerTest {
     String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
             file(recordFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
-      assertEquals(1, mappingsDir.list().length);
-   ObjectMapper map = new ObjectMapper();
+    assertEquals(1, mappingsDir.list().length);
+    ObjectMapper map = new ObjectMapper();
     MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
     assertNotNull(resultRecord);
     assertEquals(mappingId, resultRecord.getMappingId());
@@ -482,7 +483,7 @@ public class MappingControllerTest {
     result = this.mockMvc.perform(get(resultRecord.getMappingDocumentUri())).andDo(print()).andExpect(status().isOk()).andReturn();
     String oldMapping = result.getResponse().getContentAsString();
     assertNotNull(oldMapping);
-    assertEquals("Check for new content: ", mappingContent, oldMapping);
+    assertEquals(mappingContent, oldMapping);
   }
 
   /**
@@ -532,7 +533,7 @@ public class MappingControllerTest {
             file(recordFile).
             file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
   }
-@Test
+  @Test
   public void testUpdateMappingWithWrongRecord2() throws JsonProcessingException, Exception {
     System.out.println("testUpdateMappingWithWrongRecord2");
     testCreateMapping();
@@ -555,7 +556,7 @@ public class MappingControllerTest {
             file(recordFile).
             file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
   }
-@Test
+  @Test
   public void testUpdateMappingWithWrongRecord3() throws JsonProcessingException, Exception {
     System.out.println("testUpdateMappingWithWrongRecord3");
     testCreateMapping();
@@ -577,7 +578,7 @@ public class MappingControllerTest {
             file(recordFile).
             file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
   }
-@Test
+  @Test
   public void testUpdateMappingWithWrongRecord4() throws JsonProcessingException, Exception {
     System.out.println("testUpdateMappingWithWrongRecord4");
     testCreateMapping();
@@ -600,7 +601,7 @@ public class MappingControllerTest {
             file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
   }
 
- 
+
   /**
    * Test of updateMapping method, of class MappingController.
    */
@@ -662,9 +663,9 @@ public class MappingControllerTest {
     result = this.mockMvc.perform(get(resultRecord.getMappingDocumentUri())).andDo(print()).andExpect(status().isOk()).andReturn();
     String newMapping = result.getResponse().getContentAsString();
     assertNotNull(newMapping);
-    assertEquals("Check for new content: ", mappingContent, newMapping);
+    assertEquals(mappingContent, newMapping);
   }
- /**
+  /**
    * Test of updateMapping method, of class MappingController.
    */
   @Test
@@ -731,8 +732,8 @@ public class MappingControllerTest {
     System.out.println("testDeleteMapping");
     testCreateMapping();
     assertEquals(1, mappingRecordDao.count());
-     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-   String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -740,12 +741,12 @@ public class MappingControllerTest {
 
     String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNoContent()).andReturn();
-     assertEquals(1, mappingsDir.list().length);
-      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-      assertNotEquals("File should be renamed: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    assertEquals(1, mappingsDir.list().length);
+    String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+    assertNotEquals(expectedFilename, mappingsDir.list()[0]);
     result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isNotFound()).andReturn();
     assertEquals(0, mappingRecordDao.count());
- }
+  }
 
   /**
    * Test of updateMapping method, of class MappingController.
@@ -755,8 +756,8 @@ public class MappingControllerTest {
     System.out.println("testDeleteMappingUnknownMappingId");
     testCreateMapping();
     assertEquals(1, mappingRecordDao.count());
-     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-   String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -764,11 +765,11 @@ public class MappingControllerTest {
 
     String deleteMappingIdUrl = "/api/v1/mapping/" + "unknownMappingId" + "/" + mappingType;
     result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
-     assertEquals(1, mappingsDir.list().length);
-      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-      assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    assertEquals(1, mappingsDir.list().length);
+    String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+    assertEquals(expectedFilename, mappingsDir.list()[0]);
     assertEquals(1, mappingRecordDao.count());
- }
+  }
 
   /**
    * Test of updateMapping method, of class MappingController.
@@ -778,8 +779,8 @@ public class MappingControllerTest {
     System.out.println("testDeleteMappingUnknownMappingType");
     testCreateMapping();
     assertEquals(1, mappingRecordDao.count());
-     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-   String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -787,11 +788,11 @@ public class MappingControllerTest {
 
     String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + "unknownMappingType";
     result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
-     assertEquals(1, mappingsDir.list().length);
-      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-      assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    assertEquals(1, mappingsDir.list().length);
+    String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+    assertEquals(expectedFilename, mappingsDir.list()[0]);
     assertEquals(1, mappingRecordDao.count());
- }
+  }
   /**
    * Test of updateMapping method, of class MappingController.
    */
@@ -800,8 +801,8 @@ public class MappingControllerTest {
     System.out.println("testDeleteMappingMissingEtag");
     testCreateMapping();
     assertEquals(1, mappingRecordDao.count());
-     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-   String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -809,13 +810,13 @@ public class MappingControllerTest {
 
     String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     result = this.mockMvc.perform(delete(deleteMappingIdUrl)).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
-     assertEquals(1, mappingsDir.list().length);
-      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-      assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    assertEquals(1, mappingsDir.list().length);
+    String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+    assertEquals(expectedFilename, mappingsDir.list()[0]);
     result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
     assertEquals(1, mappingRecordDao.count());
- }
- /**
+  }
+  /**
    * Test of updateMapping method, of class MappingController.
    */
   @Test
@@ -823,8 +824,8 @@ public class MappingControllerTest {
     System.out.println("testDeleteMappingWrongEtag");
     testCreateMapping();
     assertEquals(1, mappingRecordDao.count());
-     File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
-   String mappingId = MAPPING_ID;
+    File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+    String mappingId = MAPPING_ID;
     String mappingType = MAPPING_TYPE;
     String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -832,9 +833,9 @@ public class MappingControllerTest {
 
     String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
     result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
-     assertEquals(1, mappingsDir.list().length);
-      String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-      assertEquals("File should be still there: " + mappingsDir.list()[0], expectedFilename, mappingsDir.list()[0]);
+    assertEquals(1, mappingsDir.list().length);
+    String expectedFilename = mappingId + "_" + mappingType + ".mapping";
+    assertEquals(expectedFilename, mappingsDir.list()[0]);
     result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
     assertEquals(1, mappingRecordDao.count());
   }

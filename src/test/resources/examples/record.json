@@ -1,0 +1,7 @@
+{
+  "mappingId":"my_dc",
+  "mappingType":"GEMMA",
+  "acl":[{"id":1,"sid":"anonymousUser","permission":"ADMINISTRATE"}],
+  "mappingDocumentUri":"http://localhost:8095/api/v1/mapping/my_dc/GEMMA",
+  "documentHash":"sha1:0240a32da4afdf43e1654901f992ccbccd74e430"
+}
