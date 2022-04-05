@@ -19,5 +19,5 @@ public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>,
   Optional<MappingRecord> findByMappingIdAndMappingType(String mappingId, String mappingType);
   Iterable<MappingRecord> findByMappingIdInOrMappingTypeIn(List<String> mappingId, List<String> mappingType);
   Page<MappingRecord> findByMappingIdInOrMappingTypeIn(List<String> mappingId, List<String> mappingType, Pageable pgbl);
-  
+  MappingRecord findByMappingId(final String mappingID);
 }

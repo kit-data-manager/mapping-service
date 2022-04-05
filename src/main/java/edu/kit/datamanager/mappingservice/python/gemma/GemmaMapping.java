@@ -17,15 +17,24 @@ package edu.kit.datamanager.mappingservice.python.gemma;
 
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.indexer.mapping.IMappingTool;
+import edu.kit.datamanager.mappingservice.indexer.mapping.MappingUtil;
+import edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil;
 import edu.kit.datamanager.mappingservice.python.util.*;
-import java.io.File;
+
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+
+import org.apache.commons.validator.util.ValidatorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil.DEFAULT_SUFFIX;
 
 /**
  * Utilities class for GEMMA.
@@ -61,5 +70,30 @@ public class GemmaMapping implements IMappingTool {
     LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", srcFile, mappingFile, resultFile);
      int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
    return returnCode;
+  }
+
+  public int mapFile(Path mappingFile, InputStream src, OutputStream result){
+    Path gemmaInput = IndexerUtil.createTempFile("gemmaInput", "");
+    Path gemmaOutput = IndexerUtil.createTempFile("gemmaOutput", "");
+    try {
+      Files.copy(src, gemmaInput, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", gemmaInput, mappingFile, gemmaOutput);
+    int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), gemmaInput.toAbsolutePath().toString(), gemmaOutput.toAbsolutePath().toString());
+
+    File outFile = gemmaOutput.toFile();
+    try {
+      result = new FileOutputStream(outFile);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    new File(gemmaInput.toUri()).delete();
+    new File(gemmaOutput.toUri()).delete();
+
+    return returnCode;
   }
 }

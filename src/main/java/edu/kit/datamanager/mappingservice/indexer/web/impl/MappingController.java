@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -111,6 +112,7 @@ public class MappingController implements IMappingController {
 
     String callerPrincipal = (String) AuthenticationHelper.getAuthentication().getPrincipal();
     LOG.trace("Checking resource for caller acl entry.");
+
     //check ACLs for caller
     AclEntry callerEntry = null;
     for (AclEntry entry : recordDocument.getAcl()) {
@@ -127,7 +129,6 @@ public class MappingController implements IMappingController {
       callerEntry = new AclEntry();
       callerEntry.setSid(callerPrincipal);
       callerEntry.setPermission(PERMISSION.ADMINISTRATE);
-
       recordDocument.getAcl().add(callerEntry);
     } else {
       LOG.debug("Ensuring ADMINISTRATE permissions for acl entry {}.", callerEntry);
@@ -201,6 +202,7 @@ public class MappingController implements IMappingController {
     return ResponseEntity.
             ok().
             header(HttpHeaders.CONTENT_LENGTH, String.valueOf(metadataDocumentPath.toFile().length())).
+            header("If-Match", record.getEtag()).
             body(new FileSystemResource(metadataDocumentPath.toFile()));
   }
 
@@ -217,22 +219,24 @@ public class MappingController implements IMappingController {
     //if security is enabled, include principal in query
     LOG.debug("Performing query for records.");
     Page<MappingRecord> records;
-    if ((mappingId == null) && (mappingType == null)) {
-      records = mappingRecordDao.findAll(pgbl);
-    } else {
-      records = mappingRecordDao.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(mappingType), pgbl);
+    try{
+      if ((mappingId == null) && (mappingType == null)) {
+        records = mappingRecordDao.findAll(pgbl);
+      } else {
+        records = mappingRecordDao.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(mappingType), pgbl);
+      }
+      LOG.trace("Cleaning up schemaDocumentUri of query result.");
+      List<MappingRecord> recordList = records.getContent();
+
+      recordList.forEach(this::fixMappingDocumentUri);
+
+      String contentRange = ControllerUtils.getContentRangeHeader(pgbl.getPageNumber(), pgbl.getPageSize(), records.getTotalElements());
+      if (!records.isEmpty()) return ResponseEntity.status(HttpStatus.OK).header("Content-Range", contentRange).body(records.getContent());
+    } catch (Exception e) {
+      e.printStackTrace();
+      LOG.info("No records found. Returning empty array.");
     }
-
-    LOG.trace("Cleaning up schemaDocumentUri of query result.");
-    List<MappingRecord> recordList = records.getContent();
-
-    recordList.forEach((record) -> {
-      fixMappingDocumentUri(record);
-    });
-
-    String contentRange = ControllerUtils.getContentRangeHeader(pgbl.getPageNumber(), pgbl.getPageSize(), records.getTotalElements());
-
-    return ResponseEntity.status(HttpStatus.OK).header("Content-Range", contentRange).body(records.getContent());
+    return ResponseEntity.status(HttpStatus.OK).body(new ArrayList<>());
   }
 
   @Override

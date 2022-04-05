@@ -18,11 +18,18 @@ package edu.kit.datamanager.mappingservice.indexer.mapping;
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
 import edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * Utilities class for mapping files.
@@ -75,6 +82,24 @@ public class MappingUtil {
     return Optional.ofNullable(resultFile);
   }
 
+//  public OutputStream mapFile(Path mappingFile, InputStream src, String mapping) {
+//    OutputStream result = null;
+//    int returnCode = FAILURE;
+////    resultFile = IndexerUtil.createTempFile(mapping + "_", ".mapping");
+//    try {
+//      returnCode = mapFile(mappingFile, src, result, mapping);
+//    } catch (IndexerException ie) {
+//      throw ie;
+//    } finally {
+//      if (returnCode != SUCCESS) {
+////        IndexerUtil.removeFile(resultFile);
+//        result = null;
+//      }
+//    }
+//
+//    return result;
+//  }
+
   /**
    * Map the source file to a new file using a given mapping tool.
    *
@@ -95,4 +120,16 @@ public class MappingUtil {
 
     return returnValue;
   }
+
+//  public int mapFile(Path mappingFile, InputStream src, OutputStream result, String mapping) {
+//    int returnValue;
+//
+//    IMappingTool mappingTool = IMappingTool.getMappingTool(configuration, mapping);
+////    if (result != null && ((resultFile.toFile().length() > 0) || !resultFile.toFile().canWrite())) {
+////      throw new IndexerException("Overwriting file '" + resultFile.toString() + "' is not allowed!");
+////    }
+//    returnValue = mappingTool.mapFile(mappingFile, src, result);
+//
+//    return returnValue;
+//  }
 }

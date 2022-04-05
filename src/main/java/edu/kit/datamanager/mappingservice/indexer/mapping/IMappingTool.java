@@ -18,6 +18,9 @@ package edu.kit.datamanager.mappingservice.indexer.mapping;
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
 import edu.kit.datamanager.mappingservice.python.gemma.GemmaMapping;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;

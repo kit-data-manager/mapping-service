@@ -56,7 +56,7 @@ public interface IMappingController {
           + "the mapping identifier and (optional) the mapping type. As a starting point only gemma mappings are allowed. For future versions other mappings like handlebar or xslt might be provided also.",
           responses = {
             @ApiResponse(responseCode = "201", description = "Created is returned only if the record has been validated, persisted and the mapping document was successfully validated and stored.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
-            @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record or the mappong is invalid."),
+            @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record or the mapping is invalid."),
             @ApiResponse(responseCode = "409", description = "A Conflict is returned, if there is already a record for the related mapping id.")})
 
   @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})

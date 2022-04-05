@@ -48,5 +48,4 @@ public interface IServiceController {
             final HttpServletRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;
-
 }
