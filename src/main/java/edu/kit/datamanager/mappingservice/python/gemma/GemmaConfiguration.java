@@ -16,6 +16,7 @@
 package edu.kit.datamanager.mappingservice.python.gemma;
 
 import java.net.URL;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,13 +26,13 @@ import lombok.Setter;
 @Setter
 @Getter
 public class GemmaConfiguration {
- /**
-  * Absolute path to python executable.
-  */
-  private URL pythonLocation;
-  /**
-   * Absolute path to gemma script.
-   */
-  private URL gemmaLocation;
+    /**
+     * Absolute path to python executable.
+     */
+    private URL pythonLocation;
+    /**
+     * Absolute path to gemma script.
+     */
+    private URL gemmaLocation;
 
 }

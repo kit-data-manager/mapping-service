@@ -22,40 +22,40 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Invalid json format of data.
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class IndexerException extends RuntimeException {
+public class MappingException extends RuntimeException {
 
-  /**
-   * Default constructor.
-   */
-  public IndexerException() {
-    super();
-  }
+    /**
+     * Default constructor.
+     */
+    public MappingException() {
+        super();
+    }
 
-  /**
-   * Constructor with given message and cause.
-   *
-   * @param message Message.
-   * @param cause Cause.
-   */
-  public IndexerException(String message, Throwable cause) {
-    super(message, cause);
-  }
+    /**
+     * Constructor with given message and cause.
+     *
+     * @param message Message.
+     * @param cause   Cause.
+     */
+    public MappingException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-  /**
-   * Constructor with given message.
-   *
-   * @param message Message.
-   */
-  public IndexerException(String message) {
-    super(message);
-  }
+    /**
+     * Constructor with given message.
+     *
+     * @param message Message.
+     */
+    public MappingException(String message) {
+        super(message);
+    }
 
-  /**
-   * Constructor with given message and cause.
-   *
-   * @param cause Cause.
-   */
-  public IndexerException(Throwable cause) {
-    super(cause);
-  }
+    /**
+     * Constructor with given message and cause.
+     *
+     * @param cause Cause.
+     */
+    public MappingException(Throwable cause) {
+        super(cause);
+    }
 }

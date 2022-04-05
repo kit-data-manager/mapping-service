@@ -16,7 +16,6 @@
 package edu.kit.datamanager.mappingservice.indexer.configuration;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -26,13 +25,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @author jejkal
  */
 @Configuration
-public class StaticResourcesConfiguration implements WebMvcConfigurer{
+public class StaticResourcesConfiguration implements WebMvcConfigurer {
 
-  private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
-    "classpath:/static/"};
+    private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
+            "classpath:/static/"};
 
-  @Override
-  public void addResourceHandlers(ResourceHandlerRegistry registry){
-    registry.addResourceHandler("/static/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
-  }
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/static/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
+    }
 }

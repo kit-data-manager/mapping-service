@@ -16,7 +16,7 @@
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
+import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
 import edu.kit.datamanager.mappingservice.python.gemma.GemmaMapping;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
@@ -79,7 +79,7 @@ public class IMappingToolTest {
       try {
         IMappingTool result = IMappingTool.getMappingTool(applicationProperties, map);
         fail("Expected an exception! (mapping = '" + map + "')");
-      } catch (IndexerException iex) {
+      } catch (MappingException iex) {
         assertTrue(true);
       }
     }

@@ -18,6 +18,7 @@ package edu.kit.datamanager.mappingservice.indexer.domain.acl;
 import edu.kit.datamanager.annotations.SecureUpdate;
 import edu.kit.datamanager.util.EnumUtils;
 import edu.kit.datamanager.entities.PERMISSION;
+
 import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -26,64 +27,64 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
 import lombok.Data;
 
 /**
- *
  * @author jejkal
  */
 @Entity
 @Table(name = "indexer_acl")
 @Data
-public class AclEntry{
+public class AclEntry {
 
-  public AclEntry(){
-  }
+    public AclEntry() {
+    }
 
-  public AclEntry(String identifier, PERMISSION permission){
-    this();
-    this.sid = identifier;
-    this.permission = permission;
-  }
+    public AclEntry(String identifier, PERMISSION permission) {
+        this();
+        this.sid = identifier;
+        this.permission = permission;
+    }
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @SecureUpdate("FORBIDDEN")
-  private Long id;
-  @SecureUpdate("FORBIDDEN")
-  private String sid;
-  @SecureUpdate("ADMINISTRATE")
-  @Enumerated(EnumType.STRING)
-  private PERMISSION permission;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SecureUpdate("FORBIDDEN")
+    private Long id;
+    @SecureUpdate("FORBIDDEN")
+    private String sid;
+    @SecureUpdate("ADMINISTRATE")
+    @Enumerated(EnumType.STRING)
+    private PERMISSION permission;
 
-  @Override
-  public int hashCode(){
-    int hash = 7;
-    hash = 89 * hash + Objects.hashCode(this.id);
-    hash = 89 * hash + Objects.hashCode(this.sid);
-    hash = 89 * hash + EnumUtils.hashCode(this.permission);
-    return hash;
-  }
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.id);
+        hash = 89 * hash + Objects.hashCode(this.sid);
+        hash = 89 * hash + EnumUtils.hashCode(this.permission);
+        return hash;
+    }
 
-  @Override
-  public boolean equals(Object obj){
-    if(this == obj){
-      return true;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AclEntry other = (AclEntry) obj;
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.sid, other.sid)) {
+            return false;
+        }
+        return EnumUtils.equals(this.permission, other.permission);
     }
-    if(obj == null){
-      return false;
-    }
-    if(getClass() != obj.getClass()){
-      return false;
-    }
-    final AclEntry other = (AclEntry) obj;
-    if(!Objects.equals(this.id, other.id)){
-      return false;
-    }
-    if(!Objects.equals(this.sid, other.sid)){
-      return false;
-    }
-    return EnumUtils.equals(this.permission, other.permission);
-  }
 
 }

@@ -20,25 +20,28 @@ import edu.kit.datamanager.mappingservice.validator.LocalFileValidator;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 import java.lang.annotation.Documented;
+
 import static java.lang.annotation.ElementType.FIELD;
+
 import java.lang.annotation.Retention;
+
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Target;
 
 /**
- *
  * @author jejkal
  */
 @Target({FIELD})
 @Retention(RUNTIME)
 @Constraint(validatedBy = LocalFileValidator.class)
 @Documented
-public @interface LocalFileURL{
+public @interface LocalFileURL {
 
-  String message() default "Provided file URL invalid. A valid URL to a local file is required.";
+    String message() default "Provided file URL invalid. A valid URL to a local file is required.";
 
-  Class<?>[] groups() default {};
+    Class<?>[] groups() default {};
 
-  Class<? extends Payload>[] payload() default {};
+    Class<? extends Payload>[] payload() default {};
 
 }

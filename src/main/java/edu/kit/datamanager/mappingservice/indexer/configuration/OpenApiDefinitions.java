@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Karlsruhe Institute of Technology.
  *
@@ -25,29 +24,28 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- *
  * @author jejkal
  */
 @Configuration
 public class OpenApiDefinitions {
 
-  @Bean
-  public OpenAPI customOpenAPI(){
-    return new OpenAPI()
-            .components(new Components())
-            .info(new Info().title("mapping-service Microservice - RESTful API").
-                    description("This webpage describes the RESTful interface of the KIT Data Manager mapping-service Microservice.").
-                    version("0.1").
-                    contact(
-                            new Contact().
-                                    name("KIT Data Manager Support").
-                                    url("https://github.com/kit-data-manager").
-                                    email("support@datamanager.kit.edu")).
-                    license(
-                            new License().
-                                    name("Apache 2.0").
-                                    url("http://www.apache.org/licenses/LICENSE-2.0.html"))
-            );
-  }
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .components(new Components())
+                .info(new Info().title("mapping-service - RESTful API").
+                        description("This webpage describes the RESTful API of the KIT Data Manager mapping-service.").
+                        version("0.1").
+                        contact(
+                                new Contact().
+                                        name("KIT Data Manager Support").
+                                        url("https://github.com/kit-data-manager").
+                                        email("support@datamanager.kit.edu")).
+                        license(
+                                new License().
+                                        name("Apache 2.0").
+                                        url("https://www.apache.org/licenses/LICENSE-2.0.html"))
+                );
+    }
 
 }

@@ -40,73 +40,67 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 /**
- *
  * @author jejkal
  */
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  @Autowired
-  private Logger logger;
+    @Autowired
+    private Logger logger;
 
-  public WebSecurityConfig(){
-  }
+    public WebSecurityConfig() {
+    }
 
-  @Override
-  public void configure(AuthenticationManagerBuilder auth) {
-    auth.authenticationEventPublisher(new NoopAuthenticationEventPublisher()).authenticationProvider(new JwtAuthenticationProvider("test123", logger));
-  }
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationEventPublisher(new NoopAuthenticationEventPublisher()).authenticationProvider(new JwtAuthenticationProvider("test123", logger));
+    }
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception{
-    HttpSecurity httpSecurity = http.authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .csrf().disable()
-            .addFilterAfter(new JwtAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        HttpSecurity httpSecurity = http.authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .csrf().disable()
+                .addFilterAfter(new JwtAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
 
-    // if(!applicationProperties.isAuthEnabled()){
-    //   logger.info("Authentication is DISABLED. Adding 'NoAuthenticationFilter' to authentication chain.");
-    httpSecurity = httpSecurity.addFilterAfter(new NoAuthenticationFilter("test123", authenticationManager()), JwtAuthenticationFilter.class);
-    // } else{
-    //   logger.info("Authentication is ENABLED.");
-    //}
+        httpSecurity = httpSecurity.addFilterAfter(new NoAuthenticationFilter("test123", authenticationManager()), JwtAuthenticationFilter.class);
 
-    httpSecurity.
-            authorizeRequests().
-            antMatchers("/api/v1").authenticated();
+        httpSecurity.
+                authorizeRequests().
+                antMatchers("/api/v1").authenticated();
 
-    http.headers().cacheControl().disable();
-  }
+        http.headers().cacheControl().disable();
+    }
 
-  @Bean
-  public HttpFirewall allowUrlEncodedSlashHttpFirewall(){
-    DefaultHttpFirewall firewall = new DefaultHttpFirewall();
-    firewall.setAllowUrlEncodedSlash(true);
-    return firewall;
-  }
+    @Bean
+    public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+        DefaultHttpFirewall firewall = new DefaultHttpFirewall();
+        firewall.setAllowUrlEncodedSlash(true);
+        return firewall;
+    }
 
-  @Override
-  public void configure(WebSecurity web) {
-    web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
-  }
+    @Override
+    public void configure(WebSecurity web) {
+        web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
+    }
 
-  @Bean
-  public FilterRegistrationBean corsFilter(){
-    final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowCredentials(true);
-    config.addAllowedOrigin("*"); // @Value: http://localhost:8080
-    config.addAllowedHeader("*");
-    config.addAllowedMethod("*");
-    config.addExposedHeader("Content-Range");
-    config.addExposedHeader("ETag");
+    @Bean
+    public FilterRegistrationBean corsFilter() {
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("*"); // @Value: http://localhost:8080
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.addExposedHeader("Content-Range");
+        config.addExposedHeader("ETag");
 
-    source.registerCorsConfiguration("/**", config);
-    FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-    bean.setOrder(0);
-    return bean;
-  }
+        source.registerCorsConfiguration("/**", config);
+        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+        bean.setOrder(0);
+        return bean;
+    }
 }

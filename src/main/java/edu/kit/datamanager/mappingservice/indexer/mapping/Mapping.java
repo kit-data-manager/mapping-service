@@ -16,7 +16,8 @@
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
 /**
+ *
  */
 public enum Mapping {
-  GEMMA
+    GEMMA
 }

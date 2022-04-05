@@ -16,11 +16,9 @@
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
+import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
 import edu.kit.datamanager.mappingservice.python.gemma.GemmaMapping;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,48 +29,47 @@ import java.util.Map;
  */
 public interface IMappingTool {
 
-  /**
-   * Map holding all mapping tools.
-   */
-  public static Map<Mapping, IMappingTool> toolMapper = new HashMap<>();
+    /**
+     * Map holding all mapping tools.
+     */
+    Map<Mapping, IMappingTool> toolMapper = new HashMap<>();
 
-  /**
-   * Get mapping tool for give mapping.
-   *
-   * @param applicationProperties instance holding all properties for all
-   * mapping tools.
-   * @param mapping mapping which should be used.
-   * @return instance for mapping file
-   * @throws IndexerException if not a valid mapping.
-   */
-  public static IMappingTool getMappingTool(ApplicationProperties applicationProperties, String mapping) {
-    Mapping map = null;
-    try {
-      map = Mapping.valueOf(mapping);
-      if (!toolMapper.containsKey(map)) {
-        switch (map) {
-          case GEMMA:
-            toolMapper.put(map, new GemmaMapping(applicationProperties));
-            break;
-          default:
-            throw new IndexerException("Error: Mapping '" + mapping + "' is not registered yet!");
+    /**
+     * Get mapping tool for give mapping.
+     *
+     * @param applicationProperties instance holding all properties for all
+     *                              mapping tools.
+     * @param mapping               mapping which should be used.
+     * @return instance for mapping file
+     * @throws MappingException if not a valid mapping.
+     */
+    static IMappingTool getMappingTool(ApplicationProperties applicationProperties, String mapping) {
+        Mapping map;
+        try {
+            map = Mapping.valueOf(mapping);
+            if (!toolMapper.containsKey(map)) {
+                switch (map) {
+                    case GEMMA:
+                        toolMapper.put(map, new GemmaMapping(applicationProperties));
+                        break;
+                    default:
+                        throw new MappingException("Error: Mapping '" + mapping + "' is not registered yet!");
+                }
+            }
+        } catch (Exception ex) {
+            throw new MappingException("Error: '" + mapping + "' is not a valid mapping!", ex);
         }
-      }
-    } catch (Exception ex) {
-      throw new IndexerException("Error: '" + mapping + "' is not a valid mapping!", ex);
+        return toolMapper.get(map);
     }
-    return toolMapper.get(map);
-  }
 
-  /**
-   * Map the source file to a new file using a given mapping tool.
-   *
-   * @param mappingFile The absolute path to mapping file.
-   * @param srcFile The absolute path to the source file.
-   * @param resultFile The absolute path to the created mapping.
-   *
-   * @return Errorcode (0 = SUCCESS)
-   */
-  public int mapFile(Path mappingFile, Path srcFile, Path resultFile);
+    /**
+     * Map the source file to a new file using a given mapping tool.
+     *
+     * @param mappingFile The absolute path to mapping file.
+     * @param srcFile     The absolute path to the source file.
+     * @param resultFile  The absolute path to the created mapping.
+     * @return Errorcode (0 = SUCCESS)
+     */
+    int mapFile(Path mappingFile, Path srcFile, Path resultFile);
 
 }

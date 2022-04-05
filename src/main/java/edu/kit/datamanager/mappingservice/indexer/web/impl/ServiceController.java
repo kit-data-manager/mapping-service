@@ -15,44 +15,28 @@
  */
 package edu.kit.datamanager.mappingservice.indexer.web.impl;
 
-import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
 import edu.kit.datamanager.mappingservice.indexer.service.impl.MappingService;
-import edu.kit.datamanager.mappingservice.indexer.util.ElasticsearchUtil;
 import edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil;
 import edu.kit.datamanager.mappingservice.indexer.web.IServiceController;
-import edu.kit.datamanager.messaging.client.handler.IMessageHandler;
-import edu.kit.datamanager.messaging.client.util.MessageHandlerUtils;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.ValidationUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Controller for managing mapping files.
@@ -72,14 +56,14 @@ public class ServiceController implements IServiceController {
                                       String mappingType,
                                       HttpServletRequest request,
                                       HttpServletResponse response,
-                                      UriComponentsBuilder uriBuilder) throws URISyntaxException {
+                                      UriComponentsBuilder uriBuilder) {
         LOG.debug("Document: {}", document.getName());
         LOG.debug("MappingID: {}", mappingID);
         LOG.debug("MappingTape: {}", mappingType);
 
         Path resultPath = null;
         if (!document.isEmpty() && !mappingID.isBlank() && !mappingType.isBlank()) {
-            Path inputPath = IndexerUtil.createTempFile("inputMulipart", "");
+            Path inputPath = IndexerUtil.createTempFile("inputMultipart", "");
             File inputFile = inputPath.toFile();
             try {
                 document.transferTo(inputFile);

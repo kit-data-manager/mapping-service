@@ -36,13 +36,10 @@ public interface IServiceController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR is returned if errors occur that do not necessarily depend on user input, " +
                     "e.g. a faulty configuration. No more specific messages are returned for security reasons.")})
 
-//    @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @RequestMapping(value = {"/{mappingID}/{mappingType}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity mapDocument(
             @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
-//            @Parameter(description = "The mappingID of the already defined mapping schema.", required = true) @RequestPart(name = "mappingID")  @PathVariable(value = "mappingID") final String mappingId,
-//            @Parameter(description = "The mappingType of the already defined mapping schema.", required = true) @RequestPart(name = "mappingType", required = false) final String mappingType,
             @Parameter(description = "The mappingID of the already defined mapping schema.", required = true) @PathVariable(value = "mappingID") String mappingID,
             @Parameter(description = "The mappingType of the already defined mapping schema.", required = true) @PathVariable(name = "mappingType") String mappingType,
             final HttpServletRequest request,

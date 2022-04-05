@@ -22,35 +22,35 @@ import java.util.Objects;
  * Composite key for MappingRecord
  */
 public class CompositeKey implements Serializable {
-  String mappingId;
-  String mappingType; 
+    String mappingId;
+    String mappingType;
 
-  @Override
-  public int hashCode() {
-    int hash = 3;
-    hash = 59 * hash + Objects.hashCode(this.mappingId);
-    hash = 59 * hash + Objects.hashCode(this.mappingType);
-    return hash;
-  }
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.mappingId);
+        hash = 59 * hash + Objects.hashCode(this.mappingType);
+        return hash;
+    }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final CompositeKey other = (CompositeKey) obj;
+        if (!Objects.equals(this.mappingId, other.mappingId)) {
+            return false;
+        }
+        if (!Objects.equals(this.mappingType, other.mappingType)) {
+            return false;
+        }
+        return true;
     }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final CompositeKey other = (CompositeKey) obj;
-    if (!Objects.equals(this.mappingId, other.mappingId)) {
-      return false;
-    }
-    if (!Objects.equals(this.mappingType, other.mappingType)) {
-      return false;
-    }
-    return true;
-  }
 }

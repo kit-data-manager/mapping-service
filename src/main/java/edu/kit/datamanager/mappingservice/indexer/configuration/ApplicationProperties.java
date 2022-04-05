@@ -16,16 +16,18 @@
 package edu.kit.datamanager.mappingservice.indexer.configuration;
 
 import edu.kit.datamanager.configuration.GenericPluginProperties;
+
 import java.net.URL;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
+ *
  */
 @ConfigurationProperties(prefix = "indexer")
 @Component
@@ -34,46 +36,42 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EqualsAndHashCode(callSuper = true)
 public class ApplicationProperties extends GenericPluginProperties {
 
-  /**
-   * The absolute path to the python interpreter.
-   */
-  @edu.kit.datamanager.mappingservice.annotations.ExecutableFileURL
-  @Value("${metastore.indexer.gemma.pythonLocation}")
-  private URL pythonLocation;
+    /**
+     * The absolute path to the python interpreter.
+     */
+    @Value("${metastore.indexer.gemma.pythonLocation}")
+    private URL pythonLocation;
 
-  /**
-   * The path to the gemma mapping script 'mapping_single.py'
-   */
-  @edu.kit.datamanager.mappingservice.annotations.LocalFileURL
-  @Value("${metastore.indexer.gemma.gemmaLocation}")
-  private URL gemmaLocation;
+    /**
+     * The path to the gemma mapping script 'mapping_single.py'
+     */
+    @edu.kit.datamanager.mappingservice.annotations.LocalFileURL
+    @Value("${metastore.indexer.gemma.gemmaLocation}")
+    private URL gemmaLocation;
 
-  /**
-   * The absolute path where the mappings are stored.
-   */
-  @edu.kit.datamanager.annotations.LocalFolderURL
-  @Value("${metastore.indexer.mappingsLocation}")
-  private URL mappingsLocation;
+    /**
+     * The absolute path where the mappings are stored.
+     */
+    @edu.kit.datamanager.annotations.LocalFolderURL
+    @Value("${metastore.indexer.mappingsLocation}")
+    private URL mappingsLocation;
 
-  /**
-   * The base URL of the elasticsearch service, including port.
-   */
-  @edu.kit.datamanager.mappingservice.annotations.ElasticsearchURL
-  @Value("${metastore.indexer.elastic.baseUrl:http://localhost:9200}")
-  URL elasticsearchUrl;
+    /**
+     * The base URL of the elasticsearch service, including port.
+     */
+    @Value("${metastore.indexer.elastic.baseUrl:http://localhost:9200}")
+    URL elasticsearchUrl;
 
-  /**
-   * The elastic index ("database") where the records will be stored into.
-   */
-  @edu.kit.datamanager.mappingservice.annotations.ElasticsearchIndex
-  @Value("${metastore.indexer.elastic.index:kitdm}")
-  String elasticsearchIndex;
+    /**
+     * The elastic index ("database") where the records will be stored into.
+     */
+    @Value("${metastore.indexer.elastic.index:kitdm}")
+    String elasticsearchIndex;
 
-  /**
-   * The elasticsearch type of the document.
-   */
-  @edu.kit.datamanager.mappingservice.annotations.ElasticsearchIndex
-  @Value("${metastore.indexer.elastic.type:_doc}")
-  String elasticsearchType;
+    /**
+     * The elasticsearch type of the document.
+     */
+    @Value("${metastore.indexer.elastic.type:_doc}")
+    String elasticsearchType;
 
 }

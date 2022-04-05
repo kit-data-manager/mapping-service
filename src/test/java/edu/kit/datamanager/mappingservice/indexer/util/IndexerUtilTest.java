@@ -16,7 +16,7 @@
 package edu.kit.datamanager.mappingservice.indexer.util;
 
 import com.google.common.io.Files;
-import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
+import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -74,7 +74,7 @@ public class IndexerUtilTest {
       URI resourceURL = new URI("https://invalidhttpaddress.de");
       Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
       assertTrue(false);
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(true);
       assertTrue(ie.getMessage().contains("Error downloading resource"));
     }
@@ -157,7 +157,7 @@ public class IndexerUtilTest {
       URI resourceURL = new File("/invalid/path/to/local/file").toURI();
       Optional<Path> result = IndexerUtil.downloadResource(resourceURL);
       assertTrue(false);
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(true);
       assertTrue(ie.getMessage().contains("Error downloading resource"));
     }
@@ -215,7 +215,7 @@ public class IndexerUtilTest {
     try {
       IndexerUtil.removeFile(createTempFile.getParent());
       assertTrue(false);
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(ie.getMessage().contains("Error removing file"));
     }
     assertTrue(createTempFile.toFile().exists());

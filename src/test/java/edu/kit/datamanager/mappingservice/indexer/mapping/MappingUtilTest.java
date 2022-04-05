@@ -16,7 +16,7 @@
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
+import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
 import edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
@@ -102,7 +102,7 @@ public class MappingUtilTest {
       try {
         result = instance.mapFile(MAPPING_FILE, SRC_FILE, RESULT_FILE, map);
         fail("Expected an exception! (mapping = '" + map + "')");
-      } catch (IndexerException iex) {
+      } catch (MappingException iex) {
         assertTrue(iex.getMessage().contains("is not a valid"));
       }
     }
@@ -162,7 +162,7 @@ public class MappingUtilTest {
     try {
       int result = instance.mapFile(MAPPING_FILE, SRC_FILE, RESULT_FILE, Mapping.GEMMA.name());
       fail("Expected an exception! (overwriting existing file)");
-    } catch (IndexerException iex) {
+    } catch (MappingException iex) {
       assertTrue(iex.getMessage().contains("Overwriting file"));
     }
     RESULT_FILE.toFile().setWritable(true);
@@ -182,7 +182,7 @@ public class MappingUtilTest {
     try {
       int result = instance.mapFile(MAPPING_FILE, SRC_FILE, RESULT_FILE, Mapping.GEMMA.name());
       fail("Expected an exception! (overwriting existing file)");
-    } catch (IndexerException iex) {
+    } catch (MappingException iex) {
       assertTrue(iex.getMessage().contains("Overwriting file"));
     }
   }

@@ -17,83 +17,46 @@ package edu.kit.datamanager.mappingservice.python.gemma;
 
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.indexer.mapping.IMappingTool;
-import edu.kit.datamanager.mappingservice.indexer.mapping.MappingUtil;
-import edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil;
-import edu.kit.datamanager.mappingservice.python.util.*;
-
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
-import org.apache.commons.validator.util.ValidatorUtils;
+import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil.DEFAULT_SUFFIX;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
 
 /**
  * Utilities class for GEMMA.
  */
 public class GemmaMapping implements IMappingTool {
 
-  /** Logger for this class.
-   */
-  private final static Logger LOGGER = LoggerFactory.getLogger(GemmaMapping.class);
+    /**
+     * Logger for this class.
+     */
+    private final static Logger LOGGER = LoggerFactory.getLogger(GemmaMapping.class);
 
-  
-  GemmaConfiguration gemmaConfiguration;
 
-  public GemmaMapping(ApplicationProperties configuration) throws URISyntaxException, MalformedURLException {
-    gemmaConfiguration = new GemmaConfiguration();
-    File gemmaFile = new File(configuration.getGemmaLocation().getPath());
-    File pythonExecutable = new File(configuration.getPythonLocation().getPath());
-    gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
-    gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
-  }
+    GemmaConfiguration gemmaConfiguration;
 
-  /**
-   * Map the source file to a new file using a given mapping tool.
-   *
-   * @param mappingFile The absolute path to mapping file.
-   * @param srcFile The absolute path to the source file.
-   * @param resultFile The absolute path to the created mapping.
-    *
-   * @return Errorcode (0 = SUCCESS)
-   * @see edu.kit.datamanager.mappingservice.python.util.PythonUtils
-   */
-  public int mapFile(Path mappingFile, Path srcFile, Path resultFile){
-    LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", srcFile, mappingFile, resultFile);
-     int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
-   return returnCode;
-  }
-
-  public int mapFile(Path mappingFile, InputStream src, OutputStream result){
-    Path gemmaInput = IndexerUtil.createTempFile("gemmaInput", "");
-    Path gemmaOutput = IndexerUtil.createTempFile("gemmaOutput", "");
-    try {
-      Files.copy(src, gemmaInput, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      e.printStackTrace();
+    public GemmaMapping(ApplicationProperties configuration) throws MalformedURLException {
+        gemmaConfiguration = new GemmaConfiguration();
+        File gemmaFile = new File(configuration.getGemmaLocation().getPath());
+        File pythonExecutable = new File(configuration.getPythonLocation().getPath());
+        gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
+        gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
     }
 
-    LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", gemmaInput, mappingFile, gemmaOutput);
-    int returnCode = PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), gemmaInput.toAbsolutePath().toString(), gemmaOutput.toAbsolutePath().toString());
-
-    File outFile = gemmaOutput.toFile();
-    try {
-      result = new FileOutputStream(outFile);
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
+    /**
+     * Map the source file to a new file using a given mapping tool.
+     *
+     * @param mappingFile The absolute path to mapping file.
+     * @param srcFile     The absolute path to the source file.
+     * @param resultFile  The absolute path to the created mapping.
+     * @return Errorcode (0 = SUCCESS)
+     * @see edu.kit.datamanager.mappingservice.python.util.PythonUtils
+     */
+    public int mapFile(Path mappingFile, Path srcFile, Path resultFile) {
+        LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", srcFile, mappingFile, resultFile);
+        return PythonUtils.run(gemmaConfiguration.getPythonLocation().getPath(), gemmaConfiguration.getGemmaLocation().getPath(), mappingFile.toAbsolutePath().toString(), srcFile.toAbsolutePath().toString(), resultFile.toAbsolutePath().toString());
     }
-
-    new File(gemmaInput.toUri()).delete();
-    new File(gemmaOutput.toUri()).delete();
-
-    return returnCode;
-  }
 }

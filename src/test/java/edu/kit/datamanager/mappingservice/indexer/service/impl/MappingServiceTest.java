@@ -19,7 +19,7 @@ import edu.kit.datamanager.mappingservice.MappingServiceApplication;
 import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.indexer.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.indexer.exception.IndexerException;
+import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
 import edu.kit.datamanager.mappingservice.indexer.mapping.Mapping;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
@@ -118,7 +118,7 @@ public class MappingServiceTest {
       assertTrue(file.exists());
       FileUtils.deleteDirectory(file);
       assertFalse(file.exists());
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       fail();
     }
   }
@@ -128,7 +128,7 @@ public class MappingServiceTest {
     try {
       new MappingService(null);
       fail();
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(true);
     }
     try {
@@ -136,7 +136,7 @@ public class MappingServiceTest {
       ap.setMappingsLocation(new URL("file:///forbidden"));
       new MappingService(ap);
       fail();
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(true);
     }
   }
@@ -165,7 +165,7 @@ public class MappingServiceTest {
       assertEquals(expectedFilename, mappingsDir.list()[0]);
       File mappingFile = Paths.get(mappingsDir.getAbsolutePath(), expectedFilename).toFile();
       assertEquals(content, FileUtils.readFileToString(mappingFile, StandardCharsets.UTF_8));
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       fail();
     }
   }
@@ -194,7 +194,7 @@ public class MappingServiceTest {
       mappingService4Test.createMapping(content, mappingRecord);
       mappingService4Test.createMapping(newContent, mappingRecord);
       fail();
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       assertTrue(true);
       assertTrue(ie.getMessage().contains("already exists"));
       assertTrue(ie.getMessage().contains(mappingType));
@@ -221,7 +221,7 @@ public class MappingServiceTest {
     try {
       mappingService4Test.createMapping(content, mappingRecord);
       fail();
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       assertTrue(true);
       assertTrue(ie.getMessage().contains("Unkown mapping"));
       assertTrue(ie.getMessage().contains(mappingType));
@@ -258,7 +258,7 @@ public class MappingServiceTest {
       assertTrue(mappingFile.exists());
       assertEquals(newContent, FileUtils.readFileToString(mappingFile, StandardCharsets.UTF_8));
 
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       assertTrue(true);
       assertTrue(ie.getMessage().contains("missing mapping file"));
     }
@@ -284,7 +284,7 @@ public class MappingServiceTest {
     try {
       mappingService4Test.updateMapping(content, mappingRecord);
       fail();
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       assertTrue(true);
       assertTrue(ie.getMessage().contains("Mapping"));
       assertTrue(ie.getMessage().contains("doesn't exist"));
@@ -322,7 +322,7 @@ public class MappingServiceTest {
       assertTrue(mappingFileMarkedAsDeleted.exists());
       assertEquals(content, FileUtils.readFileToString(mappingFileMarkedAsDeleted, StandardCharsets.UTF_8));
       assertEquals(0, mappingRepo.count());
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       fail();
     }
   }
@@ -343,7 +343,7 @@ public class MappingServiceTest {
     try {
       mappingService4Test.deleteMapping(mappingRecord);
       fail();
-    } catch (IOException | IndexerException ie) {
+    } catch (IOException | MappingException ie) {
       assertEquals(0, mappingsDir.list().length);
       assertTrue(ie.getMessage().contains("Mapping"));
       assertTrue(ie.getMessage().contains("doesn't exist"));
@@ -362,7 +362,7 @@ public class MappingServiceTest {
     try {
       Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
       fail("Exception expected!");
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(ie.getMessage().contains("No URL provided"));
     }
   }
@@ -378,7 +378,7 @@ public class MappingServiceTest {
     try {
       Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
       fail("Exception expected!");
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(ie.getMessage().contains("No URL provided"));
 
     }
@@ -406,7 +406,7 @@ public class MappingServiceTest {
     try {
       Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId, GEMMA.name());
       fail("Exception expected!");
-    } catch (IndexerException ie) {
+    } catch (MappingException ie) {
       assertTrue(ie.getMessage().contains("Error downloading resource"));
       assertTrue(ie.getMessage().contains(contentUrl.toString()));
     }

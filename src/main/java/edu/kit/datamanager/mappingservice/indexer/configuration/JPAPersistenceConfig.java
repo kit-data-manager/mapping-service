@@ -21,11 +21,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
+ *
  */
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "edu.kit.datamanager.mappingservice.indexer")
 @EntityScan(basePackages = {"edu.kit.datamanager.indexer.domain"})
-public class JPAPersistenceConfig{
+public class JPAPersistenceConfig {
 
 }

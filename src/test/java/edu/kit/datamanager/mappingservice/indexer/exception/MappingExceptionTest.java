@@ -22,23 +22,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  */
-public class IndexerExceptionTest {
+public class MappingExceptionTest {
 
   @Test
   public void testAllConstructors() {
     String messageOne = "any message";
     String messageTwo = "any other message";
-    IndexerException exception = new IndexerException();
+    MappingException exception = new MappingException();
     assertNotNull(exception);
     assertNull(exception.getMessage());
-    IndexerException exceptionWithMessage = new IndexerException(messageOne);
+    MappingException exceptionWithMessage = new MappingException(messageOne);
     assertNotNull(exceptionWithMessage);
     assertEquals(messageOne, exceptionWithMessage.getMessage());
-    IndexerException exceptionWithCause = new IndexerException(exception);
+    MappingException exceptionWithCause = new MappingException(exception);
     assertNotNull(exceptionWithCause);
     assertNull(exception.getMessage());
     assertEquals(exception, exceptionWithCause.getCause());
-    IndexerException exceptionWithMessageAndCause = new IndexerException(messageTwo,exception);
+    MappingException exceptionWithMessageAndCause = new MappingException(messageTwo,exception);
     assertNotNull(exceptionWithMessageAndCause);
     assertNotNull(exceptionWithMessageAndCause.getMessage());
     assertEquals(exception, exceptionWithMessageAndCause.getCause());
