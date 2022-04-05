@@ -17,9 +17,9 @@ package edu.kit.datamanager.mappingservice.indexer.documentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.mappingservice.MappingServiceApplication;
-import edu.kit.datamanager.mappingservice.indexer.dao.IAclEntryDao;
-import edu.kit.datamanager.mappingservice.indexer.dao.IMappingRecordDao;
-import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.dao.IAclEntryDao;
+import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
+import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-import static edu.kit.datamanager.mappingservice.indexer.mapping.Mapping.GEMMA;
+import static edu.kit.datamanager.mappingservice.mapping.Mapping.GEMMA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;

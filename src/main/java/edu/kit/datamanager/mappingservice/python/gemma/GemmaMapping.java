@@ -15,8 +15,8 @@
  */
 package edu.kit.datamanager.mappingservice.python.gemma;
 
-import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.mapping.IMappingTool;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.mapping.IMappingTool;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

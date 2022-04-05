@@ -15,8 +15,10 @@
  */
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
-import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.mapping.IMappingTool;
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
 import edu.kit.datamanager.mappingservice.python.gemma.GemmaMapping;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;

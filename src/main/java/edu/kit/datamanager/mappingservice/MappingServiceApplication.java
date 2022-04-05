@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InjectionPoint;
@@ -20,7 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan({"edu.kit.datamanager.mappingservice.indexer", "edu.kit.datamanager.messaging.client.configuration", "edu.kit.datamanager.messaging.client.receiver", "edu.kit.datamanager.configuration"})
+@ComponentScan({"edu.kit.datamanager.mappingservice", "edu.kit.datamanager.configuration"})
 @EntityScan("edu.kit.datamanager")
 public class MappingServiceApplication {
 

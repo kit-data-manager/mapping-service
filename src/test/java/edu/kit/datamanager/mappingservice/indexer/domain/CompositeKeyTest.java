@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.indexer.domain;
 
+import edu.kit.datamanager.mappingservice.domain.CompositeKey;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

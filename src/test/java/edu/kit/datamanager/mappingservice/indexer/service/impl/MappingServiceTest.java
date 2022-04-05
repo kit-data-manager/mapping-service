@@ -16,11 +16,12 @@
 package edu.kit.datamanager.mappingservice.indexer.service.impl;
 
 import edu.kit.datamanager.mappingservice.MappingServiceApplication;
-import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.dao.IMappingRecordDao;
-import edu.kit.datamanager.mappingservice.indexer.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
-import edu.kit.datamanager.mappingservice.indexer.mapping.Mapping;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
+import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.impl.MappingService;
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +55,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static edu.kit.datamanager.mappingservice.indexer.mapping.Mapping.GEMMA;
+import static edu.kit.datamanager.mappingservice.mapping.Mapping.GEMMA;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith({ RestDocumentationExtension.class, SpringExtension.class })

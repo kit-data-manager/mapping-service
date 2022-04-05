@@ -16,6 +16,7 @@
 package edu.kit.datamanager.mappingservice.indexer.exception;
 
 
+import edu.kit.datamanager.mappingservice.exception.MappingException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

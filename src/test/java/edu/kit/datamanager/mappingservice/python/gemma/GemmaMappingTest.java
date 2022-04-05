@@ -15,7 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.python.gemma;
 
-import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

@@ -15,9 +15,12 @@
  */
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
-import edu.kit.datamanager.mappingservice.indexer.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.indexer.exception.MappingException;
-import edu.kit.datamanager.mappingservice.indexer.util.IndexerUtil;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.mapping.IMappingTool;
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
+import edu.kit.datamanager.mappingservice.mapping.MappingUtil;
+import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -216,7 +219,7 @@ public class MappingUtilTest {
     assertTrue(result.get().toFile().exists());
     String readFileToString = FileUtils.readFileToString(result.get().toFile(), StandardCharsets.UTF_8);
     assertEquals(RESULT, readFileToString);
-    IndexerUtil.removeFile(result.get());
+    FileUtil.removeFile(result.get());
   }
 
 }

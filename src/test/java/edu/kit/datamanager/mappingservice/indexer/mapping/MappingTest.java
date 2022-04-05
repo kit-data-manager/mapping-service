@@ -16,6 +16,7 @@
 package edu.kit.datamanager.mappingservice.indexer.mapping;
 
 
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
