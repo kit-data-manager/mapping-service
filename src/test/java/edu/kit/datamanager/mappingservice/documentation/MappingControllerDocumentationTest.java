@@ -95,7 +95,7 @@ public class MappingControllerDocumentationTest {
     private IAclEntryDao aclEntryDao;
 
     private final static String EXAMPLE_SCHEMA_ID_XML = "my_first_xsd";
-    private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/restdocu/";
+    private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/";
     private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
     private final static String EXAMPLE_SCHEMA_ID_JSON = "my_first_json";
 

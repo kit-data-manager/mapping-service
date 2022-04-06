@@ -16,9 +16,6 @@
 package edu.kit.datamanager.mappingservice.configuration;
 
 import edu.kit.datamanager.configuration.GenericPluginProperties;
-
-import java.net.URL;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +23,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import java.net.URL;
+
 /**
  *
  */
-@ConfigurationProperties(prefix = "indexer")
+@ConfigurationProperties(prefix = "mapping-service")
 @Component
 @Data
 @Validated
@@ -38,20 +37,20 @@ public class ApplicationProperties extends GenericPluginProperties {
     /**
      * The absolute path to the python interpreter.
      */
-    @Value("${metastore.indexer.gemma.pythonLocation}")
+    @Value("${mapping-service.gemma.pythonLocation}")
     private URL pythonLocation;
 
     /**
      * The path to the gemma mapping script 'mapping_single.py'
      */
     @edu.kit.datamanager.mappingservice.annotations.LocalFileURL
-    @Value("${metastore.indexer.gemma.gemmaLocation}")
+    @Value("${mapping-service.gemma.gemmaLocation}")
     private URL gemmaLocation;
 
     /**
      * The absolute path where the mappings are stored.
      */
     @edu.kit.datamanager.annotations.LocalFolderURL
-    @Value("${metastore.indexer.mappingsLocation}")
+    @Value("${mapping-service.mappingsLocation}")
     private URL mappingsLocation;
 }

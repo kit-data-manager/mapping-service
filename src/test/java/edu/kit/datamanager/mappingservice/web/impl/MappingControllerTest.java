@@ -145,7 +145,9 @@ public class MappingControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
+
         assertEquals(0, mappingsDir.listFiles().length);
+
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
                         file(recordFile).
                         file(mappingFile)).
@@ -153,6 +155,8 @@ public class MappingControllerTest {
                 andExpect(status().isCreated()).
                 andExpect(redirectedUrlPattern("http://*:*/api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).
                 andReturn();
+
+        System.out.println(mappingsDir.getAbsolutePath());
         assertEquals(1, mappingsDir.listFiles().length);
     }
 

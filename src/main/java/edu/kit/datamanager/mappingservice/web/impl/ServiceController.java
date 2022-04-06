@@ -17,7 +17,6 @@ package edu.kit.datamanager.mappingservice.web.impl;
 
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
-import edu.kit.datamanager.mappingservice.web.IServiceController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

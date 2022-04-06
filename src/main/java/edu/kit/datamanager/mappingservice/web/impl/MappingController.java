@@ -22,7 +22,6 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
-import edu.kit.datamanager.mappingservice.web.IMappingController;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
 import io.swagger.v3.core.util.Json;
