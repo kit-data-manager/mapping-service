@@ -26,90 +26,92 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.validation.ConstraintValidatorContext;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- *
  * @author hartmann-v
  */
 public class LocalFileValidatorTest {
-  
-  private static URL PYTHON_EXECUTABLE;
-  
-  public LocalFileValidatorTest() {
-  }
 
-  @BeforeAll
-  public static void setUpClass() throws IOException {
-    // Determine python location
-    OutputStream os = new ByteArrayOutputStream();
-    PythonUtils.run("which", "python3", os, null);
-    String pythonExecutable = os.toString();
-    os.flush();
-    if (pythonExecutable.trim().isEmpty()) {
-      PythonUtils.run("which", "python", os, null);
-      pythonExecutable = os.toString();
+    private static URL PYTHON_EXECUTABLE;
+
+    public LocalFileValidatorTest() {
     }
-    if (pythonExecutable.trim().isEmpty()) {
-      throw new IOException("Python seems not to be available!");
+
+    @BeforeAll
+    public static void setUpClass() throws IOException {
+        // Determine python location
+        OutputStream os = new ByteArrayOutputStream();
+        PythonUtils.run("which", "python3", os, null);
+        String pythonExecutable = os.toString();
+        os.flush();
+        if (pythonExecutable.trim().isEmpty()) {
+            PythonUtils.run("which", "python", os, null);
+            pythonExecutable = os.toString();
+        }
+        if (pythonExecutable.trim().isEmpty()) {
+            throw new IOException("Python seems not to be available!");
+        }
+        System.out.println("Location of python: " + pythonExecutable);
+        PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).toURI().toURL();
     }
-    System.out.println("Location of python: " + pythonExecutable);
-    PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).toURI().toURL();
-  }
 
-  /**
-   * Test of isValid method, of class LocalFileValidator.
-   */
-  @Test
-  public void testIsValid() throws MalformedURLException {
-    System.out.println("isValid");
-    URL value = PYTHON_EXECUTABLE;
-    ConstraintValidatorContext context = null;
-    LocalFileValidator instance = new LocalFileValidator();
-    boolean expResult = true;
-    boolean result = instance.isValid(value, context);
-    assertEquals(expResult, result);
-  }
-  @Test
-  public void testIsInvalidFile() throws MalformedURLException {
-    System.out.println("testIsInvalidFile");
-    URL value = new URL("file:invalid/file");
-    ConstraintValidatorContext context = null;
-    LocalFileValidator instance = new LocalFileValidator();
-    boolean expResult = false;
-    boolean result = instance.isValid(value, context);
-    assertEquals(expResult, result);
-  }
+    /**
+     * Test of isValid method, of class LocalFileValidator.
+     */
+    @Test
+    public void testIsValid() throws MalformedURLException {
+        System.out.println("isValid");
+        URL value = PYTHON_EXECUTABLE;
+        ConstraintValidatorContext context = null;
+        LocalFileValidator instance = new LocalFileValidator();
+        boolean expResult = true;
+        boolean result = instance.isValid(value, context);
+        assertEquals(expResult, result);
+    }
 
-  @Test
-  public void testIsNull() throws MalformedURLException {
-    System.out.println("testIsNull");
-    URL value = null;
-    ConstraintValidatorContext context = null;
-    LocalFileValidator instance = new LocalFileValidator();
-    boolean expResult = false;
-    boolean result = instance.isValid(value, context);
-    assertEquals(expResult, result);
-  }
-  @Test
-  public void testIsPath() throws MalformedURLException {
-    System.out.println("testIsPath");
-    URL value = new URL("file:///tmp");
-    ConstraintValidatorContext context = null;
-    LocalFileValidator instance = new LocalFileValidator();
-    boolean expResult = false;
-    boolean result = instance.isValid(value, context);
-    assertEquals(expResult, result);
-  }
-  @Test
-  public void testIsNotURL() throws MalformedURLException {
-    System.out.println("testIsNotURL");
-    URL value = new URL("file: src/test/resources/examples/gemma/simple.json");
-    ConstraintValidatorContext context = null;
-    LocalFileValidator instance = new LocalFileValidator();
-    boolean expResult = false;
-    boolean result = instance.isValid(value, context);
-    assertEquals(expResult, result);
-  }
-  
+    @Test
+    public void testIsInvalidFile() throws MalformedURLException {
+        System.out.println("testIsInvalidFile");
+        URL value = new URL("file:invalid/file");
+        ConstraintValidatorContext context = null;
+        LocalFileValidator instance = new LocalFileValidator();
+        boolean expResult = false;
+        boolean result = instance.isValid(value, context);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIsNull() throws MalformedURLException {
+        System.out.println("testIsNull");
+        URL value = null;
+        ConstraintValidatorContext context = null;
+        LocalFileValidator instance = new LocalFileValidator();
+        boolean expResult = false;
+        boolean result = instance.isValid(value, context);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIsPath() throws MalformedURLException {
+        System.out.println("testIsPath");
+        URL value = new URL("file:///tmp");
+        ConstraintValidatorContext context = null;
+        LocalFileValidator instance = new LocalFileValidator();
+        boolean expResult = false;
+        boolean result = instance.isValid(value, context);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIsNotURL() throws MalformedURLException {
+        System.out.println("testIsNotURL");
+        URL value = new URL("file: src/test/resources/examples/gemma/simple.json");
+        ConstraintValidatorContext context = null;
+        LocalFileValidator instance = new LocalFileValidator();
+        boolean expResult = false;
+        boolean result = instance.isValid(value, context);
+        assertEquals(expResult, result);
+    }
 }

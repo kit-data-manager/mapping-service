@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.python.gemma;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.stream.Stream;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,123 +44,123 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class GemmaMappingTest {
 
-  private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/indexer/";
-  private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
+    private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/indexer/";
+    private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
 
-  private static final String RESULT = "{\n"
-          + "  \"Publisher\": \"The publisher\",\n"
-          + "  \"Publication Date\": \"2019\"\n"
-          + "}";
+    private static final String RESULT = "{\n"
+            + "  \"Publisher\": \"The publisher\",\n"
+            + "  \"Publication Date\": \"2019\"\n"
+            + "}";
 
-  private static URL PYTHON_EXECUTABLE;
-  private static URL GEMMA_CLASS;
+    private static URL PYTHON_EXECUTABLE;
+    private static URL GEMMA_CLASS;
 
-  public GemmaMappingTest() {
-  }
-
-  @BeforeAll
-  public static void setUpClass() throws IOException {
-    // Determine python location
-    OutputStream os = new ByteArrayOutputStream();
-    PythonUtils.run("which", "python3", os, null);
-    String pythonExecutable = os.toString();
-    os.flush();
-    if (pythonExecutable.trim().isEmpty()) {
-      PythonUtils.run("which", "python", os, null);
-      pythonExecutable = os.toString();
+    public GemmaMappingTest() {
     }
-    if (pythonExecutable.trim().isEmpty()) {
-      throw new IOException("Python seems not to be available!");
+
+    @BeforeAll
+    public static void setUpClass() throws IOException {
+        // Determine python location
+        OutputStream os = new ByteArrayOutputStream();
+        PythonUtils.run("which", "python3", os, null);
+        String pythonExecutable = os.toString();
+        os.flush();
+        if (pythonExecutable.trim().isEmpty()) {
+            PythonUtils.run("which", "python", os, null);
+            pythonExecutable = os.toString();
+        }
+        if (pythonExecutable.trim().isEmpty()) {
+            throw new IOException("Python seems not to be available!");
+        }
+        System.out.println("Location of python: " + pythonExecutable);
+        PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).toURI().toURL();
+        GEMMA_CLASS = new File("src/test/resources/python/mapping_single.py").toURI().toURL();
     }
-    System.out.println("Location of python: " + pythonExecutable);
-    PYTHON_EXECUTABLE = new File(pythonExecutable.trim()).toURI().toURL();
-    GEMMA_CLASS = new File("src/test/resources/python/mapping_single.py").toURI().toURL();
-  }
 
-  @BeforeEach
-  public void setUp() {
-    try {
-      try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING)))) {
-        walk.sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-      }
-      Paths.get(TEMP_DIR_4_MAPPING).toFile().mkdir();
-    } catch (IOException ex) {
-      ex.printStackTrace();
+    @BeforeEach
+    public void setUp() {
+        try {
+            try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING)))) {
+                walk.sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            }
+            Paths.get(TEMP_DIR_4_MAPPING).toFile().mkdir();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
-  }
 
-  /**
-   * Test of mapFile method, of class GemmaMapping.
-   */
-  @Test
-  public void testRunGemma() throws IOException, URISyntaxException {
-    GemmaConfiguration conf = new GemmaConfiguration();
-    System.out.println("runGemma");
-    Path mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();
-    Path srcFile = new File("src/test/resources/examples/gemma/simple.json").getAbsoluteFile().toPath();
-    Path resultFile = new File("/tmp/result.elastic.json").getAbsoluteFile().toPath();
-    conf.setGemmaLocation(GEMMA_CLASS);
-    conf.setPythonLocation(PYTHON_EXECUTABLE);
-    GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
-    int expResult = 0;
-    int result = instance.mapFile(mappingFile, srcFile, resultFile);
-    assertEquals(expResult, result);
+    /**
+     * Test of mapFile method, of class GemmaMapping.
+     */
+    @Test
+    public void testRunGemma() throws IOException, URISyntaxException {
+        GemmaConfiguration conf = new GemmaConfiguration();
+        System.out.println("runGemma");
+        Path mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();
+        Path srcFile = new File("src/test/resources/examples/gemma/simple.json").getAbsoluteFile().toPath();
+        Path resultFile = new File("/tmp/result.elastic.json").getAbsoluteFile().toPath();
+        conf.setGemmaLocation(GEMMA_CLASS);
+        conf.setPythonLocation(PYTHON_EXECUTABLE);
+        GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
+        int expResult = 0;
+        int result = instance.mapFile(mappingFile, srcFile, resultFile);
+        assertEquals(expResult, result);
 
-    assertTrue(resultFile.toFile().exists());
-    String readFileToString = FileUtils.readFileToString(resultFile.toFile(), StandardCharsets.UTF_8);
-    assertEquals(RESULT, readFileToString);
-  }
+        assertTrue(resultFile.toFile().exists());
+        String readFileToString = FileUtils.readFileToString(resultFile.toFile(), StandardCharsets.UTF_8);
+        assertEquals(RESULT, readFileToString);
+    }
 
-  /**
-   * Test of mapFile method, of class GemmaMapping.
-   */
-  @Test
-  public void testRunGemmaXmlMapping() throws IOException, URISyntaxException {
-    GemmaConfiguration conf = new GemmaConfiguration();
-    System.out.println("testRunGemmaXmlMapping");
-    Path mappingFile = new File("src/test/resources/mapping/gemma/simple.xml.mapping").getAbsoluteFile().toPath();
-    Path srcFile = new File("src/test/resources/examples/gemma/simple.xml").getAbsoluteFile().toPath();
-    Path resultFile = new File("/tmp/result.xml.elastic.json").getAbsoluteFile().toPath();
-    conf.setGemmaLocation(GEMMA_CLASS);
-    conf.setPythonLocation(PYTHON_EXECUTABLE);
-    GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
-    int expResult = 0;
-    int result = instance.mapFile(mappingFile, srcFile, resultFile);
-    assertEquals(expResult, result);
+    /**
+     * Test of mapFile method, of class GemmaMapping.
+     */
+    @Test
+    public void testRunGemmaXmlMapping() throws IOException, URISyntaxException {
+        GemmaConfiguration conf = new GemmaConfiguration();
+        System.out.println("testRunGemmaXmlMapping");
+        Path mappingFile = new File("src/test/resources/mapping/gemma/simple.xml.mapping").getAbsoluteFile().toPath();
+        Path srcFile = new File("src/test/resources/examples/gemma/simple.xml").getAbsoluteFile().toPath();
+        Path resultFile = new File("/tmp/result.xml.elastic.json").getAbsoluteFile().toPath();
+        conf.setGemmaLocation(GEMMA_CLASS);
+        conf.setPythonLocation(PYTHON_EXECUTABLE);
+        GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
+        int expResult = 0;
+        int result = instance.mapFile(mappingFile, srcFile, resultFile);
+        assertEquals(expResult, result);
 
-    assertTrue(resultFile.toFile().exists());
-    String readFileToString = FileUtils.readFileToString(resultFile.toFile(), StandardCharsets.UTF_8);
-    assertEquals(RESULT, readFileToString);
-    FileUtils.deleteQuietly(resultFile.toFile());
-    assertFalse(resultFile.toFile().exists());
-  }
+        assertTrue(resultFile.toFile().exists());
+        String readFileToString = FileUtils.readFileToString(resultFile.toFile(), StandardCharsets.UTF_8);
+        assertEquals(RESULT, readFileToString);
+        FileUtils.deleteQuietly(resultFile.toFile());
+        assertFalse(resultFile.toFile().exists());
+    }
 
-  /**
-   * Test of mapFile method, of class GemmaMapping.
-   */
-  @Test
-  public void testRunGemmaWrongMapping() throws IOException, URISyntaxException {
-    GemmaConfiguration conf = new GemmaConfiguration();
-    System.out.println("testRunGemmaWrongMapping");
-    Path mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();
-    Path srcFile = new File("src/test/resources/examples/gemma/notexists").getAbsoluteFile().toPath();
-    Path resultFile = new File("/tmp/invalid_result.elastic.json").getAbsoluteFile().toPath();
-    conf.setGemmaLocation(GEMMA_CLASS);
-    conf.setPythonLocation(PYTHON_EXECUTABLE);
-    GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
-    int expResult = PythonUtils.EXECUTION_ERROR;
-    int result = instance.mapFile(mappingFile, srcFile, resultFile);
-    assertEquals(expResult, result);
-    assertFalse(resultFile.toFile().exists());
-  }
-  
-  private ApplicationProperties conf2ApplicationProperties(GemmaConfiguration configuration) {
-    ApplicationProperties ap = new ApplicationProperties();
-    ap.setGemmaLocation(configuration.getGemmaLocation());
-    ap.setPythonLocation(configuration.getPythonLocation());
-    return ap;
-  }
+    /**
+     * Test of mapFile method, of class GemmaMapping.
+     */
+    @Test
+    public void testRunGemmaWrongMapping() throws IOException, URISyntaxException {
+        GemmaConfiguration conf = new GemmaConfiguration();
+        System.out.println("testRunGemmaWrongMapping");
+        Path mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsoluteFile().toPath();
+        Path srcFile = new File("src/test/resources/examples/gemma/notexists").getAbsoluteFile().toPath();
+        Path resultFile = new File("/tmp/invalid_result.elastic.json").getAbsoluteFile().toPath();
+        conf.setGemmaLocation(GEMMA_CLASS);
+        conf.setPythonLocation(PYTHON_EXECUTABLE);
+        GemmaMapping instance = new GemmaMapping(conf2ApplicationProperties(conf));
+        int expResult = PythonUtils.EXECUTION_ERROR;
+        int result = instance.mapFile(mappingFile, srcFile, resultFile);
+        assertEquals(expResult, result);
+        assertFalse(resultFile.toFile().exists());
+    }
+
+    private ApplicationProperties conf2ApplicationProperties(GemmaConfiguration configuration) {
+        ApplicationProperties ap = new ApplicationProperties();
+        ap.setGemmaLocation(configuration.getGemmaLocation());
+        ap.setPythonLocation(configuration.getPythonLocation());
+        return ap;
+    }
 
 }
