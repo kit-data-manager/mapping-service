@@ -1,18 +1,18 @@
 plugins {
-    id 'org.springframework.boot' version '2.6.1'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'org.asciidoctor.convert' version '1.5.8'
+    id 'org.springframework.boot' version '2.6.6'
+    id 'org.asciidoctor.convert' version '2.4.0'
+    id "org.owasp.dependencycheck" version "7.0.4.1"
+    id 'net.researchgate.release' version '2.8.1'
     id 'java'
     id 'jacoco'
-    id 'org.owasp.dependencycheck' version '3.1.2'
-    id 'net.researchgate.release' version '2.8.1'
 }
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
 version = '1.0'
-//sourceCompatibility = 17
-//targetCompatibility = 17
+sourceCompatibility = 17
+targetCompatibility = 17
 
 println "Building ${name} version: ${version}"
 
