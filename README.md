@@ -7,6 +7,9 @@
 Not fully tested yet!
 For mapping documents only Gemma is available currently!
 
+The mapping service allows multiple schemas to be uploaded and managed and documents to be mapped over one of them at a time accordingly.
+Therefore, the service is extensible to other mappers, although currently only Gemma, a service that can only map JSON files, is available.
+The REST API is documented at the following link: [http://localhost:8095/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config](http://localhost:8095/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config)
 
 ## How to build
 
