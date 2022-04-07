@@ -12,8 +12,6 @@ plugins {
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
 version = '1.0'
-//sourceCompatibility = 17
-//targetCompatibility = 17
 
 println "Building ${name} version: ${version}"
 

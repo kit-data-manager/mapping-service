@@ -41,7 +41,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Controller for managing mapping files.
+ * Controller for executing document mappings
  */
 @Controller
 @RequestMapping(value = "/api/v1/mappingExecution")
