@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 17
@@ -26,7 +26,7 @@ jobs:
 
   test:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -42,7 +42,7 @@ jobs:
       
   coverage:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
