@@ -45,7 +45,7 @@ import java.util.List;
 @ApiResponses(value = {
         @ApiResponse(responseCode = "401", description = "Unauthorized is returned if authorization in required but was not provided."),
         @ApiResponse(responseCode = "403", description = "Forbidden is returned if the caller has no sufficient privileges.")})
-public interface IMappingController {
+public interface IMappingAdministrationController {
 
     @Operation(summary = "Create a new mapping.", description = "This endpoint allows to create a new mapping as file upload. The record metadata mainly contains "
             + "the mapping identifier and (optional) the mapping type. As a starting point only gemma mappings are allowed. For future versions other mappings like handlebar or xslt might be provided also.",

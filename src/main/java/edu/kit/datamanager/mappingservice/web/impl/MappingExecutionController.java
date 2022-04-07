@@ -17,7 +17,7 @@ package edu.kit.datamanager.mappingservice.web.impl;
 
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
-import edu.kit.datamanager.mappingservice.web.IServiceController;
+import edu.kit.datamanager.mappingservice.web.IMappingExecutionController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +41,10 @@ import java.nio.file.Path;
  * Controller for managing mapping files.
  */
 @Controller
-@RequestMapping(value = "/api/v1/service")
-public class ServiceController implements IServiceController {
+@RequestMapping(value = "/api/v1/mappingExecution")
+public class MappingExecutionController implements IMappingExecutionController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ServiceController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MappingExecutionController.class);
 
     @Autowired
     private MappingService mappingService;

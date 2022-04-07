@@ -22,7 +22,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
-import edu.kit.datamanager.mappingservice.web.IMappingController;
+import edu.kit.datamanager.mappingservice.web.IMappingAdministrationController;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
 import io.swagger.v3.core.util.Json;
@@ -64,10 +64,10 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
  * Controller for managing mapping files.
  */
 @Controller
-@RequestMapping(value = "/api/v1/mapping")
-public class MappingController implements IMappingController {
+@RequestMapping(value = "/api/v1/mappingAdministration")
+public class MappingAdministrationController implements IMappingAdministrationController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MappingController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MappingAdministrationController.class);
 
     @Autowired
     private IMappingRecordDao mappingRecordDao;

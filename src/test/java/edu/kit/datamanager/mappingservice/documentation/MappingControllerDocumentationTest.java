@@ -140,13 +140,13 @@ public class MappingControllerDocumentationTest {
 
         assertEquals(0, mappingsDir.list().length);
 //    assertNotNull(this.context);
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                         file(recordFile).
                         file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isCreated()).
                 andDo(document("post-xml-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).
-                andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).
+                andExpect(redirectedUrlPattern("http://*:*//api/v1/mappingAdministration/" + record.getMappingId() + "/" + record.getMappingType())).
                 andReturn();
         assertEquals(1, mappingsDir.list().length);
         // register a second mapping for json schema
@@ -158,26 +158,26 @@ public class MappingControllerDocumentationTest {
         mappingFile = new MockMultipartFile("document", EXAMPLE_SCHEMA_ID_JSON + "4gemma.mapping", "application/json", mappingContent.getBytes());
 
         assertEquals(1, mappingsDir.list().length);
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
-                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andDo(document("post-json-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andDo(document("post-json-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andExpect(redirectedUrlPattern("http://*:*//api/v1/mappingAdministration/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
         assertEquals(2, mappingsDir.list().length);
 
         // list all mappings
-        this.mockMvc.perform(get("/api/v1/mapping/")).andExpect(status().isOk()).andDo(document("get-all-mappings", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
+        this.mockMvc.perform(get("/api/v1/mappingAdministration/")).andExpect(status().isOk()).andDo(document("get-all-mappings", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
-        this.mockMvc.perform(get("/api/v1/mapping/").param("page", Integer.toString(0)).param("size", Integer.toString(20))).andExpect(status().isOk()).andDo(document("get-all-mappings-pagination", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
+        this.mockMvc.perform(get("/api/v1/mappingAdministration/").param("page", Integer.toString(0)).param("size", Integer.toString(20))).andExpect(status().isOk()).andDo(document("get-all-mappings-pagination", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
         // Get single mapping record
-        String etag = this.mockMvc.perform(get("/api/v1/mapping/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name()).accept(MappingRecord.MAPPING_RECORD_MEDIA_TYPE.toString())).andExpect(status().isOk()).andDo(document("get-single-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse().getHeader("ETag");
+        String etag = this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name()).accept(MappingRecord.MAPPING_RECORD_MEDIA_TYPE.toString())).andExpect(status().isOk()).andDo(document("get-single-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse().getHeader("ETag");
 
         // Get mapping file
-        this.mockMvc.perform(get("/api/v1/mapping/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name())).andExpect(status().isOk()).andDo(document("get-mapping-file", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
+        this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name())).andExpect(status().isOk()).andDo(document("get-mapping-file", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
         //update schema document and create new version
         mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
         mappingFile = new MockMultipartFile("document", EXAMPLE_SCHEMA_ID_JSON + "4gemma_v2.mapping", "application/json", mappingContent.getBytes());
-        etag = this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name()).
+        etag = this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name()).
                         file(recordFile).
                         file(mappingFile).header("If-Match", etag).with(putMultipart())).
                 andExpect(status().isOk()).
@@ -185,7 +185,7 @@ public class MappingControllerDocumentationTest {
                 andReturn().getResponse().getHeader("ETag");
 
         // Get mapping file version 2
-        this.mockMvc.perform(get("/api/v1/mapping/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name())).andExpect(status().isOk()).andDo(document("get-mapping-filev2", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
+        this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name())).andExpect(status().isOk()).andDo(document("get-mapping-filev2", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
     }
 

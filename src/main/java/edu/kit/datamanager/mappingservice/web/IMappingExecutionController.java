@@ -20,7 +20,7 @@ import java.net.URISyntaxException;
 @ApiResponses(value = {
         @ApiResponse(responseCode = "401", description = "UNAUTHORIZED is returned if authorization in required but was not provided."),
         @ApiResponse(responseCode = "403", description = "FORBIDDEN is returned if the caller has no sufficient privileges.")})
-public interface IServiceController {
+public interface IMappingExecutionController {
 
     @Operation(summary = "Map a document with an existing mapping.", description = "This endpoint allows the mapping of documents via a file upload. " +
             "The prerequisite for this is a mapping that has already been created in advance via the \"/api/v1/mapping\" endpoint. " +

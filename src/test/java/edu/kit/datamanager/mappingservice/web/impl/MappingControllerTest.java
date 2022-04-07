@@ -125,7 +125,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of createMapping method, of class MappingController.
+     * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testCreateMapping() throws Exception {
@@ -148,12 +148,12 @@ public class MappingControllerTest {
 
         assertEquals(0, mappingsDir.listFiles().length);
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                         file(recordFile).
                         file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isCreated()).
-                andExpect(redirectedUrlPattern("http://*:*/api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).
+                andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration/" + record.getMappingId() + "/" + record.getMappingType())).
                 andReturn();
 
         System.out.println(mappingsDir.getAbsolutePath());
@@ -161,7 +161,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of createMapping method, of class MappingController.
+     * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testCreateMappingNoRecord() throws Exception {
@@ -175,12 +175,12 @@ public class MappingControllerTest {
 
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(mappingFile)).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
 
     /**
-     * Test of createMapping method, of class MappingController.
+     * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testCreateMappingEmptyRecord() throws Exception {
@@ -190,7 +190,7 @@ public class MappingControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", "".getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
                 file(mappingFile)).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
@@ -210,7 +210,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile)).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
 
@@ -227,20 +227,20 @@ public class MappingControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
                 file(mappingFile)).andDo(print()).andExpect(status().isBadRequest()).andReturn();
         record.setMappingId(MAPPING_ID);
         record.setMappingType(null);
         recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
                 file(mappingFile)).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
 
     /**
-     * Test of createMapping method, of class MappingController.
+     * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testCreateMappingTwice() throws Exception {
@@ -257,13 +257,13 @@ public class MappingControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
                 file(mappingFile)).andDo(print()).andExpect(status().isConflict()).andReturn();
     }
 
     /**
-     * Test of createMapping method, of class MappingController.
+     * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testCreateMappingWithAcl() throws Exception {
@@ -284,14 +284,14 @@ public class MappingControllerTest {
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
         assertEquals(0, mappingsDir.list().length);
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
-                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mappingAdministration/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
         assertEquals(1, mappingsDir.list().length);
     }
 
     /**
-     * Test of getMappingById method, of class MappingController.
+     * Test of getMappingById method, of class MappingAdministrationController.
      */
     @Test
     public void testGetMappingById() throws UnsupportedEncodingException, JsonProcessingException, Exception {
@@ -299,7 +299,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         ObjectMapper map = new ObjectMapper();
         MappingRecord result = map.readValue(res.getResponse().getContentAsString(), MappingRecord.class);
@@ -310,7 +310,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of getMappingById method, of class MappingController.
+     * Test of getMappingById method, of class MappingAdministrationController.
      */
     @Test
     public void testGetMappingByIdWithInvalidMapping() throws UnsupportedEncodingException, JsonProcessingException, Exception {
@@ -318,16 +318,16 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = "invalidMappingId";
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isNotFound()).andReturn();
         mappingId = MAPPING_ID;
         mappingType = "invalidMappingType";
-        getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         res = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isNotFound()).andReturn();
     }
 
     /**
-     * Test of getMappingById method, of class MappingController.
+     * Test of getMappingById method, of class MappingAdministrationController.
      */
     @Test
     public void testGetMappingDocumentById() throws UnsupportedEncodingException, JsonProcessingException, Exception {
@@ -336,7 +336,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl)).andDo(print()).andExpect(status().isOk()).andReturn();
         String result = res.getResponse().getContentAsString();
         assertNotNull(result);
@@ -349,16 +349,16 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = "invalidMappingId";
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl)).andDo(print()).andExpect(status().isNotFound()).andReturn();
         mappingId = MAPPING_ID;
         mappingType = "invalidMappingType";
-        getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         res = this.mockMvc.perform(get(getMappingIdUrl)).andDo(print()).andExpect(status().isNotFound()).andReturn();
     }
 
     /**
-     * Test of getMappings method, of class MappingController.
+     * Test of getMappings method, of class MappingAdministrationController.
      */
     @Test
     public void testGetMappings() throws UnsupportedEncodingException, JsonProcessingException, Exception {
@@ -366,7 +366,7 @@ public class MappingControllerTest {
         create2Mappings();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping";
+        String getMappingIdUrl = "/api/v1/mappingAdministration/";
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl)).andDo(print()).andExpect(status().isOk()).andReturn();
         ObjectMapper map = new ObjectMapper();
         MappingRecord[] result = map.readValue(res.getResponse().getContentAsString(), MappingRecord[].class);
@@ -379,7 +379,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of getMappings method, of class MappingController.
+     * Test of getMappings method, of class MappingAdministrationController.
      */
     @Test
     public void testGetMappingsWithFilter() throws UnsupportedEncodingException, JsonProcessingException, Exception {
@@ -387,7 +387,7 @@ public class MappingControllerTest {
         create2Mappings();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping";
+        String getMappingIdUrl = "/api/v1/mappingAdministration/";
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl).param("mappingType", MAPPING_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         ObjectMapper map = new ObjectMapper();
         MappingRecord[] result = map.readValue(res.getResponse().getContentAsString(), MappingRecord[].class);
@@ -411,7 +411,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMapping() throws JsonProcessingException, Exception {
@@ -420,7 +420,7 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -435,7 +435,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -453,7 +453,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithoutDocument() throws JsonProcessingException, Exception {
@@ -462,7 +462,7 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -476,7 +476,7 @@ public class MappingControllerTest {
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingsDir.list().length);
@@ -493,7 +493,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithoutRecord() throws JsonProcessingException, Exception {
@@ -501,20 +501,20 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
 
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithWrongRecord1() throws JsonProcessingException, Exception {
@@ -522,7 +522,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -534,7 +534,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
@@ -546,7 +546,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -558,7 +558,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
@@ -570,7 +570,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -581,7 +581,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + "unknownMaping" + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + "unknownMaping" + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
@@ -593,7 +593,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -604,7 +604,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + "unknownType";
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + "unknownType";
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
@@ -612,7 +612,7 @@ public class MappingControllerTest {
 
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithInvalidRecord() throws JsonProcessingException, Exception {
@@ -620,7 +620,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -633,14 +633,14 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithInvalidRecord2() throws JsonProcessingException, Exception {
@@ -648,7 +648,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
         String body = result.getResponse().getContentAsString();
@@ -660,7 +660,7 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
@@ -677,7 +677,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithWrongEtag() throws JsonProcessingException, Exception {
@@ -685,7 +685,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = "wrongEtag";
         String body = result.getResponse().getContentAsString();
@@ -700,14 +700,14 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testUpdateMappingWithoutEtag() throws JsonProcessingException, Exception {
@@ -715,7 +715,7 @@ public class MappingControllerTest {
         testCreateMapping();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = "notUsed";
         String body = result.getResponse().getContentAsString();
@@ -730,14 +730,14 @@ public class MappingControllerTest {
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
-        String putMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String putMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).with(putMultipart())).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testDeleteMapping() throws JsonProcessingException, Exception {
@@ -747,11 +747,11 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
 
-        String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNoContent()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
@@ -761,7 +761,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testDeleteMappingUnknownMappingId() throws JsonProcessingException, Exception {
@@ -771,11 +771,11 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
 
-        String deleteMappingIdUrl = "/api/v1/mapping/" + "unknownMappingId" + "/" + mappingType;
+        String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + "unknownMappingId" + "/" + mappingType;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
@@ -784,7 +784,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testDeleteMappingUnknownMappingType() throws JsonProcessingException, Exception {
@@ -794,11 +794,11 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
 
-        String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + "unknownMappingType";
+        String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + "unknownMappingType";
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
@@ -807,7 +807,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testDeleteMappingMissingEtag() throws JsonProcessingException, Exception {
@@ -817,11 +817,11 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = result.getResponse().getHeader("ETag");
 
-        String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl)).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
@@ -831,7 +831,7 @@ public class MappingControllerTest {
     }
 
     /**
-     * Test of updateMapping method, of class MappingController.
+     * Test of updateMapping method, of class MappingAdministrationController.
      */
     @Test
     public void testDeleteMappingWrongEtag() throws JsonProcessingException, Exception {
@@ -841,11 +841,11 @@ public class MappingControllerTest {
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
-        String getMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         MvcResult result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         String etag = "somethingTotallyWrong";
 
-        String deleteMappingIdUrl = "/api/v1/mapping/" + mappingId + "/" + mappingType;
+        String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId + "/" + mappingType;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
@@ -866,9 +866,9 @@ public class MappingControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
-                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mappingAdministration/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
 
         mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
         record.setMappingId("anotherMappingId");
@@ -876,9 +876,9 @@ public class MappingControllerTest {
         recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mapping/").
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
-                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mapping/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
+                file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mappingAdministration/" + record.getMappingId() + "/" + record.getMappingType())).andReturn();
     }
 
     private static RequestPostProcessor putMultipart() { // it's nice to extract into a helper
