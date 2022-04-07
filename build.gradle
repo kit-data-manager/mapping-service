@@ -32,44 +32,40 @@ ext {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springdoc:springdoc-openapi-ui:1.5.13'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.6.5'
+    implementation 'org.springframework.boot:spring-boot-starter-security:2.6.5'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:2.6.5'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.5'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.6'
     implementation 'org.springdoc:springdoc-openapi-data-rest'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
-    implementation 'org.javers:javers-spring-boot-starter-sql:6.5.3'
+    implementation 'org.javers:javers-spring-boot-starter-sql:6.6.3'
     implementation 'javax.validation:validation-api:2.0.1.Final'
     implementation 'com.github.jknack:handlebars:4.3.0'
-    implementation 'org.json:json:20200518'
-    implementation 'edu.kit.datamanager:generic-message-consumer:0.2.0'
+    implementation 'org.json:json:20220320'
     implementation 'edu.kit.datamanager:service-base:0.2.0'
 
     testImplementation(platform('org.junit:junit-bom:5.8.2'))
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.8.0'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.springframework:spring-test'
-    testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.powermock:powermock-module-junit4:2.0.0-beta.5'
-    testImplementation 'org.powermock:powermock-api-mockito2:2.0.0-beta.5'
-    testImplementation 'org.junit.vintage:junit-vintage-engine'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.8.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.5'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.6.RELEASE'
+    testImplementation 'org.springframework.security:spring-security-test:5.6.2'
+    testImplementation 'org.springframework:spring-test:5.3.17'
+    testImplementation 'org.mockito:mockito-core:4.3.1'
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.8.2'
 
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.6.5'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
-    compileOnly 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok:1.18.22'
 
-    runtimeOnly 'com.h2database:h2'
-    runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'org.apache.httpcomponents:httpclient'
+    runtimeOnly 'com.h2database:h2:2.1.210'
+    runtimeOnly 'org.postgresql:postgresql:42.3.3'
+    runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.13'
 
-    asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
-    asciidoctor 'com.github.allati.asciidoctor.monotree:asciidoctor-extension-monotree'
+    asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor:2.0.6.RELEASE'
 }
 
 test {
