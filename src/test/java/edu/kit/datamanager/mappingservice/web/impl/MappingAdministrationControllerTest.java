@@ -89,7 +89,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41300"})
-public class MappingControllerTest {
+public class MappingAdministrationControllerTest {
 
     private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/";
     private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";

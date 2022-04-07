@@ -273,8 +273,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             @PathVariable(value = "mappingId") String mappingId,
             @PathVariable(value = "mappingType") String mappingType,
             @RequestPart(name = "record", required = false) MultipartFile record,
-            @RequestPart(name = "document", required = false)
-            final MultipartFile document,
+            @RequestPart(name = "document", required = false) final MultipartFile document,
             WebRequest request,
             HttpServletResponse response,
             UriComponentsBuilder uriBuilder

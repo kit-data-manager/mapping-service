@@ -15,6 +15,8 @@
  */
 package edu.kit.datamanager.mappingservice.web.impl;
 
+import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
+import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.web.IMappingExecutionController;
@@ -36,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * Controller for managing mapping files.
@@ -48,6 +51,9 @@ public class MappingExecutionController implements IMappingExecutionController {
 
     @Autowired
     private MappingService mappingService;
+
+    @Autowired
+    private IMappingRecordDao mappingRecordDao;
 
     @Override
     public ResponseEntity mapDocument(MultipartFile document,
@@ -70,26 +76,18 @@ public class MappingExecutionController implements IMappingExecutionController {
                 e.printStackTrace();
             }
 
+            Optional<MappingRecord> record = mappingRecordDao.findByMappingIdAndMappingType(mappingID, mappingType);
+            if (!record.isPresent()) {
+                String message = String.format("No mapping record found for mapping %s/%s.", mappingID, mappingType);
+                LOG.error(message + " Returning 404.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+            }
+
             try {
                 System.out.println(inputPath);
                 resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID, mappingType).get();
             } catch (Exception e) {
                 LOG.error("Could not get resultPath");
-                e.printStackTrace();
-            }
-            FileUtil.removeFile(inputPath);
-        } else if (!document.isEmpty() && !mappingID.isBlank()) {
-            Path inputPath = FileUtil.createTempFile("inputMultipart", "");
-            File inputFile = inputPath.toFile();
-            try {
-                document.transferTo(inputFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID).get(0);
-            } catch (Exception e) {
                 e.printStackTrace();
             }
             FileUtil.removeFile(inputPath);
@@ -99,7 +97,11 @@ public class MappingExecutionController implements IMappingExecutionController {
                     "Please check if you provided all necessary information. This is documented in swagger '/swagger-ui/index.html'.");
         }
 
-        if (resultPath == null || !Files.exists(resultPath) || !Files.isRegularFile(resultPath) || !Files.isReadable(resultPath)) {
+        if (resultPath == null) {
+            String message = "There is no result for the input. The input must be invalid.";
+            LOG.trace(message);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } else if (!Files.exists(resultPath) || !Files.isRegularFile(resultPath) || !Files.isReadable(resultPath)) {
             LOG.trace("The result path {} is for some reason not reachable.", resultPath);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal error while accessing result");
         }
