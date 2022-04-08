@@ -16,8 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Use both LTS releases and latest one
-        jdk: [ 8, 13, 17, 18 ]
+        jdk: [ 13, 17, 18 ]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
