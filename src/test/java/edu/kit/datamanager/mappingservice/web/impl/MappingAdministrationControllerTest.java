@@ -91,8 +91,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {"server.port=41300"})
 public class MappingAdministrationControllerTest {
 
-    private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/";
-    private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
+    private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
     private static final String MAPPING_ID = "my_dc";
     private static final String MAPPING_TYPE = "GEMMA";
 

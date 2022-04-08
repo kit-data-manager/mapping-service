@@ -37,13 +37,14 @@ public class ApplicationProperties extends GenericPluginProperties {
     /**
      * The absolute path to the python interpreter.
      */
+    @edu.kit.datamanager.annotations.ExecutableFileURL
     @Value("${mapping-service.gemma.pythonLocation}")
     private URL pythonLocation;
 
     /**
      * The path to the gemma mapping script 'mapping_single.py'
      */
-    @edu.kit.datamanager.mappingservice.annotations.LocalFileURL
+    @edu.kit.datamanager.annotations.LocalFileURL
     @Value("${mapping-service.gemma.gemmaLocation}")
     private URL gemmaLocation;
 

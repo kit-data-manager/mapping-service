@@ -1,7 +1,6 @@
 plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'org.springframework.boot' version '2.6.6'
-//    id 'org.asciidoctor.convert' version '2.4.0'
     id "org.asciidoctor.jvm.convert" version "3.3.0"
     id "org.owasp.dependencycheck" version "7.0.4.1"
     id 'net.researchgate.release' version '2.8.1'
@@ -11,7 +10,7 @@ plugins {
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
-version = '1.0'
+version = '1.0.0'
 
 println "Building ${name} version: ${version}"
 
@@ -36,6 +35,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security:2.6.5'
     implementation 'org.springframework.boot:spring-boot-starter-validation:2.6.5'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.6.5'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.6.6'
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.6'
     implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.6'
     implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.6'

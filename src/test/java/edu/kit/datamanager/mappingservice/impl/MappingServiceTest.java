@@ -84,9 +84,7 @@ public class MappingServiceTest {
     @Autowired
     MappingService mappingService4Test;
 
-    private final static String TEMP_DIR_4_ALL = "/tmp/metastore2/";
-    private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
-
+    private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
 
     @BeforeEach
     public void setUp() {
