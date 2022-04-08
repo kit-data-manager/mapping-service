@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First version supporting registering of mappings (Gemma only)
 and mapping of metadata documents delivered by RabbitMQ
 ### Added
-- Registration of mapping documents. 
+- Registration of mapping documents.
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
@@ -28,4 +28,3 @@ and mapping of metadata documents delivered by RabbitMQ
 [0.0.4]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/kit-data-manager/metastore2/indexing-service/tag/v0.0.2
-
