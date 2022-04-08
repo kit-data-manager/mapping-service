@@ -2,6 +2,7 @@
 
 [![Java CI with Gradle](https://github.com/maximilianiKIT/mapping-service/actions/workflows/CI.yml/badge.svg)](https://github.com/maximilianiKIT/mapping-service/actions/workflows/CI.yml)
 ![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)
+[![codecov](https://codecov.io/gh/maximilianiKIT/mapping-service/branch/main/graph/badge.svg?token=XFhZruKFaE)](https://codecov.io/gh/maximilianiKIT/mapping-service)
 
 :warning:
 Not fully tested yet!
