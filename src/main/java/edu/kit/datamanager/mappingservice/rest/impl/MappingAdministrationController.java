@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.mappingservice.web.impl;
+package edu.kit.datamanager.mappingservice.rest.impl;
 
 import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.exceptions.ResourceNotFoundException;
@@ -22,7 +22,8 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
-import edu.kit.datamanager.mappingservice.web.IMappingAdministrationController;
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
+import edu.kit.datamanager.mappingservice.rest.IMappingAdministrationController;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
 import io.swagger.v3.core.util.Json;
@@ -332,6 +333,17 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         return ResponseEntity.ok().location(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
     }
 
+    @Override
+    public ResponseEntity getAllAvailableMappingTypes(
+            WebRequest wr,
+            HttpServletResponse hsr
+    ) {
+
+        return ResponseEntity.
+                ok().
+                body(Mapping.values());
+    }
+
     /**
      * Get the record of given id / type.
      *
@@ -340,7 +352,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
      * @return record of given id / type.
      * @throws ResourceNotFoundException Not found.
      */
-    private MappingRecord getMappingById(String mappingId, String mappingType) throws ResourceNotFoundException {
+    public MappingRecord getMappingById(String mappingId, String mappingType) throws ResourceNotFoundException {
         //if security enabled, check permission -> if not matching, return HTTP UNAUTHORIZED or FORBIDDEN
         LOG.trace("Reading mapping record from database.");
         Optional<MappingRecord> record = mappingRecordDao.findByMappingIdAndMappingType(mappingId, mappingType);

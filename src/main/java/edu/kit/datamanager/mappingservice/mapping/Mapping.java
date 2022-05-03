@@ -15,9 +15,11 @@
  */
 package edu.kit.datamanager.mappingservice.mapping;
 
+import java.io.Serializable;
+
 /**
  *
  */
-public enum Mapping {
+public enum Mapping implements Serializable {
     GEMMA
 }

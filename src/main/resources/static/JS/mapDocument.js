@@ -1,0 +1,83 @@
+const params = new URLSearchParams(window.location.search);
+// const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
+const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
+// const execUrl = location.protocol + "//" + location.host + "/api/v1/mappingExecution/";
+const execUrl = "http://localhost:8095/api/v1/mappingExecution/";
+
+let availableTypes = []
+load()
+
+function load(){
+    const http = new XMLHttpRequest();
+    http.open("GET", apiUrl + "types")
+    http.send();
+    http.onload=(e)=> {
+        const result = JSON.parse(http.responseText)
+        for (let i = 0; i<result.length; i++){
+            let option = document.createElement("option");
+            option.value = result[i]
+            option.text = result[i]
+            document.getElementById("type").add(option)
+        }
+        availableTypes = result
+        if(params.has("id") && params.has("type")){
+            const id = params.get("id")
+            const type = params.get("type")
+            document.getElementById("id").value = id
+            if (result.indexOf(type)>=0){
+                document.getElementById('type').value = type;
+            }
+        }
+    }
+}
+
+function map(){
+    const id = document.getElementById("id").value
+    const type = document.getElementById("type").value
+    const file = document.getElementById("document").files[0]
+    if(file == null) {
+        alert("Please select a file.")
+        return
+    }
+
+    // document.getElementById("progress").hidden = false
+    // document.getElementById("downloadButton").hidden = true
+    // document.getElementById("submit").disabled = true
+
+    console.log(file.size)
+    let formData = new FormData()
+    formData.append("document", file)
+
+    const http = new XMLHttpRequest();
+    http.open("POST", execUrl + id + "/" + type)
+    // http.setRequestHeader("Content-Type", "application/json")
+    http.send(formData)
+    http.onload=(e)=> {
+        console.log(http.responseText)
+        document.getElementById("downloadButton").setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
+        document.getElementById("downloadButton").setAttribute('download', "result.json");
+        document.getElementById("progress").hidden = true
+        document.getElementById("downloadButton").hidden = false
+        document.getElementById("submit").disabled = false
+
+    }
+    http.onprogress =()=>{
+        document.getElementById("progress").hidden = false
+        document.getElementById("downloadButton").hidden = true
+        document.getElementById("submit").disabled = true
+    }
+    http.ontimeout =()=>{
+        console.log(http.responseText)
+        document.getElementById("progress").hidden = true
+        document.getElementById("downloadButton").hidden = false
+        document.getElementById("submit").disabled = false
+        alert("Timeout! Try later again.")
+    }
+    http.onerror =()=> {
+        console.log(http.responseText)
+        document.getElementById("progress").hidden = true
+        document.getElementById("downloadButton").hidden = false
+        document.getElementById("submit").disabled = false
+        alert("Error! Try later again.")
+    }
+}

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.mappingservice.web;
+package edu.kit.datamanager.mappingservice.rest;
 
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -140,6 +141,14 @@ public interface IMappingAdministrationController {
     ResponseEntity deleteMapping(
             @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
             @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
+            WebRequest wr,
+            HttpServletResponse hsr);
+
+    @Operation(summary = "Get all available mappingTypes", description = "",
+            responses = {@ApiResponse(responseCode = "200", description = "OK and a list of all mapping types will be returned if at least one mapping type exists.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Mapping.class))))})
+    @RequestMapping(value = {"/types"}, method = {RequestMethod.GET})
+    @ResponseBody
+    ResponseEntity getAllAvailableMappingTypes(
             WebRequest wr,
             HttpServletResponse hsr);
 }
