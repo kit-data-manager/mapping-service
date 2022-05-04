@@ -7,7 +7,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="/CSS/dark-mode.css">
+    <link rel="stylesheet" href="CSS/dark-mode.css">
 
     <title>Mapping-Service (Administration)</title>
 </head>
@@ -15,7 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
-<script src="/JS/mapDocument.js"></script>
+<script src="JS/mapDocument.js"></script>
 
 <header class="row align-items-center navbar">
     <h1 class="header col-auto">Mapping-Service GUI</h1>
@@ -24,7 +24,7 @@
             <input type="checkbox" class="form-check-input" id="darkSwitch">
             <label class="custom-control-label" for="darkSwitch">Dark Mode</label>
         </div>
-        <script src="/JS/dark-mode-switch.js"></script>
+        <script src="JS/dark-mode-switch.js"></script>
     </div>
     <ul class="nav nav-pills d-flex flex-wrap py-3 mb-4 border-bottom p-3">
         <li class="nav-item"><a href="/index.html" class="nav-link" aria-current="page">Home</a></li>
@@ -58,7 +58,8 @@
 
         <div class="mb-3">
             <label for="document" class="col-form-label">Document</label>
-            <input type="file" class="form-control" id="document" aria-describedby="schemaHelpInline" aria-label="Upload" required>
+            <input type="file" class="form-control" id="document" aria-describedby="schemaHelpInline"
+                   aria-label="Upload" required>
             <span id="schemaHelpInline" class="form-text">
              Select the document that should be mapped with an existing mapping.
             </span>
@@ -69,13 +70,15 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
             <a class="btn btn-success col-auto me-3" id="downloadButton" onclick="" hidden>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-download" viewBox="0 0 16 16">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     class="bi bi-cloud-download" viewBox="0 0 16 16">
                     <path d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383z"/>
                     <path d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708l3 3z"/>
                 </svg>
                 Download result
             </a>
-            <button type="submit" class="btn btn-primary col-auto me-3" id="submit" onclick="map()">Map document</button>
+            <button type="submit" class="btn btn-primary col-auto me-3" id="submit" onclick="map()">Map document
+            </button>
         </div>
     </div>
 </main>

@@ -1,5 +1,5 @@
-// const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
-const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
+const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
+// const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
 
 var records = new Map();
 getRecords();
@@ -8,9 +8,17 @@ function getRecords() {
     const http = new XMLHttpRequest();
     http.open("GET", apiUrl);
     http.send();
+    http.onprogress = () => {
+        document.getElementById("progress").hidden = false
+    }
     http.onload=(e)=> {
         const results = JSON.parse(http.responseText);
+        if (results.length > 0) {
+            document.getElementById("nothingHere").hidden = true;
+            document.getElementById("progress").hidden = true
+        }
         for (let i = 0; i < results.length; i++) {
+            document.getElementById("progress").hidden = false
             console.log(results[i].mappingId)
             const schemaHttp = new XMLHttpRequest()
             var schema
@@ -36,7 +44,9 @@ function getRecords() {
                 console.log(records)
             }
         }
+        document.getElementById("progress").hidden = true
     }
+    document.getElementById("progress").hidden = true
 }
 
 function viewMapping(id, type) {
@@ -74,14 +84,16 @@ function deleteMapping(id, type) {
         http.onload=(e)=> {
             console.log("successfully removed mapping")
             records.delete(id)
-            location.reload()
+            document.getElementById(id).remove()
+            console.log(records.size)
+            if (records.size < 1) document.getElementById("nothingHere").hidden = false;
         }
     }
 }
 
 function addListElement(id, type, title, description) {
     let element =
-        `<li class="list-group-item">
+        `<li class="list-group-item" id="${id}">
             <div class="row align-items-center clearfix">
                 <div class="me-auto float-start col-auto row align-items-center">
                     <div class="me-auto col-auto row align-items-center">

@@ -1,8 +1,8 @@
 const params = new URLSearchParams(window.location.search);
-// const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
-const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
-// const execUrl = location.protocol + "//" + location.host + "/api/v1/mappingExecution/";
-const execUrl = "http://localhost:8095/api/v1/mappingExecution/";
+const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
+// const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
+const execUrl = location.protocol + "//" + location.host + "/api/v1/mappingExecution/";
+// const execUrl = "http://localhost:8095/api/v1/mappingExecution/";
 
 let availableTypes = []
 load()
@@ -40,9 +40,9 @@ function map(){
         return
     }
 
-    // document.getElementById("progress").hidden = false
-    // document.getElementById("downloadButton").hidden = true
-    // document.getElementById("submit").disabled = true
+    document.getElementById("progress").hidden = false
+    document.getElementById("downloadButton").hidden = true
+    document.getElementById("submit").disabled = true
 
     console.log(file.size)
     let formData = new FormData()
@@ -59,6 +59,18 @@ function map(){
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = false
         document.getElementById("submit").disabled = false
+        const downloadHTTP = new XMLHttpRequest();
+        downloadHTTP.open("GET", apiUrl + id + "/" + type);
+        downloadHTTP.send();
+        downloadHTTP.onload=(e)=> {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
+            element.setAttribute('download', "result.json");
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
 
     }
     http.onprogress =()=>{
