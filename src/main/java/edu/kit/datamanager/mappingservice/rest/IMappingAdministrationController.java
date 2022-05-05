@@ -117,7 +117,7 @@ public interface IMappingAdministrationController {
                     @ApiResponse(responseCode = "200", description = "OK is returned in case of a successful update, e.g. the record (if provided) was in the correct format and the document (if provided) matches the provided schema id. The updated record is returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
                     @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record is invalid or if the validation using the provided schema failed."),
                     @ApiResponse(responseCode = "404", description = "Not Found is returned if no record for the provided id or no schema for the provided schema id was found.")})
-    @RequestMapping(value = "/{mappingId}/{mappingType}", method = RequestMethod.PUT, produces = {"application/json"})
+    @RequestMapping(value = "/{mappingId}/{mappingType}", method = RequestMethod.PUT, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {"application/json"})
     @Parameters({@Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})
     @ResponseBody
     ResponseEntity<MappingRecord> updateMapping(

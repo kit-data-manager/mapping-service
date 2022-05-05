@@ -7,35 +7,35 @@ const execUrl = location.protocol + "//" + location.host + "/api/v1/mappingExecu
 let availableTypes = []
 load()
 
-function load(){
+function load() {
     const http = new XMLHttpRequest();
     http.open("GET", apiUrl + "types")
     http.send();
-    http.onload=(e)=> {
+    http.onload = (e) => {
         const result = JSON.parse(http.responseText)
-        for (let i = 0; i<result.length; i++){
+        for (let i = 0; i < result.length; i++) {
             let option = document.createElement("option");
             option.value = result[i]
             option.text = result[i]
             document.getElementById("type").add(option)
         }
         availableTypes = result
-        if(params.has("id") && params.has("type")){
+        if (params.has("id") && params.has("type")) {
             const id = params.get("id")
             const type = params.get("type")
             document.getElementById("id").value = id
-            if (result.indexOf(type)>=0){
+            if (result.indexOf(type) >= 0) {
                 document.getElementById('type').value = type;
             }
         }
     }
 }
 
-function map(){
+function map() {
     const id = document.getElementById("id").value
     const type = document.getElementById("type").value
     const file = document.getElementById("document").files[0]
-    if(file == null) {
+    if (file == null) {
         alert("Please select a file.")
         return
     }
@@ -52,7 +52,7 @@ function map(){
     http.open("POST", execUrl + id + "/" + type)
     // http.setRequestHeader("Content-Type", "application/json")
     http.send(formData)
-    http.onload=(e)=> {
+    http.onload = (e) => {
         console.log(http.responseText)
         document.getElementById("downloadButton").setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
         document.getElementById("downloadButton").setAttribute('download', "result.json");
@@ -62,7 +62,7 @@ function map(){
         const downloadHTTP = new XMLHttpRequest();
         downloadHTTP.open("GET", apiUrl + id + "/" + type);
         downloadHTTP.send();
-        downloadHTTP.onload=(e)=> {
+        downloadHTTP.onload = (e) => {
             const element = document.createElement('a');
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
             element.setAttribute('download', "result.json");
@@ -73,19 +73,19 @@ function map(){
         }
 
     }
-    http.onprogress =()=>{
+    http.onprogress = () => {
         document.getElementById("progress").hidden = false
         document.getElementById("downloadButton").hidden = true
         document.getElementById("submit").disabled = true
     }
-    http.ontimeout =()=>{
+    http.ontimeout = () => {
         console.log(http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = false
         document.getElementById("submit").disabled = false
         alert("Timeout! Try later again.")
     }
-    http.onerror =()=> {
+    http.onerror = () => {
         console.log(http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = false

@@ -1,7 +1,7 @@
-const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
-// const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
+// const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
+const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
 
-var records = new Map();
+let records = new Map();
 getRecords();
 
 function getRecords() {
@@ -11,7 +11,7 @@ function getRecords() {
     http.onprogress = () => {
         document.getElementById("progress").hidden = false
     }
-    http.onload=(e)=> {
+    http.onload = (e) => {
         const results = JSON.parse(http.responseText);
         if (results.length > 0) {
             document.getElementById("nothingHere").hidden = true;
@@ -27,10 +27,9 @@ function getRecords() {
             schemaHttp.open("GET", apiUrl + results[i].mappingId + "/" + results[i].mappingType)
             schemaHttp.setRequestHeader("Content-Type", "application/json")
             schemaHttp.send()
-            schemaHttp.onload=(e)=> {
+            schemaHttp.onload = (e) => {
                 schema = JSON.parse(schemaHttp.responseText)
                 ETAG = '"' + schemaHttp.getResponseHeader("If-Match") + '"'
-                addListElement(results[i].mappingId, results[i].mappingType, schema.title, schema.description)
                 console.log({
                     "record": results[i],
                     "schema": schema,
@@ -42,6 +41,7 @@ function getRecords() {
                     "ETAG": ETAG
                 })
                 console.log(records)
+                addListElement(results[i].mappingId, results[i].mappingType, schema.title, schema.description)
             }
         }
         document.getElementById("progress").hidden = true
@@ -49,19 +49,17 @@ function getRecords() {
     document.getElementById("progress").hidden = true
 }
 
-function viewMapping(id, type) {
-
+function editMapping(id) {
+    let sessionData = JSON.stringify(records.get(id))
+    window.sessionStorage.setItem("data", sessionData)
+    window.location = "addScheme.html?edit=true"
 }
 
-function editMapping(id, type) {
-
-}
-
-function downloadMapping(id, type){
+function downloadMapping(id, type) {
     const http = new XMLHttpRequest();
     http.open("GET", apiUrl + id + "/" + type);
     http.send();
-    http.onload=(e)=> {
+    http.onload = (e) => {
         const element = document.createElement('a');
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
         element.setAttribute('download', id + "_schema.json");
@@ -76,12 +74,12 @@ function deleteMapping(id, type) {
     console.log("ID,TYPE: " + id + type)
     let mapEntry = records.get(id);
     console.log(mapEntry)
-    if(mapEntry != null && mapEntry.record.mappingId === id && mapEntry.record.mappingType === type){
+    if (mapEntry != null && mapEntry.record.mappingId === id && mapEntry.record.mappingType === type) {
         const http = new XMLHttpRequest();
         http.open("DELETE", apiUrl + id + "/" + type)
         http.setRequestHeader("If-Match", mapEntry.ETAG)
         http.send();
-        http.onload=(e)=> {
+        http.onload = (e) => {
             console.log("successfully removed mapping")
             records.delete(id)
             document.getElementById(id).remove()
@@ -107,13 +105,7 @@ function addListElement(id, type, title, description) {
                 </div>
     
                 <div class="float-end col-auto ms-auto">
-                    <button class="btn btn-primary col-auto m-1" onclick="viewMapping('${id}', '${type}')" disabled>
-                        <svg class="bi me-1" fill="currentColor" width="16" height="16">
-                            <use xlink:href="#viewButton"/>
-                        </svg>
-                        View
-                    </button>
-                    <button class="btn btn-primary col-auto m-1" onclick="editMapping('${id}', '${type}')" disabled>
+                    <button class="btn btn-primary col-auto m-1" onclick="editMapping('${id}')">
                         <svg class="bi me-1" fill="currentColor" width="16" height="16">
                             <use xlink:href="#editButton"/>
                         </svg>
