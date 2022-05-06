@@ -1,8 +1,6 @@
 const params = new URLSearchParams(window.location.search);
 const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
-// const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
 const execUrl = location.protocol + "//" + location.host + "/api/v1/mappingExecution/";
-// const execUrl = "http://localhost:8095/api/v1/mappingExecution/";
 
 let availableTypes = []
 load()
@@ -36,7 +34,8 @@ function map() {
     const type = document.getElementById("type").value
     const file = document.getElementById("document").files[0]
     if (file == null) {
-        alert("Please select a file.")
+        document.getElementById("errorMessage").textContent = "Please select a file."
+        document.getElementById("errorMessage").hidden = false
         return
     }
 
@@ -50,7 +49,6 @@ function map() {
 
     const http = new XMLHttpRequest();
     http.open("POST", execUrl + id + "/" + type)
-    // http.setRequestHeader("Content-Type", "application/json")
     http.send(formData)
     http.onload = (e) => {
         console.log(http.responseText)
@@ -83,13 +81,15 @@ function map() {
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = false
         document.getElementById("submit").disabled = false
-        alert("Timeout! Try later again.")
+        document.getElementById("errorMessage").textContent = "Timeout! Please try later again."
+        document.getElementById("errorMessage").hidden = false
     }
     http.onerror = () => {
         console.log(http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = false
         document.getElementById("submit").disabled = false
-        alert("Error! Try later again.")
+        document.getElementById("errorMessage").textContent = "ERROR " + http.status + " (" + http.statusText + ") Please try later again."
+        document.getElementById("errorMessage").hidden = false
     }
 }

@@ -1,5 +1,4 @@
-// const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
-const apiUrl = "http://localhost:8095/api/v1/mappingAdministration/";
+const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
 
 let records = new Map();
 getRecords();
@@ -30,7 +29,7 @@ function getRecords() {
             schemaHttp.onload = (e) => {
                 schema = JSON.parse(schemaHttp.responseText)
                 ETAG = '"' + schemaHttp.getResponseHeader("If-Match") + '"'
-                console.log({
+                console.log("Received Data:" + {
                     "record": results[i],
                     "schema": schema,
                     "ETAG": ETAG
@@ -71,20 +70,17 @@ function downloadMapping(id, type) {
 }
 
 function deleteMapping(id, type) {
-    console.log("ID,TYPE: " + id + type)
     let mapEntry = records.get(id);
-    console.log(mapEntry)
     if (mapEntry != null && mapEntry.record.mappingId === id && mapEntry.record.mappingType === type) {
         const http = new XMLHttpRequest();
         http.open("DELETE", apiUrl + id + "/" + type)
         http.setRequestHeader("If-Match", mapEntry.ETAG)
         http.send();
         http.onload = (e) => {
-            console.log("successfully removed mapping")
             records.delete(id)
             document.getElementById(id).remove()
-            console.log(records.size)
             if (records.size < 1) document.getElementById("nothingHere").hidden = false;
+            console.log("Successfully deleted mapping with id " + id)
         }
     }
 }
@@ -135,7 +131,5 @@ function addListElement(id, type, title, description) {
         </li>`;
 
     let html = document.getElementById('list');
-    console.log(html)
     html.innerHTML += element;
-    console.log(html)
 }

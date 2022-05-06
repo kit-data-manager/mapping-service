@@ -1,5 +1,4 @@
-// const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration";
-const apiUrl = "http://localhost:8095/api/v1/mappingAdministration";
+const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration";
 
 let acl = []
 const container = document.getElementById("jsoneditor")
@@ -25,9 +24,6 @@ function loadFile() {
 }
 
 function load() {
-    data = JSON.parse(window.sessionStorage.getItem("data"))
-    console.log(data)
-
     const http = new XMLHttpRequest();
     http.open("GET", apiUrl + "/types")
     http.send();
@@ -39,7 +35,9 @@ function load() {
             option.text = result[i]
             document.getElementById("type").add(option)
         }
+        data = JSON.parse(window.sessionStorage.getItem("data"))
         if (data != null && data.record != null && data.schema != null && data.ETAG != null) {
+            console.log("Received data from session storage: " + data)
             isEdit = true
             changeUIMode()
             document.getElementById("id").value = data.record.mappingId
@@ -50,7 +48,7 @@ function load() {
                     "sid": data.record.acl[i].sid,
                     "permission": data.record.acl[i].permission
                 })
-                addACLElement(acl.length-1, data.record.acl[i].sid, data.record.acl[i].permission)
+                addACLElement(acl.length - 1, data.record.acl[i].sid, data.record.acl[i].permission)
             }
             editor.set(data.schema)
             editor.expandAll()
@@ -70,7 +68,8 @@ function addACL() {
         "sid": sid,
         "permission": permission
     })
-    addACLElement(acl.length-1, sid, permission)
+    addACLElement(acl.length - 1, sid, permission)
+    console.log("Successfully added ACL: " + acl[acl.length - 1])
 }
 
 function addACLElement(index, sid, permission) {
@@ -106,8 +105,7 @@ function addACLElement(index, sid, permission) {
 }
 
 function editACL(index) {
-    console.log(index)
-    console.log(acl[index])
+    console.log("Editing ACL " + acl[index])
     document.getElementById("sid").value = acl[index].sid
     document.getElementById("permission").value = acl[index].permission
     document.getElementById("addACLButton").click()
@@ -117,6 +115,7 @@ function editACL(index) {
 function deleteACL(index) {
     document.getElementById(index).remove()
     delete acl[index]
+    console.log("Successfully deleted ACL with index of " + index)
 }
 
 function createMapping() {
@@ -124,7 +123,8 @@ function createMapping() {
     const type = document.getElementById("type").value
     const file = document.getElementById("schema").files[0]
     if (editor.getText() === "{}") {
-        alert("Please define a schema.")
+        document.getElementById("errorMessage").textContent = "Please define a schema document."
+        document.getElementById("errorMessage").hidden = false
         return
     }
 
@@ -132,7 +132,6 @@ function createMapping() {
     acl.forEach((value) => {
         resultACLs.push(value)
     })
-    console.log(resultACLs)
     const record = {
         "mappingId": id,
         "mappingType": type,
@@ -141,10 +140,8 @@ function createMapping() {
     const recordBlob = new Blob([JSON.stringify(record)], {type: "application/json"});
     const documentBlob = new Blob([editor.getText()], {type: "application/json"})
 
-    console.log(record)
-    console.log(recordBlob.text())
-    console.log("RESULT: " + JSON.stringify(record))
-    console.log(documentBlob)
+    console.log("Sending record:" + JSON.stringify(record))
+    console.log("Sending document:" + editor.getText())
     let formData = new FormData()
     formData.append("record", recordBlob)
     formData.append("document", documentBlob)
@@ -153,10 +150,11 @@ function createMapping() {
     http.open("POST", apiUrl)
     http.send(formData)
     http.onload = (e) => {
-        console.log(http.responseText)
+        console.log("Response: " + http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("submit").disabled = false
         if (http.status <= 300) {
+            document.getElementById("errorMessage").hidden = true
             const element = document.createElement('a');
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(editor.getText()));
             if (file != null) element.setAttribute('download', file.name);
@@ -179,13 +177,17 @@ function createMapping() {
         console.log(http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("submit").disabled = false
-        alert("Timeout! Try later again.")
+        document.getElementById("errorMessage").textContent = "Timeout! Please try later again."
+        document.getElementById("errorMessage").hidden = false
+
     }
     http.onerror = () => {
         console.log(http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("submit").disabled = false
-        alert("Error (" + http.status + "-" + http.statusText + "! Try later again.")
+        document.getElementById("errorMessage").textContent = "ERROR " + http.status + " (" + http.statusText + ") Please try later again."
+        document.getElementById("errorMessage").hidden = false
+
     }
 }
 
@@ -194,7 +196,8 @@ function updateMapping() {
     const type = document.getElementById("type").value
     const file = document.getElementById("schema").files[0]
     if (editor.getText() === "{}") {
-        alert("Please define a schema.")
+        document.getElementById("errorMessage").textContent = "Please define a schema document."
+        document.getElementById("errorMessage").hidden = false
         return
     }
 
@@ -202,7 +205,6 @@ function updateMapping() {
     acl.forEach((value) => {
         resultACLs.push(value)
     })
-    console.log(resultACLs)
     const record = {
         "mappingId": id,
         "mappingType": type,
@@ -211,10 +213,8 @@ function updateMapping() {
     const recordBlob = new Blob([JSON.stringify(record)], {type: "application/json"});
     const documentBlob = new Blob([editor.getText()], {type: "application/json"})
 
-    console.log(record)
-    console.log(recordBlob.text())
-    console.log("RESULT: " + JSON.stringify(record))
-    console.log(documentBlob)
+    console.log("Sending record:" + JSON.stringify(record))
+    console.log("Sending document:" + editor.getText())
     let formData = new FormData()
     formData.append("record", recordBlob)
     formData.append("document", documentBlob)
@@ -224,7 +224,7 @@ function updateMapping() {
     http.setRequestHeader("If-Match", data.ETAG)
     http.send(formData)
     http.onload = (e) => {
-        console.log(http.responseText)
+        console.log("Response: " + http.responseText)
         document.getElementById("editProgress").hidden = true
         document.getElementById("update").disabled = false
         if (http.status <= 300) {
@@ -251,13 +251,17 @@ function updateMapping() {
         console.log(http.responseText)
         document.getElementById("editProgress").hidden = true
         document.getElementById("update").disabled = false
-        alert("Timeout! Try later again.")
+        document.getElementById("errorMessage").textContent = "Timeout! Please try later again."
+        document.getElementById("errorMessage").hidden = false
+
     }
     http.onerror = () => {
         console.log(http.responseText)
         document.getElementById("editProgress").hidden = true
         document.getElementById("update").disabled = false
-        alert("Error (" + http.status + "-" + http.statusText + "! Try later again.")
+        document.getElementById("errorMessage").textContent = "ERROR " + http.status + " (" + http.statusText + ") Please try later again."
+        document.getElementById("errorMessage").hidden = false
+
     }
 }
 
@@ -265,6 +269,7 @@ function clearForm() {
     document.getElementById("form").reset()
     document.getElementById("successDisplay").hidden = true
     document.getElementById("editSuccessDisplay").hidden = true
+    document.getElementById("errorMessage").hidden = true
     acl.forEach((value, key) => {
         deleteACL(key)
     })
@@ -276,6 +281,7 @@ function clearForm() {
         window.location = "showSchemes.html"
     }
     isEdit = false
+    console.log("Successfully cleared the form.")
 }
 
 window.addEventListener('beforeunload', () => {
