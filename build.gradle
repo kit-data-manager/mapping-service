@@ -10,9 +10,11 @@ plugins {
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
-version = '1.0.0'
 
+println "Running gradle version: $gradle.gradleVersion"
 println "Building ${name} version: ${version}"
+println "JDK version: ${JavaVersion.current()}"
+
 
 configurations {
     asciidoctorExt
@@ -103,4 +105,9 @@ bootJar {
     from ("${asciidoctor.outputDir}/html5") {
         into 'static/docs'
     }
+    launchScript()
+}
+
+release {
+    tagTemplate = 'v${version}'
 }

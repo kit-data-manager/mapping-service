@@ -52,7 +52,7 @@ function getRecords() {
 function editMapping(id) {
     let sessionData = JSON.stringify(records.get(id))
     window.sessionStorage.setItem("data", sessionData)
-    window.location = "addScheme.html?edit=true"
+    window.location = "addScheme.html"
 }
 
 function downloadMapping(id, type) {

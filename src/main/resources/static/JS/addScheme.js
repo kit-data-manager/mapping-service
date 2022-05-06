@@ -25,11 +25,6 @@ function loadFile() {
 }
 
 function load() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has("edit")) {
-        clearForm()
-    }
-
     data = JSON.parse(window.sessionStorage.getItem("data"))
     console.log(data)
 
@@ -277,7 +272,6 @@ function updateMapping() {
 }
 
 function clearForm() {
-    console.log("Cancel editing! isEdit = " + isEdit)
     document.getElementById("form").reset()
     document.getElementById("successDisplay").hidden = true
     document.getElementById("editSuccessDisplay").hidden = true
@@ -292,8 +286,11 @@ function clearForm() {
         window.location = "showSchemes.html"
     }
     isEdit = false
-    window.load()
 }
+
+window.addEventListener('beforeunload', () => {
+    clearForm()
+})
 
 function changeUIMode() {
     document.getElementById("description").hidden = isEdit
