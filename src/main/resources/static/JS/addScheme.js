@@ -1,7 +1,7 @@
 // const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration";
 const apiUrl = "http://localhost:8095/api/v1/mappingAdministration";
 
-let acl = new Map
+let acl = []
 const container = document.getElementById("jsoneditor")
 const options = {
     mode: 'tree',
@@ -45,12 +45,12 @@ function load() {
             document.getElementById("id").value = data.record.mappingId
             document.getElementById("type").value = data.record.mappingType
             for (let i = 0; i < data.record.acl.length; i++) {
-                acl.set(data.record.acl[i].id, {
+                acl.push({
                     "id": data.record.acl[i].id,
                     "sid": data.record.acl[i].sid,
                     "permission": data.record.acl[i].permission
                 })
-                addACLElement(data.record.acl[i].id, data.record.acl[i].sid, data.record.acl[i].permission)
+                addACLElement(acl.length-1, data.record.acl[i].sid, data.record.acl[i].permission)
             }
             editor.set(data.schema)
             editor.expandAll()
@@ -59,44 +59,36 @@ function load() {
 }
 
 function addACL() {
-    const uid = document.getElementById("uid").value
     const sid = document.getElementById("sid").value
     const permission = document.getElementById("permission").value
     if (aclEdit != null) {
         deleteACL(aclEdit)
         aclEdit = null
     }
-    if (acl.has(uid)) {
-        deleteACL(uid)
-    }
-    acl.set(uid, {
-        "id": uid,
+    acl.push({
+        "id": "",
         "sid": sid,
         "permission": permission
     })
-    addACLElement(uid, sid, permission)
+    addACLElement(acl.length-1, sid, permission)
 }
 
-function addACLElement(uid, sid, permission) {
+function addACLElement(index, sid, permission) {
     const element =
-        `<div class="border p-3 border rounded-3 m-3 col-auto" id="${uid}">
+        `<div class="border p-3 border rounded-3 m-3 col-auto" id="${index}">
             <div class="row align-items-center col-auto mx-auto">
-                <button type="button" class="btn btn-primary col-auto m-1" onclick="editACL('${uid}')">
+                <button type="button" class="btn btn-primary col-auto m-1" onclick="editACL('${index}')">
                     <svg class="bi me-1" fill="currentColor" width="16" height="16">
                         <use xlink:href="#editButton"/>
                     </svg>
                     Edit
                 </button>
-                <button type="button" class="btn btn-outline-danger col-auto m-1" onclick="deleteACL('${uid}')">
+                <button type="button" class="btn btn-outline-danger col-auto m-1" onclick="deleteACL('${index}')">
                     <svg class="bi me-1" fill="currentColor" width="16" height="16">
                         <use xlink:href="#deleteButton"/>
                     </svg>
                     Delete ACL
                 </button>
-            </div>
-            <div class="mb-3">
-                <label for="uid" class="col-form-label">User ID</label>
-                <input type="number" id="uidDisplay" class="form-control" disabled value="${uid}">
             </div>
             <div class="mb-3">
                 <label for="sid" class="col-form-label">User String</label>
@@ -113,20 +105,18 @@ function addACLElement(uid, sid, permission) {
     html.innerHTML += element;
 }
 
-function editACL(id) {
-    console.log(id)
-    console.log(acl)
-    console.log(acl.has(id))
-    document.getElementById("uid").value = id
-    document.getElementById("sid").value = acl.get(id).sid
-    document.getElementById("permission").value = acl.get(id).permission
+function editACL(index) {
+    console.log(index)
+    console.log(acl[index])
+    document.getElementById("sid").value = acl[index].sid
+    document.getElementById("permission").value = acl[index].permission
     document.getElementById("addACLButton").click()
-    aclEdit = uid
+    aclEdit = index
 }
 
-function deleteACL(uid) {
-    document.getElementById(uid).remove()
-    acl.delete(uid)
+function deleteACL(index) {
+    document.getElementById(index).remove()
+    delete acl[index]
 }
 
 function createMapping() {
@@ -278,7 +268,7 @@ function clearForm() {
     acl.forEach((value, key) => {
         deleteACL(key)
     })
-    acl.clear()
+    acl = []
     editor.set({})
     window.sessionStorage.clear()
     if (isEdit) {
