@@ -49,5 +49,13 @@ public class MappingServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(MappingServiceApplication.class, args);
         System.out.println("Mapping service is running!");
+
+//        System.out.println(applicationProperties().toString());
+//        try {
+//            PythonRunnerUtil runner = new PythonRunnerUtil(applicationProperties());
+//            runner.printPythonVersion();
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//        }
     }
 }
