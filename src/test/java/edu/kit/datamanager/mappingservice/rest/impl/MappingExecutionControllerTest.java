@@ -1,4 +1,4 @@
-package edu.kit.datamanager.mappingservice.web.impl;
+package edu.kit.datamanager.mappingservice.rest.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.entities.PERMISSION;

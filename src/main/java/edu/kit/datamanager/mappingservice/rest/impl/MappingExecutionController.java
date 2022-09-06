@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.mappingservice.web.impl;
+package edu.kit.datamanager.mappingservice.rest.impl;
 
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
-import edu.kit.datamanager.mappingservice.web.IMappingExecutionController;
+import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

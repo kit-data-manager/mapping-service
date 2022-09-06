@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.mappingservice.web;
+package edu.kit.datamanager.mappingservice.rest;
 
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.mapping.Mapping;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -116,7 +117,7 @@ public interface IMappingAdministrationController {
                     @ApiResponse(responseCode = "200", description = "OK is returned in case of a successful update, e.g. the record (if provided) was in the correct format and the document (if provided) matches the provided schema id. The updated record is returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
                     @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record is invalid or if the validation using the provided schema failed."),
                     @ApiResponse(responseCode = "404", description = "Not Found is returned if no record for the provided id or no schema for the provided schema id was found.")})
-    @RequestMapping(value = "/{mappingId}/{mappingType}", method = RequestMethod.PUT, produces = {"application/json"})
+    @RequestMapping(value = "/{mappingId}/{mappingType}", method = RequestMethod.PUT, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {"application/json"})
     @Parameters({@Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})
     @ResponseBody
     ResponseEntity<MappingRecord> updateMapping(
@@ -140,6 +141,14 @@ public interface IMappingAdministrationController {
     ResponseEntity deleteMapping(
             @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
             @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
+            WebRequest wr,
+            HttpServletResponse hsr);
+
+    @Operation(summary = "Get all available mappingTypes", description = "",
+            responses = {@ApiResponse(responseCode = "200", description = "OK and a list of all mapping types will be returned if at least one mapping type exists.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Mapping.class))))})
+    @RequestMapping(value = {"/types"}, method = {RequestMethod.GET})
+    @ResponseBody
+    ResponseEntity getAllAvailableMappingTypes(
             WebRequest wr,
             HttpServletResponse hsr);
 }

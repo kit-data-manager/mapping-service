@@ -10,9 +10,11 @@ plugins {
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
-version = '1.0.0'
 
+println "Running gradle version: $gradle.gradleVersion"
 println "Building ${name} version: ${version}"
+println "JDK version: ${JavaVersion.current()}"
+
 
 configurations {
     asciidoctorExt
@@ -31,15 +33,15 @@ ext {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.6.5'
-    implementation 'org.springframework.boot:spring-boot-starter-security:2.6.5'
-    implementation 'org.springframework.boot:spring-boot-starter-validation:2.6.5'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.5'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.6.6'
-    implementation 'org.springdoc:springdoc-openapi-ui:1.6.6'
-    implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.6'
-    implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.6'
-    implementation 'org.javers:javers-spring-boot-starter-sql:6.6.3'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.6.7'
+    implementation 'org.springframework.boot:spring-boot-starter-security:2.6.7'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:2.6.7'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.7'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.6.7'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.7'
+    implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.7'
+    implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.7'
+    implementation 'org.javers:javers-spring-boot-starter-sql:6.6.5'
     implementation 'org.apache.httpcomponents:httpclient:4.5.13'
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.json:json:20220320'
@@ -52,22 +54,23 @@ dependencies {
     testImplementation(platform('org.junit:junit-bom:5.8.2'))
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.8.2'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.5'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.7'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.6.RELEASE'
-    testImplementation 'org.springframework.security:spring-security-test:5.6.2'
-    testImplementation 'org.springframework:spring-test:5.3.17'
-    testImplementation 'org.mockito:mockito-core:4.3.1'
+    testImplementation 'org.springframework.security:spring-security-test:5.6.3'
+    testImplementation 'org.springframework:spring-test:5.3.19'
+    testImplementation 'org.mockito:mockito-core:4.5.1'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
+    testImplementation 'net.bytebuddy:byte-buddy:1.12.9'
     testImplementation 'org.junit.vintage:junit-vintage-engine:5.8.2'
 
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.6.5'
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.6.7'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
-    compileOnly 'org.projectlombok:lombok:1.18.22'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
 
-    runtimeOnly 'com.h2database:h2:2.1.210'
-    runtimeOnly 'org.postgresql:postgresql:42.3.3'
+    runtimeOnly 'com.h2database:h2:2.1.212'
+    runtimeOnly 'org.postgresql:postgresql:42.3.4'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.13'
 
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:2.0.6.RELEASE'
@@ -102,4 +105,9 @@ bootJar {
     from ("${asciidoctor.outputDir}/html5") {
         into 'static/docs'
     }
+    launchScript()
+}
+
+release {
+    tagTemplate = 'v${version}'
 }

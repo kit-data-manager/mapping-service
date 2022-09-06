@@ -1,4 +1,4 @@
-package edu.kit.datamanager.mappingservice.web;
+package edu.kit.datamanager.mappingservice.rest;
 
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import io.swagger.v3.oas.annotations.Operation;

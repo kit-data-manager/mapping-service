@@ -77,8 +77,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public FilterRegistrationBean corsFilter() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("*"); // @Value: http://localhost:8080
+//        config.setAllowCredentials(true);
+//        config.setAllowedOrigins(Collections.singletonList("*"));
+        config.addAllowedOrigin("*"); // @Value: http://localhost:8095
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("Content-Range");
