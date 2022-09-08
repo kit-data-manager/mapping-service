@@ -67,13 +67,13 @@ public class PluginManager {
         return result;
     }
 
-    public MappingPluginStates mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
+    public MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         for (var entry : plugins.entrySet()) {
             if (entry.getKey().toString().equals(pluginId)) {
                 return entry.getValue().mapFile(mappingFile, inputFile, outputFile);
             }
         }
-        throw new MappingPluginException(MappingPluginStates.NOT_FOUND, "Plugin not found!");
+        throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin not found!");
     }
 
     public static void main(String[] args) {

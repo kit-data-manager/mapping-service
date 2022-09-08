@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
 
-public enum MappingPluginStates implements Serializable {
+public enum MappingPluginState implements Serializable {
     SUCCESS(HttpStatus.OK),
     NOT_FOUND(HttpStatus.NOT_FOUND),
     TIMEOUT,
@@ -18,11 +18,11 @@ public enum MappingPluginStates implements Serializable {
         return httpStatus;
     }
 
-    MappingPluginStates(HttpStatus status){
+    MappingPluginState(HttpStatus status){
         this.httpStatus = status;
     }
 
-    MappingPluginStates(){
+    MappingPluginState(){
         this.httpStatus = HttpStatus.BAD_REQUEST;
     }
 }

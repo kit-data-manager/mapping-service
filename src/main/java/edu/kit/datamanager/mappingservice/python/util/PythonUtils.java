@@ -132,7 +132,6 @@ public class PythonUtils {
 
         int result;
         try {
-
             ProcessBuilder pb = new ProcessBuilder(command.toArray(new String[]{}));
             Process p = pb.start();
 

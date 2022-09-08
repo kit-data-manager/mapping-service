@@ -1,7 +1,7 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 public class MappingPluginException extends Exception{
-    private MappingPluginStates state;
+    private MappingPluginState state;
 
     public MappingPluginException(String message){
         super(message);
@@ -15,12 +15,17 @@ public class MappingPluginException extends Exception{
         super(message, cause);
     }
 
-    public MappingPluginException(MappingPluginStates state, String message){
+    public MappingPluginException(MappingPluginState state, String message){
         super(message);
         this.state = state;
     }
 
-    public MappingPluginException(MappingPluginStates state, String message, Throwable cause){
+    public MappingPluginException(MappingPluginState state){
+        super(state.name());
+        this.state = state;
+    }
+
+    public MappingPluginException(MappingPluginState state, String message, Throwable cause){
         super(message, cause);
         this.state = state;
     }

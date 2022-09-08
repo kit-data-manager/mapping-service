@@ -17,23 +17,29 @@ package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import edu.kit.datamanager.mappingservice.python.gemma.GemmaConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 public class PythonRunnerUtil {
+    GemmaConfiguration gemmaConfiguration;
 
-    private URL pythonLocation;
+    Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
 
     public PythonRunnerUtil(ApplicationProperties configuration) throws MalformedURLException {
-        pythonLocation = new File(configuration.getPythonLocation().getPath()).toURI().toURL();
-        printPythonVersion();
+        gemmaConfiguration = new GemmaConfiguration();
+        File gemmaFile = new File(configuration.getGemmaLocation().getPath());
+        File pythonExecutable = new File(configuration.getPythonLocation().getPath());
+        gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
+        gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
     }
 
     public void printPythonVersion() {
         try {
-            ShellRunnerUtil.runShellCommand(pythonLocation.getPath() + " --version");
+            ShellRunnerUtil.run(new String[]{gemmaConfiguration.getPythonLocation().getPath(), "--version"}, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
         } catch (MappingPluginException e) {
             e.printStackTrace();
         }

@@ -78,5 +78,5 @@ public interface IMappingPlugin {
      * @param mappingFile The path to the mapping schema.
      * @return The exit code of the plugin.
      */
-    MappingPluginStates mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException;
+    MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException;
 }

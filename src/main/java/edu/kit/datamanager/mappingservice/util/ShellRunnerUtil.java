@@ -16,8 +16,7 @@
 package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
-import edu.kit.datamanager.mappingservice.plugins.MappingPluginStates;
-import edu.kit.datamanager.mappingservice.python.util.PythonUtils;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,14 +35,25 @@ public class ShellRunnerUtil {
     /**
      * Logger for this class.
      */
-    private final static Logger LOGGER = LoggerFactory.getLogger(PythonUtils.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ShellRunnerUtil.class);
 
-    public static MappingPluginStates runShellCommand(String command) throws MappingPluginException {
-        return runShellCommand(command, System.out, System.err);
+    public static MappingPluginState run(String[] command) throws MappingPluginException {
+        return run(command, TIMEOUT);
     }
-    public static MappingPluginStates runShellCommand(String command, OutputStream output, OutputStream error) throws MappingPluginException {
+
+    public static MappingPluginState run(String[] command, int timeOutInSeconds) throws MappingPluginException {
+        return run(command, System.out, System.err, timeOutInSeconds);
+    }
+
+    public static MappingPluginState run(String[] command, OutputStream output, OutputStream error) throws MappingPluginException {
+        return run(command, output, error, TIMEOUT);
+    }
+
+    public static MappingPluginState run(String[] command, OutputStream output, OutputStream error, int timeOutInSeconds) throws MappingPluginException {
         ExecutorService pool = Executors.newSingleThreadExecutor();
-        MappingPluginStates state = MappingPluginStates.SUCCESS;
+        int result;
+        MappingPluginState returnValue = MappingPluginState.SUCCESS;
+
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process p = pb.start();
@@ -51,8 +61,8 @@ public class ShellRunnerUtil {
             Future<List<String>> errorFuture = pool.submit(new ShellRunnerUtil.ProcessReadTask(p.getErrorStream()));
             Future<List<String>> inputFuture = pool.submit(new ShellRunnerUtil.ProcessReadTask(p.getInputStream()));
 
-            List<String> stdErr = errorFuture.get(TIMEOUT, TimeUnit.SECONDS);
-            List<String> stdOut = inputFuture.get(TIMEOUT, TimeUnit.SECONDS);
+            List<String> stdErr = errorFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
+            List<String> stdOut = inputFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
 
             for (String line : stdOut) {
                 LOGGER.trace("[OUT] {}", line);
@@ -68,29 +78,32 @@ public class ShellRunnerUtil {
                 }
             }
 
-            int result = p.waitFor();
+            result = p.waitFor();
             if (result != 0) {
                 throw new ExecutionException(new Throwable());
             }
         } catch (IOException ioe) {
             LOGGER.error("Failed to execute python.", ioe);
-            state = MappingPluginStates.EXECUTION_ERROR;
-            throw new MappingPluginException(MappingPluginStates.EXECUTION_ERROR, "failed to execute python");
+            returnValue = MappingPluginState.EXECUTION_ERROR;
         } catch (TimeoutException te) {
             LOGGER.error("Python script did not return in expected timeframe of " + TIMEOUT + " seconds", te);
-            state = MappingPluginStates.TIMEOUT;
-            throw new MappingPluginException(MappingPluginStates.TIMEOUT, "Python script did not return in expected timeframe of " + TIMEOUT + " seconds");
+            returnValue = MappingPluginState.TIMEOUT;
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Failed to execute python script due to an unknown Exception.", e);
-            state = MappingPluginStates.UNKNOWN_ERROR;
-            throw new MappingPluginException(MappingPluginStates.UNKNOWN_ERROR, "Failed to execute python script due to an unknown Exception.", e);
+            returnValue = MappingPluginState.UNKNOWN_ERROR;
         } finally {
             pool.shutdown();
+            if (returnValue != MappingPluginState.SUCCESS) throw new MappingPluginException(returnValue);
         }
-        return state;
+        return returnValue;
     }
 
-    private record ProcessReadTask(InputStream inputStream) implements Callable<List<String>> {
+    private static class ProcessReadTask implements Callable<List<String>> {
+        private final InputStream inputStream;
+
+        public ProcessReadTask(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
 
         @Override
         public List<String> call() {
