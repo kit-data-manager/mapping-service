@@ -46,6 +46,7 @@ public class PluginLoader {
         List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
         Map<String, IMappingPlugin> result = new HashMap<String, IMappingPlugin>();
         for (IMappingPlugin i : IMappingPluginList) {
+            System.out.println("Found Plugin: " + i.id());
             result.put(i.id(), i);
         }
 

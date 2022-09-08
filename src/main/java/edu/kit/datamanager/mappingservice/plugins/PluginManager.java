@@ -78,8 +78,8 @@ public class PluginManager {
 
     public static void main(String[] args) {
         for (var entry : plugins.entrySet()) {
-            System.out.println(entry.getValue().id().toString());
-            System.out.println(entry.getValue().id().toString());
+            System.out.println(entry.getValue().id());
+            System.out.println(entry.getValue().description());
         }
     }
 }

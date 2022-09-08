@@ -17,32 +17,59 @@ package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
-import edu.kit.datamanager.mappingservice.python.gemma.GemmaConfiguration;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.net.MalformedURLException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 
+@Component
 public class PythonRunnerUtil {
-    GemmaConfiguration gemmaConfiguration;
+    //    private static GemmaConfiguration gemmaConfiguration;
+    private static ApplicationProperties configuration;
 
-    Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
 
-    public PythonRunnerUtil(ApplicationProperties configuration) throws MalformedURLException {
-        gemmaConfiguration = new GemmaConfiguration();
-        File gemmaFile = new File(configuration.getGemmaLocation().getPath());
-        File pythonExecutable = new File(configuration.getPythonLocation().getPath());
-        gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
-        gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
+    @Autowired
+    public PythonRunnerUtil(ApplicationProperties configuration) {
+        PythonRunnerUtil.configuration = configuration;
     }
+//    @Autowired
+//    public PythonRunnerUtil(ApplicationProperties configuration) throws MalformedURLException {
+//        gemmaConfiguration = new GemmaConfiguration();
+//        File gemmaFile = new File(configuration.getGemmaLocation().getPath());
+//        File pythonExecutable = new File(configuration.getPythonLocation().getPath());
+//        gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
+//        gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
+//    }
 
-    public void printPythonVersion() {
+    public static void printPythonVersion() {
         try {
-            ShellRunnerUtil.run(new String[]{gemmaConfiguration.getPythonLocation().getPath(), "--version"}, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
+            ShellRunnerUtil.run(new String[]{configuration.getPythonLocation().getPath(), "--version"}, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
         } catch (MappingPluginException e) {
             e.printStackTrace();
         }
     }
 
+
+    public static MappingPluginState runPythonScript(String arg) throws MappingPluginException {
+        return runPythonScript(arg, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
+    }
+
+    public static MappingPluginState runPythonScript(String script, String... args) throws MappingPluginException {
+        return runPythonScript(script, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN), args);
+    }
+
+    public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
+        ArrayList<String> command = new ArrayList<>();
+        command.add(configuration.getPythonLocation().getPath());
+        command.add(script);
+        Collections.addAll(command, args);
+        ShellRunnerUtil.run(command.toArray(new String[]{}), output, error);
+        return MappingPluginState.SUCCESS;
+    }
 }
