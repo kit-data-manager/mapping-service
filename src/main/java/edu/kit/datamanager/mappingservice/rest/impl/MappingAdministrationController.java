@@ -22,7 +22,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
-import edu.kit.datamanager.mappingservice.mapping.Mapping;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.rest.IMappingAdministrationController;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
@@ -341,7 +341,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
         return ResponseEntity.
                 ok().
-                body(Mapping.values());
+                body(PluginManager.soleInstance().getListOfAvailableValidators());
     }
 
     /**

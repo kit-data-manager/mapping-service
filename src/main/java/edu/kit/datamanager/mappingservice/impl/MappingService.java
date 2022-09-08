@@ -19,8 +19,8 @@ import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
-import edu.kit.datamanager.mappingservice.mapping.Mapping;
-import edu.kit.datamanager.mappingservice.mapping.MappingUtil;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
@@ -56,11 +56,6 @@ public class MappingService {
      * Path to directory holding all mapping files.
      */
     private Path mappingsDirectory;
-
-    /**
-     * MappingUtil for executing mappings.
-     */
-    private MappingUtil mappingUtil;
 
     /**
      * Logger for this class.
@@ -130,7 +125,7 @@ public class MappingService {
      * @param mappingType type of the mapping.
      * @return Path to result file.
      */
-    public Optional<Path> executeMapping(URI contentUrl, String mappingId, String mappingType) {
+    public Optional<Path> executeMapping(URI contentUrl, String mappingId, String mappingType) throws MappingPluginException {
         Optional<Path> returnValue = Optional.empty();
         Optional<Path> download = FileUtil.downloadResource(contentUrl);
         MappingRecord mappingRecord = null;
@@ -145,7 +140,10 @@ public class MappingService {
                 //   mappingRecord.getMappingDocumentUri();
                 Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
                 // execute mapping
-                returnValue = mappingUtil.mapFile(mappingFile, srcFile, mappingType);
+                Path resultFile;
+                resultFile = FileUtil.createTempFile(mappingId + "_", ".mapping");
+                PluginManager.soleInstance().mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
+                returnValue = Optional.of(resultFile);
                 // remove downloaded file
                 FileUtil.removeFile(srcFile);
             } else {
@@ -165,7 +163,7 @@ public class MappingService {
      * @param mappingId  filename of the mapping
      * @return List of paths to all result files.
      */
-    public List<Path> executeMapping(URI contentUrl, String mappingId) {
+    public List<Path> executeMapping(URI contentUrl, String mappingId) throws MappingPluginException {
         List<Path> returnValue = new ArrayList<>();
         String noMappingType = null;
 
@@ -189,7 +187,8 @@ public class MappingService {
      */
     private void init(ApplicationProperties applicationProperties) throws URISyntaxException {
         if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
-            mappingUtil = new MappingUtil(applicationProperties);
+            PluginManager.reloadPlugins();
+//            mappingUtil = new MappingUtil(applicationProperties);
             try {
                 mappingsDirectory = Files.createDirectories(new File(applicationProperties.getMappingsLocation().getPath()).getAbsoluteFile().toPath());
             } catch (IOException e) {
@@ -213,7 +212,7 @@ public class MappingService {
             LOGGER.debug("Storing mapping file with id '{}' and type '{}'", mapping.getMappingId(), mapping.getMappingType());
             LOGGER.trace("Content of mapping: '{}'", content);
             try {
-                Mapping.valueOf(mapping.getMappingType());
+//                Mapping.valueOf(mapping.getMappingType());
                 // 'delete' old file
                 deleteMappingFile(mapping);
                 newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getMappingId() + "_" + mapping.getMappingType() + ".mapping");

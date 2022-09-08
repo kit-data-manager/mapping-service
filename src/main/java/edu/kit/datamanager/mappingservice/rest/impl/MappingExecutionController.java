@@ -20,6 +20,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
+import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,7 @@ public class MappingExecutionController implements IMappingExecutionController {
             try {
                 System.out.println(inputPath);
                 resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID, mappingType).get();
+                ShellRunnerUtil.run(new String[]{"cat", resultPath.toAbsolutePath().toString()});
             } catch (Exception e) {
                 LOG.error("Could not get resultPath");
                 e.printStackTrace();
