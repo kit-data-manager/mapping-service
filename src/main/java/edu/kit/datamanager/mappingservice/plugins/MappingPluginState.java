@@ -1,7 +1,6 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import org.springframework.http.HttpStatus;
-
 import java.io.Serializable;
 
 public enum MappingPluginState implements Serializable {

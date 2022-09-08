@@ -72,6 +72,12 @@ public interface IMappingPlugin {
     }
 
     /**
+     * This method is called when the plugin is loaded.
+     * It can be used to initialize the plugin and install dependencies.
+     */
+    void setup();
+
+    /**
      * The method which is called to execute the plugin.
      * @param inputFile The path to the output document.
      * @param outputFile The path to the output document.

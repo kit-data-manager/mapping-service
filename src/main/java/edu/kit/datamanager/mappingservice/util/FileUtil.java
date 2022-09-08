@@ -19,6 +19,8 @@ import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -173,4 +175,57 @@ public class FileUtil {
         }
         return null;
     }
+
+    public static void cloneGitRepository(String repositoryUrl, String targetDirectory, String branch) {
+        LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, targetDirectory);
+        File target = new File(targetDirectory);
+        target.mkdirs();
+        try {
+            Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+        } catch (GitAPIException ex) {
+            throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + targetDirectory + "'!", ex);
+        }
+    }
+
+//    public static void downloadFile(String url, Path target) throws IOException {
+//        try (InputStream in = new URL(url).openStream()) {
+//            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+//        }
+//    }
+//
+//    public static void unzip(Path zipFilePath, String destDir) {
+//        File dir = new File(destDir);
+//        // create output directory if it doesn't exist
+//        if(!dir.exists()) dir.mkdirs();
+//        FileInputStream fis;
+//        //buffer for read and write data to file
+//        byte[] buffer = new byte[1024];
+//        try {
+//            fis = new FileInputStream(zipFilePath.toString());
+//            ZipInputStream zis = new ZipInputStream(fis);
+//            ZipEntry ze = zis.getNextEntry();
+//            while(ze != null){
+//                String fileName = ze.getName();
+//                File newFile = new File(destDir + File.separator + fileName);
+//                System.out.println("Unzipping to "+newFile.getAbsolutePath());
+//                //create directories for sub directories in zip
+//                newFile.mkdirs();
+//                FileOutputStream fos = new FileOutputStream(newFile);
+//                int len;
+//                while ((len = zis.read(buffer)) > 0) {
+//                    fos.write(buffer, 0, len);
+//                }
+//                fos.close();
+//                //close this ZipEntry
+//                zis.closeEntry();
+//                ze = zis.getNextEntry();
+//            }
+//            //close last ZipEntry
+//            zis.closeEntry();
+//            zis.close();
+//            fis.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

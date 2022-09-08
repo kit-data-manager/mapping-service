@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,27 +55,13 @@ public class MappingServiceApplication {
         SpringApplication.run(MappingServiceApplication.class, args);
         System.out.println("Mapping service is running! Access it at http://localhost:8095");
 
-        PythonRunnerUtil.printPythonVersion();
-        try {
-            PythonRunnerUtil.runPythonScript("-c", "print('Hello World!')");
-        } catch (MappingPluginException e) {
-            e.printStackTrace();
-        }
+//        PluginManager.reloadPlugins();
 
-//        ApplicationProperties properties = new ApplicationProperties();
+        PluginManager.soleInstance().getListOfAvailableValidators().forEach(System.out::println);
+        PythonRunnerUtil.printPythonVersion();
 //        try {
-////            properties.setPythonLocation(new File("/opt/homebrew/opt/python@3.10/bin/python3".trim()).toURI().toURL());
-//            properties.setPythonLocation(new File("/usr/bin/python3").toURI().toURL());
-//            properties.setGemmaLocation(new File("src/test/resources/python/mapping_single.py".trim()).toURI().toURL());
-//            properties.setMappingsLocation(new File("/tmp/mapping-service/".trim()).toURI().toURL());
-//        } catch (MalformedURLException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        try {
-//            PythonRunnerUtil runner = new PythonRunnerUtil(properties);
-//            runner.printPythonVersion();
-//        } catch (MalformedURLException e) {
+//            ShellRunnerUtil.run(new String[]{"ls", "-la"});
+//        } catch (MappingPluginException e) {
 //            e.printStackTrace();
 //        }
     }
