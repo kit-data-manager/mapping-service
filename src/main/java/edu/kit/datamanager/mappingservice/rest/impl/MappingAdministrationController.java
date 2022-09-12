@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.rest.impl;
 
+import com.google.gson.Gson;
 import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.exceptions.ResourceNotFoundException;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
@@ -22,6 +23,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.rest.IMappingAdministrationController;
 import edu.kit.datamanager.util.AuthenticationHelper;
@@ -338,12 +340,24 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             WebRequest wr,
             HttpServletResponse hsr
     ) {
-
+        List<PluginInformation> plugins = new ArrayList<>();
+        PluginManager.soleInstance().getListOfAvailableValidators().forEach((id) -> {
+            try {
+                plugins.add(new PluginInformation(id));
+            } catch (MappingPluginException ex) {
+                LOG.error("Error getting plugin information for {}", id, ex);
+            }
+        });
         return ResponseEntity.
                 ok().
-                body(PluginManager.soleInstance().getListOfAvailableValidators());
+                body(new Gson().toJson(plugins));
     }
 
+    @Override
+    public ResponseEntity reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
+        PluginManager.reloadPlugins();
+        return ResponseEntity.noContent().build();
+    }
     /**
      * Get the record of given id / type.
      *

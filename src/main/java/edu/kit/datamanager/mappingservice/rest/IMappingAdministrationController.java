@@ -15,7 +15,12 @@
  */
 package edu.kit.datamanager.mappingservice.rest;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -36,7 +41,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.Serializable;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -144,10 +152,46 @@ public interface IMappingAdministrationController {
             HttpServletResponse hsr);
 
     @Operation(summary = "Get all available mappingTypes", description = "",
-            responses = {@ApiResponse(responseCode = "200", description = "OK and a list of all mapping types will be returned if at least one mapping type exists.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Mapping.class))))})
+            responses = {@ApiResponse(responseCode = "200", description = "OK and a JSON of all mapping types will be returned if at least one mapping type exists.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PluginInformation.class))))})
     @RequestMapping(value = {"/types"}, method = {RequestMethod.GET})
     @ResponseBody
     ResponseEntity getAllAvailableMappingTypes(
             WebRequest wr,
             HttpServletResponse hsr);
+
+    @Operation(summary = "Reload all plugins", description = "Reloads all plugins from the plugin directory and updates their dependencies if necessary.",
+            responses = {@ApiResponse(responseCode = "204", description = "Successful refresh")})
+    @RequestMapping(value = {"/reloadTypes"}, method = {RequestMethod.GET})
+    ResponseEntity reloadAllAvailableMappingTypes(
+            WebRequest wr,
+            HttpServletResponse hsr);
+
+    @JsonSerialize
+    class PluginInformation implements Serializable {
+        String id;
+        String name;
+        String version;
+        String description;
+        String uri;
+        String[] inputTypes;
+        String[] outputTypes;
+
+        public PluginInformation(String id) throws MappingPluginException {
+            this.id = id;
+            IMappingPlugin p = (IMappingPlugin) PluginManager.soleInstance().getPlugins().get(id);
+            if (p != null) {
+                this.name = p.name();
+                this.version = p.version();
+                this.description = p.description();
+                this.uri = p.uri();
+                ArrayList<String> inputTypesList = new ArrayList<>();
+                Arrays.stream(p.inputTypes()).toList().forEach(mimeType -> inputTypesList.add(mimeType.toString()));
+                this.inputTypes = inputTypesList.toArray(new String[0]);
+                ArrayList<String> outputTypesList = new ArrayList<>();
+                Arrays.stream(p.outputTypes()).toList().forEach(mimeType -> outputTypesList.add(mimeType.toString()));
+                this.outputTypes = outputTypesList.toArray(new String[0]);
+            } else
+                throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin with id " + id + " not found.");
+        }
+    }
 }
