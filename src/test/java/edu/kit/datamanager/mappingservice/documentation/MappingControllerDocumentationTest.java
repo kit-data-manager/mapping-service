@@ -58,7 +58,6 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-import static edu.kit.datamanager.mappingservice.mapping.Mapping.GEMMA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -128,7 +127,7 @@ public class MappingControllerDocumentationTest {
         // register a first mapping for xml
         // Create a mapping record
         record.setMappingId(EXAMPLE_SCHEMA_ID_XML);
-        record.setMappingType(GEMMA.name());
+        record.setMappingType("GEMMA_unknown");
 
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.xml.mapping"), StandardCharsets.UTF_8);
@@ -168,15 +167,15 @@ public class MappingControllerDocumentationTest {
         this.mockMvc.perform(get("/api/v1/mappingAdministration/").param("page", Integer.toString(0)).param("size", Integer.toString(20))).andExpect(status().isOk()).andDo(document("get-all-mappings-pagination", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
         // Get single mapping record
-        String etag = this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name()).accept(MappingRecord.MAPPING_RECORD_MEDIA_TYPE.toString())).andExpect(status().isOk()).andDo(document("get-single-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse().getHeader("ETag");
+        String etag = this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/GEMMA_unknown").accept(MappingRecord.MAPPING_RECORD_MEDIA_TYPE.toString())).andExpect(status().isOk()).andDo(document("get-single-mapping", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse().getHeader("ETag");
 
         // Get mapping file
-        this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name())).andExpect(status().isOk()).andDo(document("get-mapping-file", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
+        this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/GEMMA_unknown")).andExpect(status().isOk()).andDo(document("get-mapping-file", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
         //update schema document and create new version
         mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
         mappingFile = new MockMultipartFile("document", EXAMPLE_SCHEMA_ID_JSON + "4gemma_v2.mapping", "application/json", mappingContent.getBytes());
-        etag = this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name()).
+        etag = this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/GEMMA_unknown").
                         file(recordFile).
                         file(mappingFile).header("If-Match", etag).with(putMultipart())).
                 andExpect(status().isOk()).
@@ -184,7 +183,7 @@ public class MappingControllerDocumentationTest {
                 andReturn().getResponse().getHeader("ETag");
 
         // Get mapping file version 2
-        this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/" + GEMMA.name())).andExpect(status().isOk()).andDo(document("get-mapping-filev2", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
+        this.mockMvc.perform(get("/api/v1/mappingAdministration/" + EXAMPLE_SCHEMA_ID_JSON + "/GEMMA_unknown")).andExpect(status().isOk()).andDo(document("get-mapping-filev2", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()))).andReturn().getResponse();
 
     }
 
