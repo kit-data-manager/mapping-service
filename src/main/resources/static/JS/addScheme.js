@@ -156,14 +156,14 @@ function createMapping() {
         document.getElementById("submit").disabled = false
         if (http.status <= 300) {
             document.getElementById("errorMessage").hidden = true
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(editor.getText()));
-            if (file != null) element.setAttribute('download', file.name);
-            else element.setAttribute('download', id + "_schema.json");
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
+            // const element = document.createElement('a');
+            // element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(editor.getText()));
+            // if (file != null) element.setAttribute('download', file.name);
+            // else element.setAttribute('download', id + "_schema.json");
+            // element.style.display = 'none';
+            // document.body.appendChild(element);
+            // element.click();
+            // document.body.removeChild(element);
             document.getElementById("successDisplay").hidden = false
             setTimeout(() => {
                 clearForm()

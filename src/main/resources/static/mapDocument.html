@@ -38,6 +38,18 @@
     <div class="container">
         <h2>Map a document</h2>
 
+        <div class="m-3 required">
+            <div class="row">
+                <label for="typeAccordion" class="col-form-label col-auto float-start">Type</label>
+                <button class="btn btn-outline-primary col-auto ms-auto float-end mb-1" onclick="reloadTypes()">
+                    <i class="bi bi-arrow-clockwise"></i> Reload plugins
+                </button>
+            </div>
+            <div class="accordion text-black" id="typeAccordion">
+            </div>
+            <span id="typeHelpInline" class="form-text">Select the background service which maps your document.</span>
+        </div>
+
         <div class="mb-3 required">
             <label for="id" class="col-form-label">Identifier</label>
             <input type="text" id="id" class="form-control" aria-describedby="idHelpInline" required>
@@ -46,15 +58,15 @@
             </span>
         </div>
 
-        <div class="mb-3 required">
-            <label for="type" class="col-form-label">Type</label>
-            <select id="type" class="form-select" required>
-                <option disabled hidden>Choose a type</option>
-            </select>
-            <span id="typeHelpInline" class="form-text">
-              Select the background service which is used to map your document.
-            </span>
-        </div>
+<!--        <div class="mb-3 required">-->
+<!--            <label for="type" class="col-form-label">Type</label>-->
+<!--            <select id="type" class="form-select" required>-->
+<!--                <option disabled hidden>Choose a type</option>-->
+<!--            </select>-->
+<!--            <span id="typeHelpInline" class="form-text">-->
+<!--              Select the background service which is used to map your document.-->
+<!--            </span>-->
+<!--        </div>-->
 
         <div class="mb-3">
             <label for="document" class="col-form-label">Document</label>

@@ -48,6 +48,18 @@ function getRecords() {
     document.getElementById("progress").hidden = true
 }
 
+function mapWithMapping(id) {
+    const record = records.get(id);
+    if (record != null) {
+        const json = {
+            "id": id,
+            "type": record.record.mappingType
+        }
+        window.sessionStorage.setItem("data", JSON.stringify(json))
+        window.location = "mapDocument.html"
+    }
+}
+
 function editMapping(id) {
     let sessionData = JSON.stringify(records.get(id))
     window.sessionStorage.setItem("data", sessionData)
@@ -107,13 +119,12 @@ function addListElement(id, type, title, description) {
                         </svg>
                         Edit
                     </button>
-                    <a class="btn btn-primary col-auto m-1"
-                       href="mapDocument.html/?id=${id}&type=${type}">
+                    <button class="btn btn-primary col-auto m-1" onclick="mapWithMapping('${id}')">
                         <svg class="bi me-1" fill="currentColor" width="16" height="16">
                             <use xlink:href="#mapButton"/>
                         </svg>
                         Map document
-                    </a>
+                    </button>
                     <button class="btn btn-primary col-auto m-1" onclick="downloadMapping('${id}', '${type}')">
                         <svg class="bi me-1" fill="currentColor" width="16" height="16">
                             <use xlink:href="#downloadButton"/>
