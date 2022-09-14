@@ -29,7 +29,6 @@ import java.util.Collections;
 
 @Component
 public class PythonRunnerUtil {
-    //    private static GemmaConfiguration gemmaConfiguration;
     private static ApplicationProperties configuration;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
@@ -38,14 +37,6 @@ public class PythonRunnerUtil {
     public PythonRunnerUtil(ApplicationProperties configuration) {
         PythonRunnerUtil.configuration = configuration;
     }
-//    @Autowired
-//    public PythonRunnerUtil(ApplicationProperties configuration) throws MalformedURLException {
-//        gemmaConfiguration = new GemmaConfiguration();
-//        File gemmaFile = new File(configuration.getGemmaLocation().getPath());
-//        File pythonExecutable = new File(configuration.getPythonLocation().getPath());
-//        gemmaConfiguration.setGemmaLocation(gemmaFile.toURI().toURL());
-//        gemmaConfiguration.setPythonLocation(pythonExecutable.toURI().toURL());
-//    }
 
     public static void printPythonVersion() {
         try {
