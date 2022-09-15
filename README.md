@@ -16,12 +16,13 @@ The REST API is documented at the following link: [http://localhost:8095/swagger
 Dependencies that are needed to build and are not being downloaded via gradle:
 
 - OpenJDK 17
+- Python 3
 
 `./gradlew -Pclean-release build`
 
 ## How to start
 
-`./gradlew bootRun'`
+`./gradlew bootRun`
 
 ### Prerequisites
 Please make sure the application.properties file is configured correctly.
