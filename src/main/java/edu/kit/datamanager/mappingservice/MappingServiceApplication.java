@@ -55,14 +55,7 @@ public class MappingServiceApplication {
         SpringApplication.run(MappingServiceApplication.class, args);
         System.out.println("Mapping service is running! Access it at http://localhost:8095");
 
-//        PluginManager.reloadPlugins();
-
         PluginManager.soleInstance().getListOfAvailableValidators().forEach(System.out::println);
         PythonRunnerUtil.printPythonVersion();
-//        try {
-//            ShellRunnerUtil.run(new String[]{"ls", "-la"});
-//        } catch (MappingPluginException e) {
-//            e.printStackTrace();
-//        }
     }
 }

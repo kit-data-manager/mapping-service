@@ -358,6 +358,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         PluginManager.reloadPlugins();
         return ResponseEntity.noContent().build();
     }
+
     /**
      * Get the record of given id / type.
      *

@@ -40,6 +40,7 @@ public class PythonRunnerUtil {
 
     public static void printPythonVersion() {
         try {
+            LOGGER.info("Configured Python version:");
             ShellRunnerUtil.run(new String[]{configuration.getPythonLocation().getPath(), "--version"}, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
         } catch (MappingPluginException e) {
             e.printStackTrace();
@@ -56,6 +57,7 @@ public class PythonRunnerUtil {
     }
 
     public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
+        if (configuration == null || configuration.getPythonLocation() == null) return MappingPluginState.UNKNOWN_ERROR;
         ArrayList<String> command = new ArrayList<>();
         command.add(configuration.getPythonLocation().getPath());
         command.add(script);

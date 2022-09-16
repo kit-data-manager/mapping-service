@@ -40,7 +40,7 @@ function getRecords() {
                     "ETAG": ETAG
                 })
                 console.log(records)
-                addListElement(results[i].mappingId, results[i].mappingType, schema.title, schema.description)
+                addListElement(results[i].mappingId, results[i].mappingType, results[i].title, results[i].description)
             }
         }
         document.getElementById("progress").hidden = true

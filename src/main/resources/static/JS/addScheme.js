@@ -12,15 +12,22 @@ let isEdit = false
 let aclEdit
 let data
 let selectedType = null
+let isJSONInput = true
 load()
 
 function loadFile() {
     const reader = new FileReader();
     reader.onload = (event) => {
-        const obj = JSON.parse(event.target.result);
-        console.log(obj)
-        editor.set(obj)
-        editor.expandAll()
+        try {
+            const obj = JSON.parse(event.target.result);
+            console.log(obj)
+            editor.set(obj)
+            editor.expandAll()
+        } catch (e) {
+            console.log("Error parsing JSON: " + e)
+            editor.set({})
+            isJSONInput = false
+        }
     };
     reader.readAsText(document.getElementById("schema").files[0]);
 }
@@ -43,6 +50,8 @@ function load() {
             document.getElementById("id").value = data.record.mappingId
             // document.getElementById("type").value = data.record.mappingType
             selectType(data.record.mappingType)
+            document.getElementById("title").value = data.record.title
+            document.getElementById("descr").value = data.record.description
             for (let i = 0; i < data.record.acl.length; i++) {
                 acl.push({
                     "id": data.record.acl[i].id,
@@ -122,8 +131,10 @@ function deleteACL(index) {
 function createMapping() {
     const id = document.getElementById("id").value
     const type = selectedType
+    const title = document.getElementById("title").value
+    const description = document.getElementById("descr").value
     const file = document.getElementById("schema").files[0]
-    if (editor.getText() === "{}") {
+    if (editor.getText() === "{}" && isJSONInput) {
         document.getElementById("errorMessage").textContent = "Please define a schema document."
         document.getElementById("errorMessage").hidden = false
         return
@@ -136,10 +147,14 @@ function createMapping() {
     const record = {
         "mappingId": id,
         "mappingType": type,
+        "title": title,
+        "description": description,
         "acl": resultACLs
     }
     const recordBlob = new Blob([JSON.stringify(record)], {type: "application/json"});
-    const documentBlob = new Blob([editor.getText()], {type: "application/json"})
+    let documentBlob
+    if(isJSONInput) documentBlob = new Blob([editor.getText()], {type: "application/json"})
+    else documentBlob = file
 
     console.log("Sending record:" + JSON.stringify(record))
     console.log("Sending document:" + editor.getText())
@@ -156,14 +171,6 @@ function createMapping() {
         document.getElementById("submit").disabled = false
         if (http.status <= 300) {
             document.getElementById("errorMessage").hidden = true
-            // const element = document.createElement('a');
-            // element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(editor.getText()));
-            // if (file != null) element.setAttribute('download', file.name);
-            // else element.setAttribute('download', id + "_schema.json");
-            // element.style.display = 'none';
-            // document.body.appendChild(element);
-            // element.click();
-            // document.body.removeChild(element);
             document.getElementById("successDisplay").hidden = false
             setTimeout(() => {
                 clearForm()
@@ -195,6 +202,8 @@ function createMapping() {
 function updateMapping() {
     const id = document.getElementById("id").value
     const type = selectedType
+    const title = document.getElementById("title").value
+    const description = document.getElementById("descr").value
     const file = document.getElementById("schema").files[0]
     if (editor.getText() === "{}") {
         document.getElementById("errorMessage").textContent = "Please define a schema document."
@@ -209,6 +218,8 @@ function updateMapping() {
     const record = {
         "mappingId": id,
         "mappingType": type,
+        "title": title,
+        "description": description,
         "acl": resultACLs
     }
     const recordBlob = new Blob([JSON.stringify(record)], {type: "application/json"});
@@ -271,6 +282,7 @@ function clearForm() {
     document.getElementById("successDisplay").hidden = true
     document.getElementById("editSuccessDisplay").hidden = true
     document.getElementById("errorMessage").hidden = true
+    unselect()
     acl.forEach((value, key) => {
         deleteACL(key)
     })

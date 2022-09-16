@@ -82,52 +82,6 @@
                     </button>
                 </div>
                 <div class="accordion text-black" id="typeAccordion">
-<!--                    <div class="accordion-item row align-items-center clearfix">-->
-<!--                        <div class="accordion-header" id="heading_gemma_unknown">-->
-<!--                            <div class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_gemma_unknown" aria-expanded="false" aria-controls="collapse_gemma_unknown">-->
-<!--                                <div class="row align-items-center me-3 col-auto ">-->
-<!--                                    <button class="btn btn-primary" onclick="selectType('gemma_unknown')" id="select_gemma_unknown">-->
-<!--                                        <i class="bi bi-check2-square me-1"></i> Select-->
-<!--                                    </button>-->
-<!--                                    <button class="btn btn-outline-danger" onclick="alert('gemma_unknown')" id="unselect_gemma_unknown" hidden>-->
-<!--                                        <i class="bi bi-x-square me-1"></i> Unselect-->
-<!--                                    </button>-->
-<!--                                </div>-->
-<!--                                <div class="vr me-4"></div>-->
-<!--                                <div class="col-auto row align-items-center">-->
-<!--                                    <h4 class="p-1 col-auto text-black">GEMMA</h4>-->
-<!--                                    <span class="col-auto text-muted">ID: gemma_unknown</span>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div id="collapse_gemma_unknown" class="accordion-collapse collapse show" aria-labelledby="heading_gemma_unknown" data-bs-parent="#typeAccordion">-->
-<!--                            <div class="accordion-body me-auto col-auto row align-items-center">-->
-<!--                                <div class="me-auto col-auto row align-items-center">-->
-<!--                                    <h5 class="p-1 col-auto">Description: </h5>-->
-<!--                                    <span class="p-1 col-auto text-muted">GEMMA is a tool written in Python that allows to map from JSON and XML to JSON. Furthermore, it allows to map wit a mapping schema.</span>-->
-<!--                                </div>-->
-<!--                                <div class="me-auto col-auto row align-items-center">-->
-<!--                                    <h5 class="p-1 col-auto"><a href="https://github.com/kit-data-manager/gemma" target="_blank">Link to the project</a></h5>-->
-<!--                                </div>-->
-<!--                                &lt;!&ndash;                                <div class="me-auto col-auto row align-items-center">&ndash;&gt;-->
-<!--                                &lt;!&ndash;                                    <p class="p-1 col-auto">${typeDescription}</p>&ndash;&gt;-->
-<!--                                &lt;!&ndash;                                    <p class="p-1 col-auto"><a href="${typeLink}">Link to the project</a></p>&ndash;&gt;-->
-<!--                                &lt;!&ndash;                                </div>&ndash;&gt;-->
-<!--                                <div class="me-auto col-auto row align-items-center">-->
-<!--                                    <h5 class="p-1 col-auto">Input types: </h5>-->
-<!--                                    <span class="col-auto text-muted font-monospace">application.json, application.xml</span>-->
-<!--                                </div>-->
-<!--                                <div class="me-auto col-auto row align-items-center">-->
-<!--                                    <h5 class="p-1 col-auto">Output types: </h5>-->
-<!--                                    <span class="col-auto text-muted font-monospace">application.json</span>-->
-<!--                                </div>-->
-<!--                                <div class="me-auto col-auto row align-items-center">-->
-<!--                                    <h5 class="p-1 col-auto">Version: </h5>-->
-<!--                                    <span class="col-auto text-muted font-monospace">unknown</span>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
                 </div>
                 <span id="typeHelpInline" class="form-text">Select the background service which maps your document.</span>
             </div>
@@ -138,6 +92,18 @@
                 <span id="idHelpInline" class="form-text">
               Enter a unique identifier for the mapping scheme you want to add.
             </span>
+            </div>
+
+            <div class="mb-3 required">
+                <label for="title" class="col-form-label">Title</label>
+                <input type="text" id="title" class="form-control" aria-describedby="titleHelpInline" required>
+                <span id="titleHelpInline" class="form-text">Enter a title for your mapping.</span>
+            </div>
+
+            <div class="mb-3 required">
+                <label for="descr" class="col-form-label">Description</label>
+                <input type="text" id="descr" class="form-control" aria-describedby="descrHelpInline" required>
+                <span id="descrHelpInline" class="form-text">Enter a description for your mapping.</span>
             </div>
 
             <div class="mb-3">

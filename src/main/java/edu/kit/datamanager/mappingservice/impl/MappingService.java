@@ -79,7 +79,7 @@ public class MappingService {
         Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingRecord.getMappingId()), Arrays.asList((String) null));
         if (findMapping.iterator().hasNext()) {
             mappingRecord = findMapping.iterator().next();
-            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' already exists!");
+            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' already exists!");
         }
         saveMappingFile(content, mappingRecord);
         mappingRepo.save(mappingRecord);
@@ -94,7 +94,7 @@ public class MappingService {
     public void updateMapping(String content, MappingRecord mappingRecord) throws IOException {
         Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
         if (!findMapping.isPresent()) {
-            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' doesn't exist!");
+            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
         }
         mappingRecord.setMappingDocumentUri(findMapping.get().getMappingDocumentUri());
         saveMappingFile(content, mappingRecord);
@@ -109,7 +109,7 @@ public class MappingService {
     public void deleteMapping(MappingRecord mappingRecord) throws IOException {
         Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
         if (!findMapping.isPresent()) {
-            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingId() + "/" + mappingRecord.getMappingType() + "' doesn't exist!");
+            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
         }
         mappingRecord = findMapping.get();
         deleteMappingFile(mappingRecord);
@@ -187,8 +187,6 @@ public class MappingService {
      */
     private void init(ApplicationProperties applicationProperties) throws URISyntaxException {
         if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
-            PluginManager.reloadPlugins();
-//            mappingUtil = new MappingUtil(applicationProperties);
             try {
                 mappingsDirectory = Files.createDirectories(new File(applicationProperties.getMappingsLocation().getPath()).getAbsoluteFile().toPath());
             } catch (IOException e) {
@@ -212,7 +210,6 @@ public class MappingService {
             LOGGER.debug("Storing mapping file with id '{}' and type '{}'", mapping.getMappingId(), mapping.getMappingType());
             LOGGER.trace("Content of mapping: '{}'", content);
             try {
-//                Mapping.valueOf(mapping.getMappingType());
                 // 'delete' old file
                 deleteMappingFile(mapping);
                 newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getMappingId() + "_" + mapping.getMappingType() + ".mapping");

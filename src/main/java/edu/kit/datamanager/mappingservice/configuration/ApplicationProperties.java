@@ -41,17 +41,17 @@ public class ApplicationProperties extends GenericPluginProperties {
     @Value("${mapping-service.pythonLocation}")
     private URL pythonLocation;
 
-    /**
-     * The path to the gemma mapping script 'mapping_single.py'
-     */
-    @edu.kit.datamanager.annotations.LocalFileURL
-    @Value("${mapping-service.gemmaLocation}")
-    private URL gemmaLocation;
+//    /**
+//     * The path to the gemma mapping script 'mapping_single.py'
+//     */
+//    @edu.kit.datamanager.annotations.LocalFileURL
+//    @Value("${mapping-service.gemmaLocation}")
+//    private URL gemmaLocation;
 
     /**
      * The absolute path where the mappings are stored.
      */
     @edu.kit.datamanager.annotations.LocalFolderURL
-    @Value("${mapping-service.mappingsLocation}")
+    @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
 }

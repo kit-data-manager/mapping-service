@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -182,6 +183,8 @@ public class FileUtil {
         target.mkdirs();
         try {
             Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+        } catch (JGitInternalException e){
+            LOGGER.info(e.getMessage());
         } catch (GitAPIException ex) {
             throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + targetDirectory + "'!", ex);
         }

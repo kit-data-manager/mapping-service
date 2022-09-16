@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -54,7 +53,7 @@ public class ShellRunnerUtil {
         ExecutorService pool = Executors.newSingleThreadExecutor();
         int result;
         MappingPluginState returnValue = MappingPluginState.SUCCESS;
-        Arrays.stream(command).toList().forEach(LOGGER::info);
+//        Arrays.stream(command).toList().forEach(LOGGER::info);
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
