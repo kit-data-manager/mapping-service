@@ -7,7 +7,7 @@ name: Java CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main , dev]
   pull_request:
     branches: "*"
 
@@ -28,8 +28,6 @@ jobs:
         run: sudo apt install -y python3 python3-setuptools python3-pip
       - name: Update pip
         run: pip3 install --upgrade pip
-      - name: Install libraries via pip (xmltodict and wget)
-        run: pip3 install xmltodict wget
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
@@ -37,4 +35,4 @@ jobs:
       - name: Codecov
         uses: codecov/codecov-action@v1
         with:
-          files: ./build/reports/jacoco/test/jacocoTestReport.xml #optional
+          files: ./build/reports/jacoco/test/jacocoTestReport.xml
