@@ -44,7 +44,7 @@ public class PluginLoader {
         List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
 
         List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
-        Map<String, IMappingPlugin> result = new HashMap<String, IMappingPlugin>();
+        Map<String, IMappingPlugin> result = new HashMap<>();
         for (IMappingPlugin i : IMappingPluginList) {
             System.out.println("Found Plugin: " + i.id());
             i.setup();
@@ -65,7 +65,7 @@ public class PluginLoader {
 
     private static List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, ClassLoader cl) throws IOException, MappingPluginException {
 
-        List<Class<IMappingPlugin>> classes = new ArrayList<Class<IMappingPlugin>>();
+        List<Class<IMappingPlugin>> classes = new ArrayList<>();
         for (File jar : jars) {
             classes.addAll(PluginLoader.extractClassesFromJAR(jar, cl));
         }
@@ -74,9 +74,9 @@ public class PluginLoader {
 
     private static List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
 
-        List<Class<IMappingPlugin>> classes = new ArrayList<Class<IMappingPlugin>>();
+        List<Class<IMappingPlugin>> classes = new ArrayList<>();
         JarInputStream jaris = new JarInputStream(new FileInputStream(jar));
-        JarEntry ent = null;
+        JarEntry ent;
         while ((ent = jaris.getNextJarEntry()) != null) {
             if (ent.getName().toLowerCase().endsWith(".class")) {
                 try {
@@ -104,9 +104,9 @@ public class PluginLoader {
         return false;
     }
 
-    private static List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggables) throws MappingPluginException {
-        List<IMappingPlugin> plugs = new ArrayList<IMappingPlugin>(pluggables.size());
-        for (Class<IMappingPlugin> plug : pluggables) {
+    private static List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggable) throws MappingPluginException {
+        List<IMappingPlugin> plugs = new ArrayList<>(pluggable.size());
+        for (Class<IMappingPlugin> plug : pluggable) {
             try {
                 plugs.add(plug.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {

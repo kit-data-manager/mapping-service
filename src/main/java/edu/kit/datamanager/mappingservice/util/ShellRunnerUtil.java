@@ -37,23 +37,22 @@ public class ShellRunnerUtil {
      */
     private final static Logger LOGGER = LoggerFactory.getLogger(ShellRunnerUtil.class);
 
-    public static MappingPluginState run(String[] command) throws MappingPluginException {
-        return run(command, TIMEOUT);
+    public static MappingPluginState run(String... command) throws MappingPluginException {
+        return run(TIMEOUT, command);
     }
 
-    public static MappingPluginState run(String[] command, int timeOutInSeconds) throws MappingPluginException {
-        return run(command, System.out, System.err, timeOutInSeconds);
+    public static MappingPluginState run(int timeOutInSeconds, String... command) throws MappingPluginException {
+        return run(System.out, System.err, timeOutInSeconds, command);
     }
 
-    public static MappingPluginState run(String[] command, OutputStream output, OutputStream error) throws MappingPluginException {
-        return run(command, output, error, TIMEOUT);
+    public static MappingPluginState run(OutputStream output, OutputStream error, String... command) throws MappingPluginException {
+        return run(output, error, TIMEOUT, command);
     }
 
-    public static MappingPluginState run(String[] command, OutputStream output, OutputStream error, int timeOutInSeconds) throws MappingPluginException {
+    public static MappingPluginState run(OutputStream output, OutputStream error, int timeOutInSeconds, String... command) throws MappingPluginException {
         ExecutorService pool = Executors.newSingleThreadExecutor();
         int result;
         MappingPluginState returnValue = MappingPluginState.SUCCESS;
-//        Arrays.stream(command).toList().forEach(LOGGER::info);
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);

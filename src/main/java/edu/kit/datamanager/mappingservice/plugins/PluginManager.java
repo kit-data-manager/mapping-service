@@ -44,7 +44,7 @@ public class PluginManager {
         return soleInstance;
     }
 
-    public static void reloadPlugins(){
+    public static void reloadPlugins() {
         Map<String, IMappingPlugin> plugins1;
         try {
             plugins1 = PluginLoader.loadPlugins(new File("./plugins"));
@@ -55,7 +55,7 @@ public class PluginManager {
         plugins = plugins1;
     }
 
-    public Map getPlugins() {
+    public Map<String, IMappingPlugin> getPlugins() {
         return plugins;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,10 @@ import org.springframework.validation.annotation.Validated;
 import java.net.URL;
 
 /**
+ * This class is used to configure the application.
+ * It reads the values from the application.properties file.
  *
+ * @author maximilianiKIT
  */
 @ConfigurationProperties(prefix = "mapping-service")
 @Component

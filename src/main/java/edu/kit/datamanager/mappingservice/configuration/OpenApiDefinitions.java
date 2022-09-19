@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author jejkal
+ * This class provides the OpenAPI definition for the mapping-service.
+ *
+ * @author maximilianiKIT
  */
 @Configuration
 public class OpenApiDefinitions {
-
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
