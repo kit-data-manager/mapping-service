@@ -29,6 +29,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 public class MappingServiceApplication {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
+
     @Bean
     @Scope("prototype")
     public Logger logger(InjectionPoint injectionPoint) {
@@ -53,9 +55,10 @@ public class MappingServiceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MappingServiceApplication.class, args);
-        System.out.println("Mapping service is running! Access it at http://localhost:8095");
 
-        PluginManager.soleInstance().getListOfAvailableValidators().forEach(System.out::println);
+        PluginManager.soleInstance().getListOfAvailableValidators().forEach((value) -> LOG.info("Found validator: " + value));
         PythonRunnerUtil.printPythonVersion();
+
+        System.out.println("Mapping service is running! Access it at http://localhost:8095");
     }
 }
