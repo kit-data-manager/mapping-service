@@ -32,11 +32,16 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  * @author maximilianiKIT
  */
 public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>, JpaSpecificationExecutor<MappingRecord> {
+
+    /**
+     * Find a MappingRecords by the given ID.
+     *
+     * @param mappingId The id to search for.
+     * @return A optional of the matching MappingRecord.
+     */
     Optional<MappingRecord> findByMappingId(String mappingId);
 
-    Optional<MappingRecord> findByMappingIdAndMappingType(String mappingId, String mappingType);
+    Iterable<MappingRecord> findByMappingIdIn(List<String> mappingId);
 
-    Iterable<MappingRecord> findByMappingIdInOrMappingTypeIn(List<String> mappingId, List<String> mappingType);
-
-    Page<MappingRecord> findByMappingIdInOrMappingTypeIn(List<String> mappingId, List<String> mappingType, Pageable pgbl);
+    Page<MappingRecord> findByMappingIdIn(List<String> mappingId, Pageable pgbl);
 }

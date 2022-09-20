@@ -23,7 +23,7 @@ function getRecords() {
             var schema
             var ETAG
 
-            schemaHttp.open("GET", apiUrl + results[i].mappingId + "/" + results[i].mappingType)
+            schemaHttp.open("GET", apiUrl + results[i].mappingId)
             schemaHttp.setRequestHeader("Content-Type", "application/json")
             schemaHttp.send()
             schemaHttp.onload = (e) => {
@@ -49,15 +49,12 @@ function getRecords() {
 }
 
 function mapWithMapping(id) {
-    const record = records.get(id);
-    if (record != null) {
-        const json = {
-            "id": id,
-            "type": record.record.mappingType
-        }
-        window.sessionStorage.setItem("data", JSON.stringify(json))
-        window.location = "mapDocument.html"
+    const data = {
+        id: id,
+        type: records.get(id).record.mappingType
     }
+    window.sessionStorage.setItem("data", JSON.stringify(data))
+    window.location = "mapDocument.html"
 }
 
 function editMapping(id) {
@@ -66,9 +63,9 @@ function editMapping(id) {
     window.location = "addScheme.html"
 }
 
-function downloadMapping(id, type) {
+function downloadMapping(id) {
     const http = new XMLHttpRequest();
-    http.open("GET", apiUrl + id + "/" + type);
+    http.open("GET", apiUrl + id);
     http.send();
     http.onload = (e) => {
         const element = document.createElement('a');
@@ -81,11 +78,11 @@ function downloadMapping(id, type) {
     }
 }
 
-function deleteMapping(id, type) {
+function deleteMapping(id) {
     let mapEntry = records.get(id);
-    if (mapEntry != null && mapEntry.record.mappingId === id && mapEntry.record.mappingType === type) {
+    if (mapEntry != null && mapEntry.record.mappingId === id) {
         const http = new XMLHttpRequest();
-        http.open("DELETE", apiUrl + id + "/" + type)
+        http.open("DELETE", apiUrl + id)
         http.setRequestHeader("If-Match", mapEntry.ETAG)
         http.send();
         http.onload = (e) => {
@@ -125,13 +122,13 @@ function addListElement(id, type, title, description) {
                         </svg>
                         Map document
                     </button>
-                    <button class="btn btn-primary col-auto m-1" onclick="downloadMapping('${id}', '${type}')">
+                    <button class="btn btn-primary col-auto m-1" onclick="downloadMapping('${id}')">
                         <svg class="bi me-1" fill="currentColor" width="16" height="16">
                             <use xlink:href="#downloadButton"/>
                         </svg>
                         Download
                     </button>
-                    <button class="btn btn-danger col-auto m-1" onclick="deleteMapping('${id}', '${type}')">
+                    <button class="btn btn-danger col-auto m-1" onclick="deleteMapping('${id}')">
                         <svg class="bi me-1" fill="currentColor" width="16" height="16">
                             <use xlink:href="#deleteButton"/>
                         </svg>

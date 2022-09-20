@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +39,9 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * Service for managing mappings.
@@ -63,7 +64,7 @@ public class MappingService {
     private final static Logger LOGGER = LoggerFactory.getLogger(MappingService.class);
 
     @Autowired
-    public MappingService(ApplicationProperties applicationProperties) throws URISyntaxException {
+    public MappingService(ApplicationProperties applicationProperties) {
         init(applicationProperties);
     }
 
@@ -74,9 +75,7 @@ public class MappingService {
      * @param mappingRecord record of the mapping
      */
     public void createMapping(String content, MappingRecord mappingRecord) throws IOException {
-        // Right now only one mapping per mappingID is allowed. May change in future.
-        //   Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
-        Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingRecord.getMappingId()), Arrays.asList((String) null));
+        Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdIn(Collections.singletonList(mappingRecord.getMappingId()));
         if (findMapping.iterator().hasNext()) {
             mappingRecord = findMapping.iterator().next();
             throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' already exists!");
@@ -92,8 +91,8 @@ public class MappingService {
      * @param mappingRecord record of the mapping
      */
     public void updateMapping(String content, MappingRecord mappingRecord) throws IOException {
-        Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
-        if (!findMapping.isPresent()) {
+        Optional<MappingRecord> findMapping = mappingRepo.findByMappingId(mappingRecord.getMappingId());
+        if (findMapping.isEmpty()) {
             throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
         }
         mappingRecord.setMappingDocumentUri(findMapping.get().getMappingDocumentUri());
@@ -107,8 +106,8 @@ public class MappingService {
      * @param mappingRecord record of the mapping
      */
     public void deleteMapping(MappingRecord mappingRecord) throws IOException {
-        Optional<MappingRecord> findMapping = mappingRepo.findByMappingIdAndMappingType(mappingRecord.getMappingId(), mappingRecord.getMappingType());
-        if (!findMapping.isPresent()) {
+        Optional<MappingRecord> findMapping = mappingRepo.findByMappingId(mappingRecord.getMappingId());
+        if (findMapping.isEmpty()) {
             throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
         }
         mappingRecord = findMapping.get();
@@ -120,24 +119,22 @@ public class MappingService {
      * Execute mapping and get the location of result file. If no according
      * mapping is found the src file will be returned.
      *
-     * @param contentUrl  Content of the src file.
-     * @param mappingId   filename of the mapping
-     * @param mappingType type of the mapping.
+     * @param contentUrl Content of the src file.
+     * @param mappingId  id of the mapping
      * @return Path to result file.
      */
-    public Optional<Path> executeMapping(URI contentUrl, String mappingId, String mappingType) throws MappingPluginException {
-        Optional<Path> returnValue = Optional.empty();
+    public Optional<Path> executeMapping(URI contentUrl, String mappingId) throws MappingPluginException {
+        Optional<Path> returnValue;
         Optional<Path> download = FileUtil.downloadResource(contentUrl);
-        MappingRecord mappingRecord = null;
+        MappingRecord mappingRecord;
 
         if (download.isPresent()) {
-            LOGGER.trace("Execute Mapping for '{}', and mapping '{}/{}'.", contentUrl.toString(), mappingId, mappingType);
+            LOGGER.trace("Execute Mapping for '{}', and mapping '{}'.", contentUrl.toString(), mappingId);
             Path srcFile = download.get();
             // Get mapping file
-            Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingIdAndMappingType(mappingId, mappingType);
+            Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
             if (optionalMappingRecord.isPresent()) {
                 mappingRecord = optionalMappingRecord.get();
-                //   mappingRecord.getMappingDocumentUri();
                 Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
                 // execute mapping
                 Path resultFile;
@@ -150,33 +147,9 @@ public class MappingService {
                 returnValue = Optional.of(srcFile);
             }
         } else {
-            String message = contentUrl != null ? "Error: Downloading content from '" + contentUrl.toString() + "'!" : "Error: No URL provided!";
+            String message = contentUrl != null ? "Error: Downloading content from '" + contentUrl + "'!" : "Error: No URL provided!";
             throw new MappingException(message);
         }
-        return returnValue;
-    }
-
-    /**
-     * Execute mapping(s) and get the location of result file.
-     *
-     * @param contentUrl Content of the src file.
-     * @param mappingId  filename of the mapping
-     * @return List of paths to all result files.
-     */
-    public List<Path> executeMapping(URI contentUrl, String mappingId) throws MappingPluginException {
-        List<Path> returnValue = new ArrayList<>();
-        String noMappingType = null;
-
-        Iterator<MappingRecord> findMapping = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(noMappingType)).iterator();
-        String mappingType = null;
-        if (findMapping.hasNext()) {
-            mappingType = findMapping.next().getMappingType();
-        }
-        Optional<Path> executeMapping = executeMapping(contentUrl, mappingId, mappingType);
-        if (executeMapping.isPresent()) {
-            returnValue.add(executeMapping.get());
-        }
-
         return returnValue;
     }
 
@@ -185,7 +158,7 @@ public class MappingService {
      *
      * @param applicationProperties Properties holding mapping directory setting.
      */
-    private void init(ApplicationProperties applicationProperties) throws URISyntaxException {
+    private void init(ApplicationProperties applicationProperties) {
         if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
             try {
                 mappingsDirectory = Files.createDirectories(new File(applicationProperties.getMappingsLocation().getPath()).getAbsoluteFile().toPath());
@@ -205,7 +178,7 @@ public class MappingService {
      * @throws IOException error writing file.
      */
     private void saveMappingFile(String content, MappingRecord mapping) throws IOException {
-        Path newMappingFile = null;
+        Path newMappingFile;
         if ((content != null) && (mapping != null) && (mapping.getMappingId() != null) && (mapping.getMappingType() != null)) {
             LOGGER.debug("Storing mapping file with id '{}' and type '{}'", mapping.getMappingId(), mapping.getMappingType());
             LOGGER.trace("Content of mapping: '{}'", content);
@@ -213,7 +186,7 @@ public class MappingService {
                 // 'delete' old file
                 deleteMappingFile(mapping);
                 newMappingFile = Paths.get(mappingsDirectory.toString(), mapping.getMappingId() + "_" + mapping.getMappingType() + ".mapping");
-                LOGGER.trace("Write content to '{}'", newMappingFile.toString());
+                LOGGER.trace("Write content to '{}'", newMappingFile);
                 FileUtils.writeStringToFile(newMappingFile.toFile(), content, StandardCharsets.UTF_8);
                 mapping.setMappingDocumentUri(newMappingFile.toString());
                 byte[] data = content.getBytes();
@@ -249,7 +222,7 @@ public class MappingService {
             Path deleteFile = Paths.get(mapping.getMappingDocumentUri());
             if (deleteFile.toFile().exists()) {
                 Path newFileName = Paths.get(deleteFile.getParent().toString(), deleteFile.getFileName() + date2String());
-                LOGGER.trace("Move mapping file fo '{}'", newFileName.toString());
+                LOGGER.trace("Move mapping file fo '{}'", newFileName);
                 FileUtils.moveFile(deleteFile.toFile(), newFileName.toFile());
             }
         }

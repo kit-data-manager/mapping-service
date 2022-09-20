@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package edu.kit.datamanager.mappingservice.rest.impl;
 
-import com.google.gson.Gson;
 import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.exceptions.ResourceNotFoundException;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
@@ -26,12 +25,12 @@ import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.rest.IMappingAdministrationController;
+import edu.kit.datamanager.mappingservice.rest.PluginInformation;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
 import io.swagger.v3.core.util.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +56,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,34 +63,41 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 /**
  * Controller for managing mapping files.
+ *
+ * @author maximilianiKIT
  */
 @Controller
 @RequestMapping(value = "/api/v1/mappingAdministration")
 public class MappingAdministrationController implements IMappingAdministrationController {
 
+    /**
+     * Logger for this class.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(MappingAdministrationController.class);
 
-    @Autowired
-    private IMappingRecordDao mappingRecordDao;
+    /**
+     * Connection to the database of mapping records.
+     */
+    private final IMappingRecordDao mappingRecordDao;
 
-    @Autowired
-    private MappingService mappingService;
+    /**
+     * Connection to the executive logic of the mapping service.
+     */
+    private final MappingService mappingService;
+
+    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, MappingService mappingService) {
+        this.mappingRecordDao = mappingRecordDao;
+        this.mappingService = mappingService;
+    }
 
     @Override
-    public ResponseEntity createMapping(
-            @RequestPart(name = "record") final MultipartFile record,
-            @RequestPart(name = "document") final MultipartFile document,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            UriComponentsBuilder uriBuilder) {
+    public ResponseEntity createMapping(@RequestPart(name = "record") final MultipartFile record, @RequestPart(name = "document") final MultipartFile document, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
 
         LOG.trace("Performing createRecord({},...).", record);
 
         MappingRecord recordDocument;
         try {
-            if (record == null || record.isEmpty()) {
-                throw new IOException();
-            }
+            if (record == null || record.isEmpty()) throw new IOException();
             recordDocument = Json.mapper().readValue(record.getInputStream(), MappingRecord.class);
         } catch (IOException ex) {
             LOG.error("No metadata record provided. Returning HTTP BAD_REQUEST.");
@@ -105,7 +110,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         }
 
         LOG.debug("Test for existing mapping record for given mappingId and mappingType.");
-        Optional<MappingRecord> findOne = mappingRecordDao.findByMappingIdAndMappingType(recordDocument.getMappingId(), recordDocument.getMappingType());
+        Optional<MappingRecord> findOne = mappingRecordDao.findByMappingId(recordDocument.getMappingId());
         if (findOne.isPresent()) {
             LOG.error("Conflict with existing metadata record!");
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Mapping record already exists! Please update existing record instead!");
@@ -146,7 +151,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         }
 
         LOG.trace("Get mapping record.");
-        recordDocument = mappingRecordDao.findByMappingIdAndMappingType(recordDocument.getMappingId(), recordDocument.getMappingType()).get();
+        recordDocument = mappingRecordDao.findByMappingId(recordDocument.getMappingId()).get();
 
         LOG.trace("Get ETag of MappingRecord.");
         String etag = recordDocument.getEtag();
@@ -155,22 +160,16 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         fixMappingDocumentUri(recordDocument);
 
         URI locationUri;
-        locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType(), null, null, null)).toUri();
+        locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId())).toUri();
 
         LOG.trace("Schema record successfully persisted. Returning result.");
         return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
     }
 
     @Override
-    public ResponseEntity<MappingRecord> getMappingById(
-            @PathVariable(value = "mappingId") String mappingId,
-            @PathVariable(value = "mappingType") String mappingType,
-            Pageable pgbl,
-            WebRequest wr,
-            HttpServletResponse hsr
-    ) {
-        LOG.trace("Performing getMappingById({}, {}).", mappingId, mappingType);
-        MappingRecord record = getMappingById(mappingId, mappingType);
+    public ResponseEntity<MappingRecord> getMappingById(@PathVariable(value = "mappingId") String mappingId, Pageable pgbl, WebRequest wr, HttpServletResponse hsr) {
+        LOG.trace("Performing getMappingById({}).", mappingId);
+        MappingRecord record = getMappingById(mappingId);
         //if security enabled, check permission -> if not matching, return HTTP UNAUTHORIZED or FORBIDDEN
         LOG.trace("Get ETag of MappingRecord.");
         String etag = record.getEtag();
@@ -181,16 +180,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity getMappingDocumentById(
-            @PathVariable(value = "mappingId") String mappingId,
-            @PathVariable(value = "mappingType") String mappingType,
-            WebRequest wr,
-            HttpServletResponse hsr
-    ) {
-        LOG.trace("Performing getMappingDocumentById({}, {}).", mappingId, mappingType);
+    public ResponseEntity getMappingDocumentById(@PathVariable(value = "mappingId") String mappingId, WebRequest wr, HttpServletResponse hsr) {
+        LOG.trace("Performing getMappingDocumentById({}).", mappingId);
 
-        LOG.trace("Obtaining mapping record with id {}/{}.", mappingId, mappingType);
-        MappingRecord record = getMappingById(mappingId, mappingType);
+        LOG.trace("Obtaining mapping record with id {}.", mappingId);
+        MappingRecord record = getMappingById(mappingId);
 
         URI mappingDocumentUri = Paths.get(record.getMappingDocumentUri()).toUri();
 
@@ -200,32 +194,18 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Metadata document on server either does not exist or is no file or is not readable.");
         }
 
-        return ResponseEntity.
-                ok().
-                header(HttpHeaders.CONTENT_LENGTH, String.valueOf(metadataDocumentPath.toFile().length())).
-                header("If-Match", record.getEtag()).
-                body(new FileSystemResource(metadataDocumentPath.toFile()));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_LENGTH, String.valueOf(metadataDocumentPath.toFile().length())).header("If-Match", record.getEtag()).body(new FileSystemResource(metadataDocumentPath.toFile()));
     }
 
     @Override
-    public ResponseEntity<List<MappingRecord>> getMappings(
-            @RequestParam(value = "mappingId", required = false) String mappingId,
-            @RequestParam(value = "mappingType", required = false) String mappingType,
-            Pageable pgbl,
-            WebRequest wr,
-            HttpServletResponse hsr,
-            UriComponentsBuilder ucb
-    ) {
+    public ResponseEntity<List<MappingRecord>> getMappings(@RequestParam(value = "mappingId", required = false) String mappingId, Pageable pgbl, WebRequest wr, HttpServletResponse hsr, UriComponentsBuilder ucb) {
 
         //if security is enabled, include principal in query
         LOG.debug("Performing query for records.");
         Page<MappingRecord> records;
         try {
-            if ((mappingId == null) && (mappingType == null)) {
-                records = mappingRecordDao.findAll(pgbl);
-            } else {
-                records = mappingRecordDao.findByMappingIdInOrMappingTypeIn(Arrays.asList(mappingId), Arrays.asList(mappingType), pgbl);
-            }
+            if ((mappingId == null)) records = mappingRecordDao.findAll(pgbl);
+            else records = mappingRecordDao.findByMappingIdIn(List.of(mappingId), pgbl);
             LOG.trace("Cleaning up schemaDocumentUri of query result.");
             List<MappingRecord> recordList = records.getContent();
 
@@ -242,17 +222,12 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity deleteMapping(
-            @PathVariable(value = "mappingId") String mappingId,
-            @PathVariable(value = "mappingType") String mappingType,
-            WebRequest wr,
-            HttpServletResponse hsr
-    ) {
+    public ResponseEntity deleteMapping(@PathVariable(value = "mappingId") String mappingId, WebRequest wr, HttpServletResponse hsr) {
         LOG.trace("Performing deleteRecord({}).", id);
 
         try {
-            LOG.trace("Obtaining most mapping record with {}/{}.", mappingId, mappingType);
-            MappingRecord existingRecord = getMappingById(mappingId, mappingType);
+            LOG.trace("Obtaining most mapping record with {}.", mappingId);
+            MappingRecord existingRecord = getMappingById(mappingId);
             LOG.trace("Checking provided ETag.");
             ControllerUtils.checkEtag(wr, existingRecord);
 
@@ -261,7 +236,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
         } catch (ResourceNotFoundException ex) {
             //exception is hidden for DELETE
-            LOG.debug("No metadata schema with id {}/{} found. Skipping deletion.", mappingId, mappingType);
+            LOG.debug("No metadata schema with id {} found. Skipping deletion.", mappingId);
             throw ex;
         } catch (IOException ex) {
             LOG.error("Error removing mapping", ex);
@@ -272,15 +247,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity updateMapping(
-            @PathVariable(value = "mappingId") String mappingId,
-            @PathVariable(value = "mappingType") String mappingType,
-            @RequestPart(name = "record") final MultipartFile record,
-            @RequestPart(name = "document", required = false) final MultipartFile document,
-            WebRequest request,
-            HttpServletResponse response,
-            UriComponentsBuilder uriBuilder
-    ) {
+    public ResponseEntity updateMapping(@PathVariable(value = "mappingId") String mappingId, @RequestPart(name = "record") final MultipartFile record, @RequestPart(name = "document", required = false) final MultipartFile document, WebRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
         LOG.trace("Performing updateMapping {}", record);
 
         MappingRecord recordDocument;
@@ -298,15 +265,14 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.error(message + "Returning HTTP BAD_REQUEST.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
-        if ((!recordDocument.getMappingId().equals(mappingId)) || (!recordDocument.getMappingType().equals(mappingType))) {
-            String message = "Mandatory attribute mappingId and/or mappingType are not identical to path parameters. "
-                    + " (" + recordDocument.getMappingId() + "<-->" + mappingId + ", " + recordDocument.getMappingType() + "<-->" + mappingType + ")";
+        if ((!recordDocument.getMappingId().equals(mappingId))) {
+            String message = "Mandatory attribute mappingId and/or mappingType are not identical to path parameters. " + " (" + recordDocument.getMappingId() + "<-->" + mappingId + ")";
             LOG.error(message + "Returning HTTP BAD_REQUEST.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 
         }
         LOG.trace("Obtaining most recent metadata record with id {}.", id);
-        MappingRecord existingRecord = getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType());
+        MappingRecord existingRecord = getMappingById(recordDocument.getMappingId());
         //if authorization enabled, check principal -> return HTTP UNAUTHORIZED or FORBIDDEN if not matching
 
         LOG.trace("Checking provided ETag.");
@@ -330,16 +296,13 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         String etag = recordDocument.getEtag();
 
         URI locationUri;
-        locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId(), recordDocument.getMappingType(), null, null, null)).toUri();
+        locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId())).toUri();
 
         return ResponseEntity.ok().location(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
     }
 
     @Override
-    public ResponseEntity getAllAvailableMappingTypes(
-            WebRequest wr,
-            HttpServletResponse hsr
-    ) {
+    public ResponseEntity<List<PluginInformation>> getAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
         List<PluginInformation> plugins = new ArrayList<>();
         PluginManager.soleInstance().getListOfAvailableValidators().forEach((id) -> {
             try {
@@ -348,13 +311,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
                 LOG.error("Error getting plugin information for {}", id, ex);
             }
         });
-        return ResponseEntity.
-                ok().
-                body(new Gson().toJson(plugins));
+        return ResponseEntity.ok().body(plugins);
     }
 
     @Override
-    public ResponseEntity reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
+    public ResponseEntity<String> reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
         PluginManager.reloadPlugins();
         return ResponseEntity.noContent().build();
     }
@@ -362,17 +323,16 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     /**
      * Get the record of given id / type.
      *
-     * @param mappingId   mappingId of the mapping
-     * @param mappingType mappingType of the mapping
+     * @param mappingId mappingId of the mapping
      * @return record of given id / type.
      * @throws ResourceNotFoundException Not found.
      */
-    public MappingRecord getMappingById(String mappingId, String mappingType) throws ResourceNotFoundException {
+    public MappingRecord getMappingById(String mappingId) throws ResourceNotFoundException {
         //if security enabled, check permission -> if not matching, return HTTP UNAUTHORIZED or FORBIDDEN
         LOG.trace("Reading mapping record from database.");
-        Optional<MappingRecord> record = mappingRecordDao.findByMappingIdAndMappingType(mappingId, mappingType);
-        if (!record.isPresent()) {
-            String message = String.format("No mapping record found for mapping %s/%s. Returning HTTP 404.", mappingId, mappingType);
+        Optional<MappingRecord> record = mappingRecordDao.findByMappingId(mappingId);
+        if (record.isEmpty()) {
+            String message = String.format("No mapping record found for mapping %s. Returning HTTP 404.", mappingId);
             LOG.error(message);
             throw new ResourceNotFoundException(message);
         }
@@ -381,7 +341,18 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
     public MappingRecord mergeRecords(MappingRecord managed, MappingRecord provided) {
         if (provided != null) {
-
+            if (provided.getTitle() != null) {
+                LOG.trace("Updating record acl from {} to {}.", managed.getTitle(), provided.getTitle());
+                managed.setTitle(provided.getTitle());
+            }
+            if (provided.getDescription() != null) {
+                LOG.trace("Updating record acl from {} to {}.", managed.getDescription(), provided.getDescription());
+                managed.setDescription(provided.getDescription());
+            }
+            if (provided.getMappingType() != null) {
+                LOG.trace("Updating record acl from {} to {}.", managed.getMappingType(), provided.getMappingType());
+                managed.setMappingType(provided.getMappingType());
+            }
             //update acl
             if (provided.getAcl() != null) {
                 LOG.trace("Updating record acl from {} to {}.", managed.getAcl(), provided.getAcl());
@@ -392,6 +363,6 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     private void fixMappingDocumentUri(MappingRecord record) {
-        record.setMappingDocumentUri(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingDocumentById(record.getMappingId(), record.getMappingType(), null, null)).toUri().toString());
+        record.setMappingDocumentUri(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingDocumentById(record.getMappingId(), null, null)).toUri().toString());
     }
 }

@@ -25,6 +25,11 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class for running shell scripts.
+ *
+ * @author maximilianiKIT
+ */
 public class ShellRunnerUtil {
 
     /**
@@ -37,18 +42,53 @@ public class ShellRunnerUtil {
      */
     private final static Logger LOGGER = LoggerFactory.getLogger(ShellRunnerUtil.class);
 
+    /**
+     * This method executes a shell command.
+     *
+     * @param command The command to execute without spaces.
+     * @return State of the execution.
+     * @throws MappingPluginException If an error occurs.
+     */
     public static MappingPluginState run(String... command) throws MappingPluginException {
         return run(TIMEOUT, command);
     }
 
+    /**
+     * This method executes a shell command.
+     *
+     * @param timeOutInSeconds Time in seconds when the script should throw a timeout exception.
+     * @param command          The command to execute without spaces.
+     * @return State of the execution.
+     * @throws MappingPluginException If an error occurs.
+     */
     public static MappingPluginState run(int timeOutInSeconds, String... command) throws MappingPluginException {
         return run(System.out, System.err, timeOutInSeconds, command);
     }
 
+    /**
+     * This method executes a shell command and writes the output and errors to the given streams.
+     *
+     * @param output  OutputStream to redirect the output to.
+     * @param error   OutputStream to redirect the errors to.
+     * @param command The command to execute without spaces.
+     * @return State of the execution.
+     * @throws MappingPluginException If an error occurs.
+     */
     public static MappingPluginState run(OutputStream output, OutputStream error, String... command) throws MappingPluginException {
         return run(output, error, TIMEOUT, command);
     }
 
+
+    /**
+     * This method executes a shell command and writes the output and errors to the given streams.
+     *
+     * @param output           OutputStream to redirect the output to.
+     * @param error            OutputStream to redirect the errors to.
+     * @param timeOutInSeconds Time in seconds when the script should throw a timeout exception.
+     * @param command          The command to execute without spaces.
+     * @return State of the execution.
+     * @throws MappingPluginException If an error occurs.
+     */
     public static MappingPluginState run(OutputStream output, OutputStream error, int timeOutInSeconds, String... command) throws MappingPluginException {
         ExecutorService pool = Executors.newSingleThreadExecutor();
         int result;
@@ -98,18 +138,10 @@ public class ShellRunnerUtil {
         return returnValue;
     }
 
-    private static class ProcessReadTask implements Callable<List<String>> {
-        private final InputStream inputStream;
-
-        public ProcessReadTask(InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
+    private record ProcessReadTask(InputStream inputStream) implements Callable<List<String>> {
         @Override
         public List<String> call() {
-            return new BufferedReader(new InputStreamReader(inputStream))
-                    .lines()
-                    .collect(Collectors.toList());
+            return new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.toList());
         }
     }
 }

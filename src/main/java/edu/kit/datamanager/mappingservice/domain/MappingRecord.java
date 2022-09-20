@@ -45,7 +45,6 @@ public class MappingRecord implements EtagSupport, Serializable {
     @NotNull(message = "The unique identify of the record.")
     private String mappingId;
 
-    @Id
     @NotNull(message = "Type of the mapping, e.g. GEMMA, XSLT, handlebars, ....")
     private String mappingType;
 

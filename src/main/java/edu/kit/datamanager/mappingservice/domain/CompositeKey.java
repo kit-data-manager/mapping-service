@@ -50,9 +50,6 @@ public class CompositeKey implements Serializable {
         if (!Objects.equals(this.mappingId, other.mappingId)) {
             return false;
         }
-        if (!Objects.equals(this.mappingType, other.mappingType)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.mappingType, other.mappingType);
     }
 }

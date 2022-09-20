@@ -31,21 +31,21 @@ public class MappingServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
-    @Bean
-    @Scope("prototype")
-    public Logger logger(InjectionPoint injectionPoint) {
-        Class<?> targetClass = injectionPoint.getMember().getDeclaringClass();
-        return LoggerFactory.getLogger(targetClass.getCanonicalName());
-    }
+//    @Bean
+//    @Scope("prototype")
+//    public Logger logger(InjectionPoint injectionPoint) {
+//        Class<?> targetClass = injectionPoint.getMember().getDeclaringClass();
+//        return LoggerFactory.getLogger(targetClass.getCanonicalName());
+//    }
 
-    @Bean(name = "OBJECT_MAPPER_BEAN")
-    public ObjectMapper jsonObjectMapper() {
-        return Jackson2ObjectMapperBuilder.json()
-                .serializationInclusion(JsonInclude.Include.NON_EMPTY) // Don’t include null values
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) //ISODate
-                .modules(new JavaTimeModule())
-                .build();
-    }
+//    @Bean(name = "OBJECT_MAPPER_BEAN")
+//    public ObjectMapper jsonObjectMapper() {
+//        return Jackson2ObjectMapperBuilder.json()
+//                .serializationInclusion(JsonInclude.Include.NON_EMPTY) // Don’t include null values
+//                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) //ISODate
+//                .modules(new JavaTimeModule())
+//                .build();
+//    }
 
     @Bean
     @ConfigurationProperties("repo")

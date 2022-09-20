@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,11 @@ package edu.kit.datamanager.mappingservice.rest.impl;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
-import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
+import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,7 +41,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Controller for executing document mappings
+ * Controller for executing document mappings via REST API.
+ *
+ * @author maximilianiKIT
  */
 @Controller
 @RequestMapping(value = "/api/v1/mappingExecution")
@@ -50,25 +51,22 @@ public class MappingExecutionController implements IMappingExecutionController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MappingExecutionController.class);
 
-    @Autowired
-    private MappingService mappingService;
+    private final MappingService mappingService;
 
-    @Autowired
-    private IMappingRecordDao mappingRecordDao;
+    private final IMappingRecordDao mappingRecordDao;
+
+    public MappingExecutionController(MappingService mappingService, IMappingRecordDao mappingRecordDao) {
+        this.mappingService = mappingService;
+        this.mappingRecordDao = mappingRecordDao;
+    }
 
     @Override
-    public ResponseEntity mapDocument(MultipartFile document,
-                                      String mappingID,
-                                      String mappingType,
-                                      HttpServletRequest request,
-                                      HttpServletResponse response,
-                                      UriComponentsBuilder uriBuilder) {
+    public ResponseEntity mapDocument(MultipartFile document, String mappingID, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
         LOG.debug("Document: {}", document.getName());
         LOG.debug("MappingID: {}", mappingID);
-        LOG.debug("MappingTape: {}", mappingType);
 
         Path resultPath = null;
-        if (!document.isEmpty() && !mappingID.isBlank() && !mappingType.isBlank()) {
+        if (!document.isEmpty() && !mappingID.isBlank()) {
             Path inputPath = FileUtil.createTempFile("inputMultipart", "");
             File inputFile = inputPath.toFile();
             try {
@@ -77,17 +75,16 @@ public class MappingExecutionController implements IMappingExecutionController {
                 e.printStackTrace();
             }
 
-            Optional<MappingRecord> record = mappingRecordDao.findByMappingIdAndMappingType(mappingID, mappingType);
-            if (!record.isPresent()) {
-                String message = String.format("No mapping record found for mapping %s/%s.", mappingID, mappingType);
+            Optional<MappingRecord> record = mappingRecordDao.findByMappingId(mappingID);
+            if (record.isEmpty()) {
+                String message = String.format("No mapping record found for mapping %s.", mappingID);
                 LOG.error(message + " Returning 404.");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
             }
 
             try {
-                System.out.println(inputPath);
-                resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID, mappingType).get();
-                ShellRunnerUtil.run(new String[]{"cat", resultPath.toAbsolutePath().toString()});
+                LOG.debug(inputPath.toString());
+                resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID).get();
             } catch (Exception e) {
                 LOG.error("Could not get resultPath");
                 e.printStackTrace();
@@ -95,8 +92,7 @@ public class MappingExecutionController implements IMappingExecutionController {
             FileUtil.removeFile(inputPath);
         } else {
             LOG.error("The input does not meet the minimal requirements. Have a look in the debug logs for more detailed information.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The input does not meet the minimal requirements." +
-                    "Please check if you provided all necessary information. This is documented in swagger '/swagger-ui/index.html'.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The input does not meet the minimal requirements." + "Please check if you provided all necessary information. This is documented in swagger '/swagger-ui/index.html'.");
         }
 
         if (resultPath == null) {
@@ -108,9 +104,6 @@ public class MappingExecutionController implements IMappingExecutionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal error while accessing result");
         }
 
-        return ResponseEntity.
-                ok().
-                header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).
-                body(new FileSystemResource(resultPath.toFile()));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).body(new FileSystemResource(resultPath.toFile()));
     }
 }

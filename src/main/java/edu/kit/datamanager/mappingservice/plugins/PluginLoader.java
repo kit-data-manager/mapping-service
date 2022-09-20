@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,14 +32,32 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
+/**
+ * Class for loading plugins.
+ *
+ * @author maximilianiKIT
+ */
 public class PluginLoader {
 
+    /**
+     * Logger for this class.
+     */
     static Logger LOG = LoggerFactory.getLogger(PluginLoader.class);
 
+    /**
+     * Load plugins from a given directory.
+     *
+     * @param plugDir Directory containing plugins.
+     * @return Map of plugins.
+     * @throws IOException            If there is an error with the file system.
+     * @throws MappingPluginException If there is an error with the plugin or the input.
+     */
     public static Map<String, IMappingPlugin> loadPlugins(File plugDir) throws IOException, MappingPluginException {
-        if (plugDir == null || plugDir.getAbsolutePath().isBlank()) throw new MappingPluginException("Empty input!");
+        if (plugDir == null || plugDir.getAbsolutePath().isBlank())
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Empty input!");
         File[] plugJars = plugDir.listFiles(new JARFileFilter());
-        if (plugJars == null || plugJars.length < 1) throw new MappingPluginException("No plugins found.");
+        if (plugJars == null || plugJars.length < 1)
+            throw new MappingPluginException(MappingPluginState.NOT_FOUND, "No plugins found.");
         ClassLoader cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars));
         List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
 
@@ -53,6 +71,7 @@ public class PluginLoader {
 
         return result;
     }
+
 
     private static URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
 
@@ -86,7 +105,7 @@ public class PluginLoader {
                     }
                 } catch (ClassNotFoundException e) {
                     LOG.info("Can't load Class " + ent.getName());
-                    throw new MappingPluginException("Can't load Class " + ent.getName(), e);
+                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't load Class " + ent.getName(), e);
                 }
             }
         }
@@ -111,10 +130,10 @@ public class PluginLoader {
                 plugs.add(plug.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
                 LOG.info("Can't instantiate plugin: " + plug.getName());
-                throw new MappingPluginException("Can't instantiate plugin: " + plug.getName(), e);
+                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't instantiate plugin: " + plug.getName(), e);
             } catch (IllegalAccessException e) {
                 LOG.info("IllegalAccess for plugin: " + plug.getName());
-                throw new MappingPluginException("IllegalAccess for plugin: " + plug.getName(), e);
+                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "IllegalAccess for plugin: " + plug.getName(), e);
             }
         }
         return plugs;

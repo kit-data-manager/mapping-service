@@ -17,17 +17,30 @@ package edu.kit.datamanager.mappingservice.util;
 
 import org.slf4j.Logger;
 
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Class for redirecting the output of a process to a logger.
+ *
+ * @author maximilianiKIT
+ */
 public class LoggerOutputStream extends OutputStream {
 
     private final Logger logger;
 
+    /**
+     * Available log levels.
+     */
     public enum Level {TRACE, DEBUG, INFO, WARN, ERROR}
 
     private final Level level;
 
+    /**
+     * @param logger Logger to redirect the output to.
+     * @param level  Level of the logger.
+     */
     public LoggerOutputStream(Logger logger, Level level) {
         this.logger = logger;
         this.level = level;
@@ -39,24 +52,24 @@ public class LoggerOutputStream extends OutputStream {
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(@NotNull byte[] b, int off, int len) {
         String record = new String(b, off, len);
         if (!record.isEmpty() && !record.equals(" ")) {
             switch (level) {
                 case TRACE:
-                    if(logger.isTraceEnabled()) logger.trace(record);
+                    if (logger.isTraceEnabled()) logger.trace(record);
                     break;
                 case DEBUG:
-                    if(logger.isDebugEnabled()) logger.debug(record);
+                    if (logger.isDebugEnabled()) logger.debug(record);
                     break;
                 case INFO:
-                    if(logger.isInfoEnabled()) logger.info(record);
+                    if (logger.isInfoEnabled()) logger.info(record);
                     break;
                 case WARN:
-                    if(logger.isWarnEnabled()) logger.warn(record);
+                    if (logger.isWarnEnabled()) logger.warn(record);
                     break;
                 case ERROR:
-                    if(logger.isErrorEnabled()) logger.error(record);
+                    if (logger.isErrorEnabled()) logger.error(record);
                     break;
             }
         }

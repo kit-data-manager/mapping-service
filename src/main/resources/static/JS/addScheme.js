@@ -205,7 +205,7 @@ function updateMapping() {
     const title = document.getElementById("title").value
     const description = document.getElementById("descr").value
     const file = document.getElementById("schema").files[0]
-    if (editor.getText() === "{}") {
+    if (editor.getText() === "{}" && isJSONInput) {
         document.getElementById("errorMessage").textContent = "Please define a schema document."
         document.getElementById("errorMessage").hidden = false
         return
@@ -223,7 +223,9 @@ function updateMapping() {
         "acl": resultACLs
     }
     const recordBlob = new Blob([JSON.stringify(record)], {type: "application/json"});
-    const documentBlob = new Blob([editor.getText()], {type: "application/json"})
+    let documentBlob
+    if(isJSONInput) documentBlob = new Blob([editor.getText()], {type: "application/json"})
+    else documentBlob = new Blob([file], {type: "unknown"})
 
     console.log("Sending record:" + JSON.stringify(record))
     console.log("Sending document:" + editor.getText())
@@ -232,7 +234,7 @@ function updateMapping() {
     formData.append("document", documentBlob)
 
     const http = new XMLHttpRequest();
-    http.open("PUT", apiUrl + "/" + id + "/" + type)
+    http.open("PUT", apiUrl + "/" + id)
     http.setRequestHeader("If-Match", data.ETAG)
     http.send(formData)
     http.onload = (e) => {

@@ -27,6 +27,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Utility class for running python scripts.
+ *
+ * @author maximilianiKIT
+ */
 @Component
 public class PythonRunnerUtil {
     private static ApplicationProperties configuration;
@@ -38,6 +43,9 @@ public class PythonRunnerUtil {
         PythonRunnerUtil.configuration = configuration;
     }
 
+    /**
+     * This method prints the python version to Log.info.
+     */
     public static void printPythonVersion() {
         try {
             LOGGER.info("Configured Python version:");
@@ -47,15 +55,39 @@ public class PythonRunnerUtil {
         }
     }
 
-
+    /**
+     * This method executes an argument/option on the python interpreter.
+     *
+     * @param arg single argument/option to be executed.
+     * @return State of the execution.
+     * @throws MappingPluginException if an error occurs.
+     */
     public static MappingPluginState runPythonScript(String arg) throws MappingPluginException {
         return runPythonScript(arg, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
     }
 
+    /**
+     * This method executes a python script with the given arguments.
+     *
+     * @param script path to the python script to be executed.
+     * @param args   arguments to be passed to the script.
+     * @return State of the execution.
+     * @throws MappingPluginException if an error occurs.
+     */
     public static MappingPluginState runPythonScript(String script, String... args) throws MappingPluginException {
         return runPythonScript(script, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN), args);
     }
 
+    /**
+     * This method executes a python script with the given arguments and redirects the output and errors to the given streams.
+     *
+     * @param script path to the python script to be executed.
+     * @param output OutputStream to redirect the output to.
+     * @param error  OutputStream to redirect the errors to.
+     * @param args   arguments to be passed to the script.
+     * @return State of the execution.
+     * @throws MappingPluginException if an error occurs.
+     */
     public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
         if (configuration == null || configuration.getPythonLocation() == null) return MappingPluginState.UNKNOWN_ERROR;
         ArrayList<String> command = new ArrayList<>();
