@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="CSS/dark-mode.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@9.7.4/dist/jsoneditor.css">
+
+    <title>Mapping-Service (Administration)</title>
+</head>
+<body class="p-3 bg-white">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.7.4/dist/jsoneditor.js"></script>
+<script src="https://unpkg.com/jsonpath@0.2.11/jsonpath.min.js"></script>
+
+<header class="row align-items-center navbar">
+    <h1 class="header col-auto">Mapping-Service GUI</h1>
+    <div class="nav-link col-auto">
+        <div class="form-check form-switch">
+            <input type="checkbox" class="form-check-input" id="darkSwitch">
+            <label class="custom-control-label" for="darkSwitch">Dark Mode</label>
+        </div>
+        <script src="JS/dark-mode-switch.js"></script>
+    </div>
+    <ul class="nav nav-pills d-flex flex-wrap py-3 mb-4 border-bottom p-3">
+        <li class="nav-item"><a href="/index.html" class="nav-link" aria-current="page">Home</a></li>
+        <li class="nav-item">
+            <a href="/addScheme.html" class="nav-link active" id="navAdd">Add mapping scheme</a>
+            <a href="/addScheme.html" class="nav-link" id="editNavAdd" hidden>Add mapping scheme</a>
+        </li>
+        <li class="nav-item">
+            <a href="/showSchemes.html" class="nav-link" id="navShow">Show all mapping schemes</a>
+            <a href="/showSchemes.html" class="nav-link active" id="editNavShow" hidden>Show all mapping schemes</a>
+        </li>
+        <li class="nav-item"><a href="/mapDocument.html" class="nav-link">Map a document</a></li>
+        <li class="nav-item"><a href="/swagger-ui/index.html" class="nav-link">REST Documentation</a></li>
+    </ul>
+</header>
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="deleteButton" viewBox="0 0 16 16">
+        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+    </symbol>
+    <symbol id="editButton" viewBox="0 0 16 16">
+        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+        <path fill-rule="evenodd"
+              d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+    </symbol>
+    <symbol id="success" viewBox="0 0 16 16">
+        <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+    </symbol>
+    <symbol id="back" viewBox="0 0 16 16">
+        <path fill-rule="evenodd"
+              d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
+    </symbol>
+</svg>
+<main role="main">
+    <div class="container">
+        <h2 class="mb-3" id="description">Add mapping scheme</h2>
+        <div id="editDescription" class="mb-3" hidden>
+            <h2>Edit mapping scheme</h2>
+            <a class="text-decoration-none" href="showSchemes.html">
+                <svg class="bi" fill="currentColor" width="32" height="32">
+                    <use xlink:href="#back"/>
+                </svg>
+                Back to the list (without saving)
+            </a>
+        </div>
+
+        <form id="form">
+            <div class="m-3 required">
+                <div class="row">
+                    <label for="typeAccordion" class="col-form-label col-auto float-start">Type</label>
+                    <button class="btn btn-outline-primary col-auto ms-auto float-end mb-1" onclick="reloadTypes()">
+                        <i class="bi bi-arrow-clockwise"></i> Reload plugins
+                    </button>
+                </div>
+                <div class="accordion text-black" id="typeAccordion">
+                </div>
+                <span id="typeHelpInline" class="form-text">Select the background service which maps your document.</span>
+            </div>
+
+            <div class="mb-3 required">
+                <label for="id" class="col-form-label">Identifier</label>
+                <input type="text" id="id" class="form-control" aria-describedby="idHelpInline" required>
+                <span id="idHelpInline" class="form-text">
+              Enter a unique identifier for the mapping scheme you want to add.
+            </span>
+            </div>
+
+            <div class="mb-3 required">
+                <label for="title" class="col-form-label">Title</label>
+                <input type="text" id="title" class="form-control" aria-describedby="titleHelpInline" required>
+                <span id="titleHelpInline" class="form-text">Enter a title for your mapping.</span>
+            </div>
+
+            <div class="mb-3 required">
+                <label for="descr" class="col-form-label">Description</label>
+                <input type="text" id="descr" class="form-control" aria-describedby="descrHelpInline" required>
+                <span id="descrHelpInline" class="form-text">Enter a description for your mapping.</span>
+            </div>
+
+            <div class="mb-3">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-outline-primary md-3" data-bs-toggle="modal"
+                        data-bs-target="#modal" id="addACLButton">
+                    + Add ACL
+                </button>
+
+                <!-- Modal -->
+                <div class="modal fade text-black" id="modal" tabindex="-1" aria-labelledby="modalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalLabel">Add ACL</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="sid" class="col-form-label">User String</label>
+                                    <input type="text" id="sid" class="form-control" aria-describedby="sidHelpInline">
+                                    <span id="sidHelpInline" class="form-text">
+                                        Enter a string (e.g. username) for the ACL user.
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="permission" class="col-form-label">Permissions</label>
+                                    <select id="permission" class="form-select">
+                                        <option value="NONE" selected>NONE</option>
+                                        <option value="READ">READ</option>
+                                        <option value="WRITE">WRITE</option>
+                                        <option value="ADMINISTRATE">ADMINISTRATE</option>
+                                    </select>
+                                    <span id="permissionHelpInline" class="form-text">
+                                        Select the background service which maps your document.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancel
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="addACL()"
+                                        data-bs-dismiss="modal">+ Add ACL
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mb-3 row align-items-center" id="acls">
+            </div>
+
+            <div class="mb-3">
+                <label for="schema" class="col-form-label">Schema Document</label>
+                <input type="file" class="form-control" id="schema" aria-describedby="schemaHelpInline"
+                       aria-label="Upload"
+                       required onchange="loadFile()">
+                <span id="schemaHelpInline" class="form-text">
+                    Select the schema of your document.
+                </span>
+
+                <div class="m-3 h-100 border rounded p-1" id="jsoneditor"></div>
+            </div>
+
+            <h6 class="bg-warning p-2 rounded text-black" id="errorMessage" hidden>Error message</h6>
+
+            <div class="row align-items-center ms-1 mt-4" id="save">
+                <div class="spinner-border text-primary me-3 col-auto" role="status" id="progress" hidden>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <button type="button" class="btn btn-primary col-auto" id="submit" onclick="createMapping()">Create new
+                    mapping
+                </button>
+                <button type="button" class="btn btn-outline-danger col-auto mx-3" onclick="clearForm()">Clear form
+                </button>
+                <div class="me-1 text-success col-auto" hidden id="successDisplay">
+                    <svg class="bi" fill="currentColor" width="32" height="32">
+                        <use xlink:href="#success"/>
+                    </svg>
+                </div>
+            </div>
+
+            <script src="/JS/addScheme.js"></script>
+            <div class="row align-items-center ms-1 mt-4" id="editSave" hidden>
+                <div class="spinner-border text-primary me-3 col-auto" role="status" id="editProgress" hidden>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <button type="button" class="btn btn-primary col-auto" id="update" onclick="updateMapping()">Update
+                    Mapping
+                </button>
+                <button type="button" class="btn btn-outline-danger col-auto mx-3" id="cancelEdit"
+                        onclick="clearForm()">Cancel editing
+                </button>
+                <div class="me-1 text-success col-auto" hidden id="editSuccessDisplay">
+                    <svg class="bi" fill="currentColor" width="32" height="32">
+                        <use xlink:href="#success"/>
+                    </svg>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

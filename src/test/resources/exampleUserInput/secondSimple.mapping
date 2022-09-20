@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/product.schema.json",
+  "title": "Simple Mapping Version 2",
+  "description": "Data resource mapping from json",
+  "type": "object",
+  "properties":{
+  "Publisher":{
+   "path": "publisher",
+   "type": "string"
+   },
+   "PublicationDate":{
+   "path": "publicationDate",
+   "type": "string"
+   }
+  }
+}

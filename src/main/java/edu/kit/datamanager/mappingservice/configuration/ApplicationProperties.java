@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,10 @@ import org.springframework.validation.annotation.Validated;
 import java.net.URL;
 
 /**
+ * This class is used to configure the application.
+ * It reads the values from the application.properties file.
  *
+ * @author maximilianiKIT
  */
 @ConfigurationProperties(prefix = "mapping-service")
 @Component
@@ -38,20 +41,13 @@ public class ApplicationProperties extends GenericPluginProperties {
      * The absolute path to the python interpreter.
      */
     @edu.kit.datamanager.annotations.ExecutableFileURL
-    @Value("${mapping-service.gemma.pythonLocation}")
+    @Value("${mapping-service.pythonLocation}")
     private URL pythonLocation;
-
-    /**
-     * The path to the gemma mapping script 'mapping_single.py'
-     */
-    @edu.kit.datamanager.annotations.LocalFileURL
-    @Value("${mapping-service.gemma.gemmaLocation}")
-    private URL gemmaLocation;
 
     /**
      * The absolute path where the mappings are stored.
      */
     @edu.kit.datamanager.annotations.LocalFolderURL
-    @Value("${mapping-service.mappingsLocation}")
+    @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
 }

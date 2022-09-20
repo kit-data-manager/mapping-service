@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Karlsruhe Institute of Technology.
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.mappingservice.web;
+package edu.kit.datamanager.mappingservice.rest;
 
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +40,9 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 /**
+ * Interface and Documentation for mapping administration REST-API
  *
+ * @author maximilianiKIT
  */
 @ApiResponses(value = {
         @ApiResponse(responseCode = "401", description = "Unauthorized is returned if authorization in required but was not provided."),
@@ -57,38 +59,36 @@ public interface IMappingAdministrationController {
     @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity<MappingRecord> createMapping(
-            @Parameter(description = "Json representation of the mapping record.", required = true) @RequestPart(name = "record") final MultipartFile record,
+            @Parameter(description = "JSON representation of the mapping record.", required = true) @RequestPart(name = "record") final MultipartFile record,
             @Parameter(description = "The mapping document associated with the record. The document must match the mappingType selected by the record.", required = true) @RequestPart(name = "document") final MultipartFile document,
             final HttpServletRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;
 
-    @Operation(summary = "Get a mapping record by its identifiers (mappingId, mappingType).", description = "Obtain is single record by its identifiers. "
+    @Operation(summary = "Get a mapping record by its identifier (mappingId).", description = "Obtain is single record by its identifier. "
             + "Depending on a user's role, accessing a specific record may be allowed or forbidden.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "OK and the record is returned if the record exists and the user has sufficient permission.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
                     @ApiResponse(responseCode = "404", description = "Not found is returned, if no record for the provided id or version was found.")})
 
-    @RequestMapping(value = {"/{mappingId}/{mappingType}"}, method = {RequestMethod.GET}, produces = {"application/vnd.datamanager.mapping-record+json"})
+    @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET}, produces = {"application/vnd.datamanager.mapping-record+json"})
     @ResponseBody
     ResponseEntity<MappingRecord> getMappingById(
             @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
-            @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
             Pageable pgbl,
             WebRequest wr,
             HttpServletResponse hsr);
 
-    @Operation(summary = "Get a mapping document by its mappingId and mappingType.", description = "Obtain is single mapping document identified by its identifiers. "
+    @Operation(summary = "Get a mapping document by its mappingId.", description = "Obtain is single mapping document identified by its identifier. "
             + "Depending on a user's role, accessing a specific record may be allowed or forbidden. ",
             responses = {
                     @ApiResponse(responseCode = "200", description = "OK and the mapping document is returned if the record exists and the user has sufficient permission."),
                     @ApiResponse(responseCode = "404", description = "Not found is returned, if no record for the provided identifiers.")})
 
-    @RequestMapping(value = {"/{mappingId}/{mappingType}"}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET})
     @ResponseBody
-    ResponseEntity getMappingDocumentById(
+    ResponseEntity<MappingRecord> getMappingDocumentById(
             @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
-            @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
             WebRequest wr,
             HttpServletResponse hsr);
 
@@ -104,7 +104,6 @@ public interface IMappingAdministrationController {
     @ResponseBody
     ResponseEntity<List<MappingRecord>> getMappings(
             @Parameter(description = "The schema linked to the mapping.") @RequestParam(value = "mappingId") String mappingId,
-            @Parameter(description = "The type of the mapping.") @RequestParam(value = "mappingType") String mappingType,
             Pageable pgbl,
             WebRequest wr,
             HttpServletResponse hsr,
@@ -116,12 +115,11 @@ public interface IMappingAdministrationController {
                     @ApiResponse(responseCode = "200", description = "OK is returned in case of a successful update, e.g. the record (if provided) was in the correct format and the document (if provided) matches the provided schema id. The updated record is returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
                     @ApiResponse(responseCode = "400", description = "Bad Request is returned if the provided metadata record is invalid or if the validation using the provided schema failed."),
                     @ApiResponse(responseCode = "404", description = "Not Found is returned if no record for the provided id or no schema for the provided schema id was found.")})
-    @RequestMapping(value = "/{mappingId}/{mappingType}", method = RequestMethod.PUT, produces = {"application/json"})
+    @RequestMapping(value = "/{mappingId}", method = RequestMethod.PUT, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {"application/json"})
     @Parameters({@Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})
     @ResponseBody
     ResponseEntity<MappingRecord> updateMapping(
             @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
-            @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
             @Parameter(description = "JSON representation of the metadata record.") @RequestPart(name = "record") final MultipartFile record,
             @Parameter(description = "The metadata document associated with the record. The document must match the schema defined in the record.") @RequestPart(name = "document", required = false) final MultipartFile document,
             final WebRequest request,
@@ -134,12 +132,26 @@ public interface IMappingAdministrationController {
             + "In some cases, deleting a record can also be available for the owner or other privileged users or can be forbidden at all. ",
             responses = {
                     @ApiResponse(responseCode = "204", description = "No Content is returned as long as no error occurs while deleting a record. Multiple delete operations to the same record will also return HTTP 204 even if the deletion succeeded in the first call.")})
-    @RequestMapping(value = {"/{mappingId}/{mappingType}"}, method = {RequestMethod.DELETE})
+    @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.DELETE})
     @Parameters({@Parameter(name = "If-Match", description = "ETag of the object. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})
     @ResponseBody
-    ResponseEntity deleteMapping(
+    ResponseEntity<String> deleteMapping(
             @Parameter(description = "The schema linked to the mapping.", required = true) @PathVariable(value = "mappingId") String mappingId,
-            @Parameter(description = "The type of the mapping.", required = true) @PathVariable(value = "mappingType") String mappingType,
+            WebRequest wr,
+            HttpServletResponse hsr);
+
+    @Operation(summary = "Get all available mappingTypes",
+            responses = {@ApiResponse(responseCode = "200", description = "OK and a JSON of all mapping types will be returned if at least one mapping type exists.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PluginInformation.class))))})
+    @RequestMapping(value = {"/types"}, method = {RequestMethod.GET})
+    @ResponseBody
+    ResponseEntity<List<PluginInformation>> getAllAvailableMappingTypes(
+            WebRequest wr,
+            HttpServletResponse hsr);
+
+    @Operation(summary = "Reload all plugins", description = "Reloads all plugins from the plugin directory and updates their dependencies if necessary.",
+            responses = {@ApiResponse(responseCode = "204", description = "Successful refresh")})
+    @RequestMapping(value = {"/reloadTypes"}, method = {RequestMethod.GET})
+    ResponseEntity<String> reloadAllAvailableMappingTypes(
             WebRequest wr,
             HttpServletResponse hsr);
 }

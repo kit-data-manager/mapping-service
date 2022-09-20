@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 KIT
+ * Copyright 2022 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -35,7 +39,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Various utility methods for file handling.
  *
+ * @author maximilianiKIT
+ * @author volkerhartmann
  */
 public class FileUtil {
 
@@ -158,7 +165,7 @@ public class FileUtil {
 
     private static String guessFileExtension(byte[] schema) {
         // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
-        int length = schema.length > MAX_LENGTH_OF_HEADER ? MAX_LENGTH_OF_HEADER : schema.length;
+        int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
         String schemaAsString = new String(schema, 0, length);
         LOGGER.trace("Guess type for '{}'", schemaAsString);
 
@@ -172,5 +179,28 @@ public class FileUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * This method clones a git repository into the 'lib' folder.
+     *
+     * @param repositoryUrl the url of the repository to clone
+     * @param branch the branch to clone
+     * @return the path to the cloned repository
+     */
+    public static Path cloneGitRepository(String repositoryUrl, String branch) {
+        File target = new File("lib/" + repositoryUrl.trim().replace("https://", "").replace(".git", "") + "_" + branch);
+        target.mkdirs();
+
+        LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+        try {
+            Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+        } catch (JGitInternalException e) {
+            LOGGER.info(e.getMessage());
+        } catch (GitAPIException ex) {
+            throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", ex);
+        }
+
+        return target.toPath();
     }
 }

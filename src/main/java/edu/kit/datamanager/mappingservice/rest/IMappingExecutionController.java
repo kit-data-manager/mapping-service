@@ -1,4 +1,20 @@
-package edu.kit.datamanager.mappingservice.web;
+/*
+ * Copyright 2022 Karlsruhe Institute of Technology.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package edu.kit.datamanager.mappingservice.rest;
 
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +33,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URISyntaxException;
 
+/**
+ * Interface and documentation for mapping execution REST-API.
+ *
+ * @author maximilianiKIT
+ */
 @ApiResponses(value = {
         @ApiResponse(responseCode = "401", description = "UNAUTHORIZED is returned if authorization in required but was not provided."),
         @ApiResponse(responseCode = "403", description = "FORBIDDEN is returned if the caller has no sufficient privileges.")})
@@ -36,12 +57,11 @@ public interface IMappingExecutionController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR is returned if errors occur that do not necessarily depend on user input, " +
                     "e.g. a faulty configuration. No more specific messages are returned for security reasons.")})
 
-    @RequestMapping(value = {"/{mappingID}/{mappingType}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @RequestMapping(value = {"/{mappingID}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity mapDocument(
             @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
             @Parameter(description = "The mappingID of the already defined mapping schema.", required = true) @PathVariable(value = "mappingID") String mappingID,
-            @Parameter(description = "The mappingType of the already defined mapping schema.", required = true) @PathVariable(name = "mappingType") String mappingType,
             final HttpServletRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;

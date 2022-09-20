@@ -235,3 +235,5 @@ gradle-app.setting
 .classpath
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,macos,gradle,linux
+lib/gemma
+!/plugins/gemma-plugin-0.1.0.jar
