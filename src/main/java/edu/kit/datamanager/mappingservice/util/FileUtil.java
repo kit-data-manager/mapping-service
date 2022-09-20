@@ -165,7 +165,7 @@ public class FileUtil {
 
     private static String guessFileExtension(byte[] schema) {
         // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
-        int length = schema.length > MAX_LENGTH_OF_HEADER ? MAX_LENGTH_OF_HEADER : schema.length;
+        int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
         String schemaAsString = new String(schema, 0, length);
         LOGGER.trace("Guess type for '{}'", schemaAsString);
 
@@ -189,7 +189,7 @@ public class FileUtil {
      * @return the path to the cloned repository
      */
     public static Path cloneGitRepository(String repositoryUrl, String branch) {
-        File target = new File("lib/" + repositoryUrl.trim().substring(repositoryUrl.length() - 7, repositoryUrl.length() - 1) + "_" + branch);
+        File target = new File("lib/" + repositoryUrl.trim().replace("https://", "").replace(".git", "") + "_" + branch);
         target.mkdirs();
 
         LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());

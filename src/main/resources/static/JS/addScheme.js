@@ -36,7 +36,7 @@ function load() {
     const http = new XMLHttpRequest();
     http.open("GET", apiUrl + "/types")
     http.send();
-    http.onload = (e) => {
+    http.onload = () => {
         const result = JSON.parse(http.responseText)
         for (let i = 0; i < result.length; i++) {
             types.push(result[i].id)
@@ -165,7 +165,7 @@ function createMapping() {
     const http = new XMLHttpRequest();
     http.open("POST", apiUrl)
     http.send(formData)
-    http.onload = (e) => {
+    http.onload = () => {
         console.log("Response: " + http.responseText)
         document.getElementById("progress").hidden = true
         document.getElementById("submit").disabled = false
@@ -237,7 +237,7 @@ function updateMapping() {
     http.open("PUT", apiUrl + "/" + id)
     http.setRequestHeader("If-Match", data.ETAG)
     http.send(formData)
-    http.onload = (e) => {
+    http.onload = () => {
         console.log("Response: " + http.responseText)
         document.getElementById("editProgress").hidden = true
         document.getElementById("update").disabled = false
@@ -314,7 +314,7 @@ function changeUIMode() {
     document.getElementById("navShow").hidden = isEdit
 }
 
-function addType(typeID, typeName, typeDescription, typeVersion, typeLink, typeMIMEOutput, typeMIMEInput) {
+function addType(typeID, typeName, typeDescription, typeVersion, typeLink, typeMIMEInput, typeMIMEOutput) {
     const element =
         `<div class="accordion-item row align-items-center clearfix">
             <div class="accordion-header" id="heading_${typeID}">
@@ -381,7 +381,7 @@ function reloadTypes() {
     const http = new XMLHttpRequest();
     http.open("GET", apiUrl + "/reloadTypes")
     http.send()
-    http.onload = (e) => {
+    http.onload = () => {
         location.reload()
     }
 }

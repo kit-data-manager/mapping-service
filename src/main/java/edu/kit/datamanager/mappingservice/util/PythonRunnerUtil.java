@@ -63,7 +63,7 @@ public class PythonRunnerUtil {
      * @throws MappingPluginException if an error occurs.
      */
     public static MappingPluginState runPythonScript(String arg) throws MappingPluginException {
-        return runPythonScript(arg, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN));
+        return runPythonScript(arg, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO));
     }
 
     /**
@@ -75,7 +75,7 @@ public class PythonRunnerUtil {
      * @throws MappingPluginException if an error occurs.
      */
     public static MappingPluginState runPythonScript(String script, String... args) throws MappingPluginException {
-        return runPythonScript(script, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.WARN), args);
+        return runPythonScript(script, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), args);
     }
 
     /**

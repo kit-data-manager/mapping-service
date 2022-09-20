@@ -51,8 +51,7 @@ public class MappingService {
     /**
      * Repo holding all MappingRecords.
      */
-    @Autowired
-    private IMappingRecordDao mappingRepo;
+    private final IMappingRecordDao mappingRepo;
     /**
      * Path to directory holding all mapping files.
      */
@@ -64,8 +63,9 @@ public class MappingService {
     private final static Logger LOGGER = LoggerFactory.getLogger(MappingService.class);
 
     @Autowired
-    public MappingService(ApplicationProperties applicationProperties) {
+    public MappingService(ApplicationProperties applicationProperties, IMappingRecordDao mappingRepo) {
         init(applicationProperties);
+        this.mappingRepo = mappingRepo;
     }
 
     /**

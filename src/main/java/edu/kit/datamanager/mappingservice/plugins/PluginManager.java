@@ -15,7 +15,6 @@
 
 package edu.kit.datamanager.mappingservice.plugins;
 
-import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +118,6 @@ public class PluginManager {
     public MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         for (var entry : plugins.entrySet()) {
             if (entry.getKey().equals(pluginId)) {
-                ShellRunnerUtil.run("cat", inputFile.toString());
                 return entry.getValue().mapFile(mappingFile, inputFile, outputFile);
             }
         }

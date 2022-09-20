@@ -20,7 +20,6 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
-import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -104,6 +103,7 @@ public class MappingExecutionController implements IMappingExecutionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal error while accessing result");
         }
 
+        LOG.info("Successfully mapped document with mapping {}.", mappingID);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).body(new FileSystemResource(resultPath.toFile()));
     }
 }

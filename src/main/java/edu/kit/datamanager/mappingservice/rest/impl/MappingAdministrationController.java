@@ -163,6 +163,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId())).toUri();
 
         LOG.trace("Schema record successfully persisted. Returning result.");
+        LOG.info("Successfully created mapping record with id '{}' and type '{}'.", recordDocument.getMappingId(), recordDocument.getMappingType());
         return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
     }
 
@@ -243,6 +244,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             throw new MappingException("Unknown error removing map!");
         }
 
+        LOG.info("Successfully deleted mapping record with id '{}'.", mappingId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -298,6 +300,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         URI locationUri;
         locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId())).toUri();
 
+        LOG.info("Successfully updated mapping record with id '{}' and type '{}'.", recordDocument.getMappingId(), recordDocument.getMappingType());
         return ResponseEntity.ok().location(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
     }
 
@@ -339,6 +342,13 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         return record.get();
     }
 
+    /**
+     * This method merges two MappingRecords.
+     *
+     * @param managed  The existing MappingRecord.
+     * @param provided The MappingRecord to merge.
+     * @return The merged MappingRecord.
+     */
     public MappingRecord mergeRecords(MappingRecord managed, MappingRecord provided) {
         if (provided != null) {
             if (provided.getTitle() != null) {

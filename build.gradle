@@ -52,7 +52,7 @@ dependencies {
     implementation 'javax.validation:validation-api:2.0.1.Final'
     implementation 'edu.kit.datamanager:service-base:1.0.4'
 
-    testImplementation(platform('org.junit:junit-bom:5.9.0'))
+    testImplementation platform('org.junit:junit-bom:5.9.0')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.9.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.3'
