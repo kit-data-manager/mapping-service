@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: read
+      contents: write
       security-events: write
 
     strategy:
@@ -52,7 +52,6 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        java-version: 17
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
@@ -77,13 +76,15 @@ jobs:
     - run: |
        echo "Run, Build Application using script"
         ./gradlew build
-#       ./gradlew bootRun --args='--spring.config.location=src/test/resources/application-test.properties'
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
 
-    - name: Anchore SBOM Action
-      uses: anchore/sbom-action@v0.12.0
+    - name: Scan the image and upload dependency results
+      uses: anchore/sbom-action@v0
+      with:
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
 
