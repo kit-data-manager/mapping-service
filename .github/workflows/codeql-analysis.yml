@@ -81,6 +81,9 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
+        
+    - name: 'Dependency Review'
+      uses: actions/dependency-review-action@v2
 
     - name: Scan the image and upload dependency results
       uses: anchore/sbom-action@v0
