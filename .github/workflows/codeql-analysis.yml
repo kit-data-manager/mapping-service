@@ -76,7 +76,8 @@ jobs:
 
     - run: |
        echo "Run, Build Application using script"
-       ./gradlew bootRun --args='--spring.config.location=src/test/resources/application-test.properties'
+        -/gradlew build
+#       ./gradlew bootRun --args='--spring.config.location=src/test/resources/application-test.properties'
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
