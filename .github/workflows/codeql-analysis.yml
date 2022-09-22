@@ -80,3 +80,7 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
+
+    - name: Anchore SBOM Action
+      uses: anchore/sbom-action@v0.12.0
+
