@@ -138,7 +138,7 @@ public class MappingService {
                 Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
                 // execute mapping
                 Path resultFile;
-                resultFile = FileUtil.createTempFile(mappingId + "_", ".mapping");
+                resultFile = FileUtil.createTempFile(mappingId + "_" + srcFile.hashCode(), ".result");
                 PluginManager.soleInstance().mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
                 returnValue = Optional.of(resultFile);
                 // remove downloaded file

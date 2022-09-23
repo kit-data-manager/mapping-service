@@ -140,8 +140,8 @@ public class FileUtil {
      */
     public static Path createTempFile(String prefix, String suffix) {
         Path tempFile;
-        prefix = ((prefix == null) || (prefix.trim().isEmpty())) ? DEFAULT_PREFIX : prefix;
-        suffix = ((suffix == null) || (suffix.trim().isEmpty())) ? DEFAULT_SUFFIX : suffix;
+        prefix = (prefix == null || prefix.trim().isEmpty()) ? DEFAULT_PREFIX : prefix;
+        suffix = (suffix == null || suffix.trim().isEmpty() || suffix.trim().equals(".")) ? DEFAULT_SUFFIX : suffix;
         try {
             tempFile = Files.createTempFile(prefix, suffix);
         } catch (IOException ioe) {
