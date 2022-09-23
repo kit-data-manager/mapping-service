@@ -48,6 +48,8 @@ function load() {
             isEdit = true
             changeUIMode()
             document.getElementById("id").value = data.record.mappingId
+            document.getElementById("id").disabled = true
+            document.getElementById("id").ariaReadOnly = "true"
             // document.getElementById("type").value = data.record.mappingType
             selectType(data.record.mappingType)
             document.getElementById("title").value = data.record.title

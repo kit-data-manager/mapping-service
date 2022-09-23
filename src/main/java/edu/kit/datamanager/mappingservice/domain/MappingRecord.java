@@ -18,17 +18,15 @@ package edu.kit.datamanager.mappingservice.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import edu.kit.datamanager.entities.EtagSupport;
-import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
 import org.springframework.http.MediaType;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -36,8 +34,11 @@ import java.util.Set;
  */
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
-@IdClass(CompositeKey.class)
-@Data
+//@IdClass(CompositeKey.class)
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class MappingRecord implements EtagSupport, Serializable {
     public final static MediaType MAPPING_RECORD_MEDIA_TYPE = MediaType.valueOf("application/vnd.datamanager.mapping-record+json");
 
@@ -54,8 +55,9 @@ public class MappingRecord implements EtagSupport, Serializable {
     @NotNull(message = "Description of the mapping.")
     private String description;
 
-    @NotNull(message = "A list of access control entries for resticting access.")
-    @OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
+    @NotNull(message = "A list of access control entries for restricting access.")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private final Set<AclEntry> acl = new HashSet<>();
 
     @NotNull(message = "The metadata document uri, e.g. pointing to a local file.")
@@ -67,7 +69,7 @@ public class MappingRecord implements EtagSupport, Serializable {
     /**
      * Set new access control list.
      *
-     * @param newAclList new list with acls.
+     * @param newAclList new list with acl.
      */
     public void setAcl(Set<AclEntry> newAclList) {
         acl.clear();
@@ -78,5 +80,18 @@ public class MappingRecord implements EtagSupport, Serializable {
     @JsonIgnore
     public String getEtag() {
         return Integer.toString(hashCode());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        MappingRecord that = (MappingRecord) o;
+        return mappingId != null && Objects.equals(mappingId, that.mappingId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mappingId);
     }
 }

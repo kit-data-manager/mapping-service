@@ -5,7 +5,7 @@
 //import edu.kit.datamanager.mappingservice.MappingServiceApplication;
 //import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 //import edu.kit.datamanager.mappingservice.domain.MappingRecord;
-//import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
+//import edu.kit.datamanager.mappingservice.domain.AclEntry;
 //import org.apache.commons.io.FileUtils;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;

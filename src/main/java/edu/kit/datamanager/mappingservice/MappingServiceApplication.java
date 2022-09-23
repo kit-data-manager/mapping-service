@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 @EntityScan("edu.kit.datamanager")
 @Configuration
 public class MappingServiceApplication {
-
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
     @Bean
