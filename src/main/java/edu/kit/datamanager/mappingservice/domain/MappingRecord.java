@@ -62,7 +62,7 @@ public class MappingRecord implements EtagSupport, Serializable {
     @NotNull(message = "The metadata document uri, e.g. pointing to a local file.")
     private String mappingDocumentUri;
 
-    @NotNull(message = "The SHA-1 hash of the associated metadata file. The hash is used for comparison while updating.")
+    @NotNull(message = "The SHA-256 hash of the associated metadata file. The hash is used for comparison while updating.")
     private String documentHash;
 
     /**
