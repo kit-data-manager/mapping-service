@@ -34,7 +34,6 @@ import java.util.Set;
  */
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
-//@IdClass(CompositeKey.class)
 @Getter
 @Setter
 @ToString

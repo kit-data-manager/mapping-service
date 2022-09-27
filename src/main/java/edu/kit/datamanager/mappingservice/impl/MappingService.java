@@ -191,12 +191,12 @@ public class MappingService {
                 mapping.setMappingDocumentUri(newMappingFile.toString());
                 byte[] data = content.getBytes();
 
-                MessageDigest md = MessageDigest.getInstance("SHA1");
+                MessageDigest md = MessageDigest.getInstance("SHA256");
                 md.update(data, 0, data.length);
 
-                mapping.setDocumentHash("sha1:" + Hex.encodeHexString(md.digest()));
+                mapping.setDocumentHash("sha256:" + Hex.encodeHexString(md.digest()));
             } catch (NoSuchAlgorithmException ex) {
-                String message = "Failed to initialize SHA1 MessageDigest.";
+                String message = "Failed to initialize SHA256 MessageDigest.";
                 LOGGER.error(message, ex);
                 throw new MappingException(message, ex);
             } catch (IllegalArgumentException iae) {
