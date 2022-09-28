@@ -44,6 +44,11 @@ public class AclEntry {
     @Enumerated(EnumType.STRING)
     private PERMISSION permission;
 
+    public AclEntry(String sid, PERMISSION permission) {
+        this.sid = sid;
+        this.permission = permission;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;

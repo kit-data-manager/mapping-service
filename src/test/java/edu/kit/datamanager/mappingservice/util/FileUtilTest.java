@@ -17,6 +17,8 @@ package edu.kit.datamanager.mappingservice.util;
 
 import com.google.common.io.Files;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -288,4 +290,44 @@ public class FileUtilTest {
         assertNull(result);
     }
 
+    @Test
+    void cloneValidGitRepository() {
+        Path util = null;
+        try {
+            util = FileUtil.cloneGitRepository("https://github.com/maximilianiKIT/mapping-service.git", "main", "/tmp/test");
+        } catch (Exception e) {
+            fail(e);
+        }
+        try {
+            FileUtils.deleteDirectory(new File("tmp/test"));
+        } catch (IOException e) {
+        }
+        assertNotNull(util);
+        util = null;
+        try {
+            util = FileUtil.cloneGitRepository("https://github.com/maximilianiKIT/mapping-service.git", "main");
+        } catch (Exception e) {
+            fail(e);
+        }
+        assertNotNull(util);
+        try {
+            FileUtils.deleteDirectory(new File(util.toUri()));
+        } catch (IOException e) {
+        }
+        util = null;
+    }
+
+    @Test
+    void cloneInvalidGitRepository() {
+        assertThrows(MappingException.class, () -> FileUtil.cloneGitRepository("test", "test", "test"));
+        assertThrows(MappingException.class, () -> FileUtil.cloneGitRepository("test", "test"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        try {
+            FileUtils.deleteDirectory(new File("lib"));
+        } catch (IOException ignored) {
+        }
+    }
 }

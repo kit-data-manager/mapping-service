@@ -49,6 +49,9 @@ class AclEntryTest {
 
     @Test
     void testEquals() {
+        assertEquals(aclEntry, aclEntry);
+        assertFalse(aclEntry.equals(null));
+        assertNotEquals(aclEntry, new Object());
         assertEquals(aclEntry, new AclEntry());
         assertNotEquals(aclEntry, aclEntry2);
         AclEntry test = new AclEntry();
@@ -56,6 +59,8 @@ class AclEntryTest {
         test.setSid("User1");
         test.setPermission(PERMISSION.ADMINISTRATE);
         assertEquals(aclEntry2, test);
+        test.setSid("User2");
+        assertNotEquals(aclEntry2, test);
     }
 
     @Test

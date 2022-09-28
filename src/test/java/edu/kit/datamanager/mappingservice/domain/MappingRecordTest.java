@@ -69,6 +69,9 @@ class MappingRecordTest {
 
     @Test
     void testEquals() {
+        assertEquals(record, record);
+        assertNotEquals(record, null);
+        assertNotEquals(record, new Object());
         MappingRecord testRecord = new MappingRecord();
         assertNotEquals(record, testRecord);
         testRecord.setMappingId("testID");
