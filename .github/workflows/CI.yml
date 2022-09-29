@@ -7,9 +7,9 @@ name: Java CI
 
 on:
   push:
-    branches: [ main , dev]
+    branches: [main , dev]
   pull_request:
-    branches: "*"
+    branches: [main , dev]
 
 jobs:
   build:
@@ -51,7 +51,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew clean test jacocoTestReport
+        run: ./gradlew clean test jacocoTestReport --scan --stacktrace
       - name: Codecov
         uses: codecov/codecov-action@v1
         with:
