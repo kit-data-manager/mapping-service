@@ -50,8 +50,12 @@ jobs:
         run: pip3 install --upgrade pip
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Build with Gradle
-        run: ./gradlew clean test jacocoTestReport --scan --stacktrace
+      - name: Clean
+        run: ./gradlew clean
+      - name: Test with Gradle
+        run: ./gradlew test --scan --stacktrace
+      - name: Generate report
+        run: ./gradlew jacocoTestReport
       - name: Codecov
         uses: codecov/codecov-action@v1
         with:
