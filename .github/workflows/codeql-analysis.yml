@@ -81,13 +81,38 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
-        
-    - name: 'Dependency Review'
-      uses: actions/dependency-review-action@v2
 
-    - name: Scan the image and upload dependency results
-      uses: anchore/sbom-action@v0
-      with:
-        artifact-name: image.spdx.json
-        dependency-snapshot: true
+  review:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java' ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Set up OpenJDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@v2
+
+      - name: Scan the image and upload dependency results
+        uses: anchore/sbom-action@v0
+        with:
+          artifact-name: image.spdx.json
+          dependency-snapshot: true
 
