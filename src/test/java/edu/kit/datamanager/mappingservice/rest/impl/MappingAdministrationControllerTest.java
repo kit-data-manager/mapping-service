@@ -18,6 +18,7 @@ package edu.kit.datamanager.mappingservice.rest.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.entities.PERMISSION;
+import edu.kit.datamanager.mappingservice.MappingServiceApplication;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.AclEntry;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
@@ -78,8 +79,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @EnableRuleMigrationSupport
-@SpringBootTest
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = MappingServiceApplication.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = MappingServiceApplication.class)
 //RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
@@ -99,6 +99,7 @@ public class MappingAdministrationControllerTest {
     private static final String MAPPING_TITLE = "TITEL";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
 
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
