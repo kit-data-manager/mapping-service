@@ -80,6 +80,7 @@ dependencies {
 test {
     outputs.dir snippetsDir
     finalizedBy jacocoTestReport
+    environment 'spring.config.location', 'classpath:/test-config/'
     useJUnitPlatform()
 }
 
