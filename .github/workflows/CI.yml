@@ -12,7 +12,27 @@ on:
     branches: "*"
 
 jobs:
-  build-jdk:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jdk: [ 17 ]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Set up OpenJDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.jdk }}
+      - name: Install python
+        run: sudo apt install -y python3 python3-setuptools python3-pip
+      - name: Update pip
+        run: pip3 install --upgrade pip
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew clean build
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
