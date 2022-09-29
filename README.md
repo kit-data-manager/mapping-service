@@ -1,15 +1,19 @@
 # Mapping-Service
 
 [![Java CI with Gradle](https://github.com/maximilianiKIT/mapping-service/actions/workflows/CI.yml/badge.svg)](https://github.com/maximilianiKIT/mapping-service/actions/workflows/CI.yml)
-![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)
+[![CodeQL](https://github.com/maximilianiKIT/mapping-service/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/maximilianiKIT/mapping-service/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/maximilianiKIT/mapping-service/branch/main/graph/badge.svg?token=XFhZruKFaE)](https://codecov.io/gh/maximilianiKIT/mapping-service)
+[![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)](https://github.com/maximilianiKIT/mapping-service/blob/c3ab1c96643b3409774eafd4c8f0843cb9ae2aa1/LICENSE)
 
 :warning:
 Not fully tested yet!
+The mapping-service provides a generic interface for mapping various documents. 
+The tools required for this, such as Gemma, JOLT, XSLT, ... can be loaded into the mapping-service as plugins, regardless of the programming language in which they were developed. 
+These tools are then made usable via the REST-API and a Web-UI. 
+The mapping schemas are stored in a database and can be managed via the REST-API and the Web-UI.
 
-The mapping service allows multiple schemas to be uploaded and managed and documents to be mapped over one of them at a time accordingly.
-Therefore, the service is extensible to other mappers, although currently only Gemma, a service that can only map JSON files, is available.
-The REST API is documented at the following link: [http://localhost:8095/swagger-ui/index.html](http://localhost:8095/swagger-ui/index.html)
+The Web-UI is accessible via the following URL: [http://\<IP or hostname>:8095](http://localhost:8095)
+The REST-API is documented at the following link: [http://\<IP or hostname>:8095/swagger-ui/index.html](http://localhost:8095/swagger-ui/index.html)
 
 ## How to build
 
