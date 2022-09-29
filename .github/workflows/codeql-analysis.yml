@@ -83,7 +83,7 @@ jobs:
         category: "/language:${{matrix.language}}"
 
   review:
-    name: Analyze
+    name: Review Dependencies and create SBOM
     runs-on: ubuntu-latest
     permissions:
       actions: read
