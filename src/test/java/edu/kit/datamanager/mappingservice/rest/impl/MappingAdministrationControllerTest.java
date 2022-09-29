@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,9 +34,15 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.operation.preprocess.Preprocessors;
+import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -69,22 +76,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  *
  */
-//@ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-//@EnableRuleMigrationSupport
-//@SpringBootTest
-////@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = MappingServiceApplication.class)
-////RANDOM_PORT)
-//@AutoConfigureMockMvc
-//@TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
-//        DependencyInjectionTestExecutionListener.class,
-//        DirtiesContextTestExecutionListener.class,
-//        TransactionalTestExecutionListener.class,
-//        WithSecurityContextTestExecutionListener.class})
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@EnableRuleMigrationSupport
+@SpringBootTest
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = MappingServiceApplication.class)
+//RANDOM_PORT)
 @AutoConfigureMockMvc
+@TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
+        DependencyInjectionTestExecutionListener.class,
+        DirtiesContextTestExecutionListener.class,
+        TransactionalTestExecutionListener.class,
+        WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41300"})
+@TestPropertySource(properties = {"mapping-service.mappings-location=/tmp/mapping-service"})
+@TestPropertySource(properties = {"mapping-service.python-location=/usr/bin/python3"})
 public class MappingAdministrationControllerTest {
 
     private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
