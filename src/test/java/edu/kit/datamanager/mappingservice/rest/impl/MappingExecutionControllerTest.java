@@ -69,7 +69,7 @@
 //    private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
 //    private static final String MAPPING_ID = "my_dc";
 //    private static final String MAPPING_TYPE = "GEMMA";
-//    private static final String MAPPING_URL = "/api/v1/mappingExecution/" + MAPPING_ID + "/" + MAPPING_TYPE;
+//    private static final String MAPPING_URL = "/api/v1/mappingExecution/" + MAPPING_ID;
 //
 //    private MockMvc mockMvc;
 //
