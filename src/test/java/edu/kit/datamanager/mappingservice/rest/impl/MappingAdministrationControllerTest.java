@@ -88,7 +88,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TransactionalTestExecutionListener.class,
         WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
-@TestPropertySource(properties = {"server.port=41300"})
+@TestPropertySource(properties = {"server.port=41300", "mapping-service.python-location=/usr/bin/python3", "mapping-service.mappings-location=/tmp/mapping-service/"})
 public class MappingAdministrationControllerTest {
 
     private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
