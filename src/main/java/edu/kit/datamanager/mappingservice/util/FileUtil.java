@@ -140,8 +140,8 @@ public class FileUtil {
      */
     public static Path createTempFile(String prefix, String suffix) {
         Path tempFile;
-        prefix = ((prefix == null) || (prefix.trim().isEmpty())) ? DEFAULT_PREFIX : prefix;
-        suffix = ((suffix == null) || (suffix.trim().isEmpty())) ? DEFAULT_SUFFIX : suffix;
+        prefix = (prefix == null || prefix.trim().isEmpty()) ? DEFAULT_PREFIX : prefix;
+        suffix = (suffix == null || suffix.trim().isEmpty() || suffix.trim().equals(".")) ? DEFAULT_SUFFIX : suffix;
         try {
             tempFile = Files.createTempFile(prefix, suffix);
         } catch (IOException ioe) {
@@ -189,7 +189,20 @@ public class FileUtil {
      * @return the path to the cloned repository
      */
     public static Path cloneGitRepository(String repositoryUrl, String branch) {
-        File target = new File("lib/" + repositoryUrl.trim().replace("https://", "").replace(".git", "") + "_" + branch);
+        String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
+        return cloneGitRepository(repositoryUrl, branch, target);
+    }
+
+    /**
+     * This method clones a git repository into the 'lib' folder.
+     *
+     * @param repositoryUrl the url of the repository to clone
+     * @param branch the branch to clone
+     * @param targetFolder the target folder
+     * @return the path to the cloned repository
+     */
+    public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
+        File target = new File(targetFolder);
         target.mkdirs();
 
         LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());

@@ -48,6 +48,8 @@ function load() {
             isEdit = true
             changeUIMode()
             document.getElementById("id").value = data.record.mappingId
+            document.getElementById("id").disabled = true
+            document.getElementById("id").ariaReadOnly = "true"
             // document.getElementById("type").value = data.record.mappingType
             selectType(data.record.mappingType)
             document.getElementById("title").value = data.record.title
@@ -69,7 +71,7 @@ function load() {
 function addACL() {
     const sid = document.getElementById("sid").value
     const permission = document.getElementById("permission").value
-    if (aclEdit != null) {
+    if (aclEdit != null && sid !== acl[0].sid) {
         deleteACL(aclEdit)
         aclEdit = null
     }
@@ -116,10 +118,24 @@ function addACLElement(index, sid, permission) {
 
 function editACL(index) {
     console.log("Editing ACL " + acl[index])
+    document.getElementById("addACLButton").click()
     document.getElementById("sid").value = acl[index].sid
     document.getElementById("permission").value = acl[index].permission
-    document.getElementById("addACLButton").click()
+    showSID(true)
     aclEdit = index
+}
+
+function showSID(edit){
+    if(isEdit && edit) {
+        console.log("Disabling input!")
+        document.getElementById("sid").disabled = true
+        document.getElementById("sid").ariaReadOnly = "true"
+    } else {
+        console.log("Enabling input!")
+        if(!edit) document.getElementById("sid").value = ""
+        document.getElementById("sid").disabled = false
+        document.getElementById("sid").ariaReadOnly = "false"
+    }
 }
 
 function deleteACL(index) {

@@ -15,6 +15,8 @@
  */
 package edu.kit.datamanager.mappingservice.configuration;
 
+import edu.kit.datamanager.annotations.ExecutableFileURL;
+import edu.kit.datamanager.annotations.LocalFolderURL;
 import edu.kit.datamanager.configuration.GenericPluginProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,19 +37,19 @@ import java.net.URL;
 @Component
 @Data
 @Validated
-@EqualsAndHashCode(callSuper = true)
-public class ApplicationProperties extends GenericPluginProperties {
+@EqualsAndHashCode
+public class ApplicationProperties {
     /**
      * The absolute path to the python interpreter.
      */
-    @edu.kit.datamanager.annotations.ExecutableFileURL
+    @ExecutableFileURL
     @Value("${mapping-service.pythonLocation}")
     private URL pythonLocation;
 
     /**
      * The absolute path where the mappings are stored.
      */
-    @edu.kit.datamanager.annotations.LocalFolderURL
+    @LocalFolderURL
     @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
 }

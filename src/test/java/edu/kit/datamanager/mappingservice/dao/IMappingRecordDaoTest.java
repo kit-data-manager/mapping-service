@@ -109,12 +109,9 @@
 //        }
 //        assertEquals(1, mappingRepo.count());
 //
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
-//
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id).isPresent());
+//        assertTrue(!mappingRepo.findByMappingId(id_2).isPresent());
+//        assertTrue(!mappingRepo.findByMappingId(id_2).isPresent());
 //
 //        mappingRecord.setMappingId(id_2);
 //        try {
@@ -125,12 +122,10 @@
 //        }
 //        assertEquals(2, mappingRepo.count());
 //
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id).isPresent());;
+//        assertTrue(mappingRepo.findByMappingId(id_2).isPresent());
+//        assertTrue(!mappingRepo.findByMappingId(id_2).isPresent());
 //
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
 //        mappingRecord.setMappingType(mappingType_2);
 //        try {
 //            mappingRepo.save(mappingRecord);
@@ -140,12 +135,10 @@
 //        }
 //        assertEquals(3, mappingRepo.count());
 //
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id_2).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id_2).isPresent());
 //
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
 //        mappingRecord.setMappingId(id);
 //        try {
 //            mappingRepo.save(mappingRecord);
@@ -155,12 +148,9 @@
 //        }
 //        assertEquals(4, mappingRepo.count());
 //
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType).isPresent());
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id, mappingType_2).isPresent());
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType).isPresent());
-//        assertTrue(mappingRepo.findByMappingIdAndMappingType(id_2, mappingType_2).isPresent());
-//
-//        assertTrue(!mappingRepo.findByMappingIdAndMappingType(id, null).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id_2).isPresent());
+//        assertTrue(mappingRepo.findByMappingId(id_2).isPresent());
 //    }
 //
 //    @Test
@@ -190,8 +180,8 @@
 //        }
 //        assertEquals(1, mappingRepo.count());
 //
-//        assertTrue(mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id), Arrays.asList((String) null)).iterator().hasNext());
-//        assertTrue(!mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id_2), Arrays.asList((String) null)).iterator().hasNext());
+//        assertTrue(mappingRepo.findByMappingIdIn(Arrays.asList(id)).iterator().hasNext());
+//        assertTrue(!mappingRepo.findByMappingIdIn(Arrays.asList(id_2)).iterator().hasNext());
 //
 //        mappingRecord.setMappingId(id_2);
 //        try {
@@ -202,8 +192,8 @@
 //        }
 //        assertEquals(2, mappingRepo.count());
 //
-//        assertTrue(mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id), Arrays.asList((String) null)).iterator().hasNext());
-//        assertTrue(mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id_2), Arrays.asList((String) null)).iterator().hasNext());
+//        assertTrue(mappingRepo.findByMappingIdIn(Arrays.asList(id)).iterator().hasNext());
+//        assertTrue(mappingRepo.findByMappingIdIn(Arrays.asList(id)).iterator().hasNext());
 //
 //        mappingRecord.setMappingType(mappingType_2);
 //        try {
@@ -214,8 +204,8 @@
 //        }
 //        assertEquals(3, mappingRepo.count());
 //
-//        Iterator iterator4id = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id), Arrays.asList((String) null)).iterator();
-//        Iterator iterator4id_2 = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id_2), Arrays.asList((String) null)).iterator();
+//        Iterator iterator4id = mappingRepo.findByMappingIdIn(Arrays.asList(id)).iterator();
+//        Iterator iterator4id_2 = mappingRepo.findByMappingIdIn(Arrays.asList(id)).iterator();
 //        assertTrue(iterator4id.hasNext());
 //        iterator4id.next();
 //        assertTrue(!iterator4id.hasNext());
@@ -232,8 +222,8 @@
 //        }
 //        assertEquals(4, mappingRepo.count());
 //        // found 2 results for each mapping id
-//        iterator4id = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id), Arrays.asList((String) null)).iterator();
-//        iterator4id_2 = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList(id_2), Arrays.asList((String) null)).iterator();
+//        iterator4id = mappingRepo.findByMappingIdIn(Arrays.asList(id)).iterator();
+//        iterator4id_2 = mappingRepo.findByMappingIdIn(Arrays.asList(id_2)).iterator();
 //        assertTrue(iterator4id.hasNext());
 //        iterator4id.next();
 //        assertTrue(iterator4id.hasNext());
@@ -241,8 +231,8 @@
 //        iterator4id_2.next();
 //        assertTrue(iterator4id_2.hasNext());
 //        // Found 2 results for each mapping type
-//        iterator4id = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList((String) null), Arrays.asList((String) mappingType)).iterator();
-//        iterator4id_2 = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList((String) null), Arrays.asList((String) mappingType_2)).iterator();
+//        iterator4id = mappingRepo.findByMappingIdIn(Arrays.asList((String) null)).iterator();
+//        iterator4id_2 = mappingRepo.findByMappingIdIn(Arrays.asList((String) null)).iterator();
 //        assertTrue(iterator4id.hasNext());
 //        iterator4id.next();
 //        assertTrue(iterator4id.hasNext());
@@ -250,7 +240,7 @@
 //        iterator4id_2.next();
 //        assertTrue(iterator4id_2.hasNext());
 //        // No value if all arguments are null
-//        iterator4id = mappingRepo.findByMappingIdInOrMappingTypeIn(Arrays.asList((String) null), Arrays.asList((String) null)).iterator();
+//        iterator4id = mappingRepo.findByMappingIdIn(Arrays.asList((String) null)).iterator();
 //        assertTrue(!iterator4id.hasNext());
 //    }
 //

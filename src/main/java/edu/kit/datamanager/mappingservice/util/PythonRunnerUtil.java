@@ -49,7 +49,7 @@ public class PythonRunnerUtil {
     public static void printPythonVersion() {
         try {
             LOGGER.info("Configured Python version:");
-            PythonRunnerUtil.runPythonScript("--version");
+            PythonRunnerUtil.runPythonScript("--version", new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO));
         } catch (MappingPluginException e) {
             e.printStackTrace();
         }

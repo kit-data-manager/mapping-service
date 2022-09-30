@@ -19,7 +19,7 @@ import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.exceptions.ResourceNotFoundException;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.domain.acl.AclEntry;
+import edu.kit.datamanager.mappingservice.domain.AclEntry;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
@@ -319,7 +319,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
     @Override
     public ResponseEntity<String> reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
-        PluginManager.reloadPlugins();
+        PluginManager.soleInstance().reloadPlugins();
         return ResponseEntity.noContent().build();
     }
 

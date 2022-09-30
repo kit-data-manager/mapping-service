@@ -12,6 +12,7 @@ function actualizeDarkMode() {
         document.body.removeAttribute("data-theme");
     } else {
         document.cookie = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "darkMode=true" : "darkMode=false";
+        actualizeDarkMode()
     }
 }
 

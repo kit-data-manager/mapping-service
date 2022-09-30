@@ -44,10 +44,10 @@ public class PluginManager {
     /**
      * Map of plugins.
      */
-    private static Map<String, IMappingPlugin> plugins;
+    private Map<String, IMappingPlugin> plugins;
 
     static {
-        reloadPlugins(); // loads plugins on startup
+        soleInstance.reloadPlugins(); // loads plugins on startup
     }
 
     /**
@@ -69,7 +69,7 @@ public class PluginManager {
     /**
      * Reloads the plugins from the 'plugins' directory.
      */
-    public static void reloadPlugins() {
+    public void reloadPlugins() {
         Map<String, IMappingPlugin> plugins1;
         try {
             plugins1 = PluginLoader.loadPlugins(new File("./plugins"));
@@ -116,11 +116,17 @@ public class PluginManager {
      * @throws MappingPluginException If there is an error with the plugin or the input.
      */
     public MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
-        for (var entry : plugins.entrySet()) {
-            if (entry.getKey().equals(pluginId)) {
-                return entry.getValue().mapFile(mappingFile, inputFile, outputFile);
-            }
-        }
-        throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin " + pluginId + " not found!");
+//        for (var entry : plugins.entrySet()) {
+//            if (entry.getKey().equals(pluginId)) {
+//                return entry.getValue().mapFile(mappingFile, inputFile, outputFile);
+//            }
+//        }
+        if (pluginId == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Plugin ID is null.");
+        if (mappingFile == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to mapping schema is null.");
+        if (inputFile == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to input file is null.");
+        if (outputFile == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to output file is null.");
+
+        if(plugins.containsKey(pluginId)) return plugins.get(pluginId).mapFile(mappingFile, inputFile, outputFile);
+        throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin '" + pluginId + "' not found!");
     }
 }
