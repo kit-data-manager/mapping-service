@@ -61,7 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TransactionalTestExecutionListener.class,
         WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
-@TestPropertySource(properties = {"server.port=41300"})
+@TestPropertySource(properties = {"server.port=41500"})
 public class MappingExecutionControllerTest {
 
     private final static String TEMP_DIR_4_ALL = "/tmp/mapping-service/";
