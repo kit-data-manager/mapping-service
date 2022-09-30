@@ -13,12 +13,12 @@ on:
 
 jobs:
   build:
-    name: Build, test and generate coverage report with Gradle on JDK ${{ matrix.jdk }}
+    name: Build and generate coverage report with Gradle in JDK ${{ matrix.jdk }} on ${{ matrix.os }}
     strategy:
       matrix:
 #        os: [ubuntu-latest, windows-latest, macos-latest]
         os: [ubuntu-latest, macos-latest]
-        jdk: [17, 18]
+        jdk: [17]
         python-version: [3.9]
     runs-on: ${{ matrix.os }}
     steps:
