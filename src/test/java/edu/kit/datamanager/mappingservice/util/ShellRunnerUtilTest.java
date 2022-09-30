@@ -36,7 +36,7 @@ class ShellRunnerUtilTest {
 
     @Test
     void runInvalid() {
-        assertThrows(MappingPluginException.class, () -> ShellRunnerUtil.run(null));
+        assertThrows(MappingPluginException.class, () -> ShellRunnerUtil.run(""));
         assertThrows(MappingPluginException.class, () -> ShellRunnerUtil.run("blablusdhflakjdsfh"));
         assertThrows(MappingPluginException.class, () -> ShellRunnerUtil.run(-5, "echo", "test"));
         assertThrows(MappingPluginException.class, () -> ShellRunnerUtil.run(null, System.err, "echo", "test"));
