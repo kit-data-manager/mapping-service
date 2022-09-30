@@ -319,7 +319,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
     @Override
     public ResponseEntity<String> reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
-        PluginManager.reloadPlugins();
+        PluginManager.soleInstance().reloadPlugins();
         return ResponseEntity.noContent().build();
     }
 
