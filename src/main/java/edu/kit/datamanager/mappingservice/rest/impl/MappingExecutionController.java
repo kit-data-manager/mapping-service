@@ -20,6 +20,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -66,7 +67,10 @@ public class MappingExecutionController implements IMappingExecutionController {
 
         Path resultPath = null;
         if (!document.isEmpty() && !mappingID.isBlank()) {
-            Path inputPath = FileUtil.createTempFile("inputMultipart", "");
+            String extension = "." + FilenameUtils.getExtension(document.getOriginalFilename());
+            LOG.info("Found file with ending: {}", extension);
+            Path inputPath = FileUtil.createTempFile("inputMultipart", extension);
+            LOG.info("Saved file to: {}", inputPath);
             File inputFile = inputPath.toFile();
             try {
                 document.transferTo(inputFile);

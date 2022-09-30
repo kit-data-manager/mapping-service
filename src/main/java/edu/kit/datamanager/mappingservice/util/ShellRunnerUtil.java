@@ -90,6 +90,11 @@ public class ShellRunnerUtil {
      * @throws MappingPluginException If an error occurs.
      */
     public static MappingPluginState run(OutputStream output, OutputStream error, int timeOutInSeconds, String... command) throws MappingPluginException {
+        if (output == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Output stream is null.");
+        if (error == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Error stream is null.");
+        if (timeOutInSeconds <= 0) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Timeout is null or negative.");
+        if (command == null || command.length == 0) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "No command given.");
+
         ExecutorService pool = Executors.newSingleThreadExecutor();
         int result;
         MappingPluginState returnValue = MappingPluginState.SUCCESS;
@@ -123,13 +128,13 @@ public class ShellRunnerUtil {
                 throw new ExecutionException(new Throwable());
             }
         } catch (IOException ioe) {
-            LOGGER.error("Failed to execute python.", ioe);
+            LOGGER.error("Failed to execute command.", ioe);
             returnValue = MappingPluginState.EXECUTION_ERROR;
         } catch (TimeoutException te) {
-            LOGGER.error("Python script did not return in expected timeframe of " + TIMEOUT + " seconds", te);
+            LOGGER.error("Command did not return in expected timeframe of " + TIMEOUT + " seconds", te);
             returnValue = MappingPluginState.TIMEOUT;
         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Failed to execute python script due to an unknown Exception.", e);
+            LOGGER.error("Failed to execute command due to an unknown exception.", e);
             returnValue = MappingPluginState.UNKNOWN_ERROR;
         } finally {
             pool.shutdown();

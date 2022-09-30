@@ -51,7 +51,8 @@ public class MappingService {
     /**
      * Repo holding all MappingRecords.
      */
-    private final IMappingRecordDao mappingRepo;
+    @Autowired
+    private IMappingRecordDao mappingRepo;
     /**
      * Path to directory holding all mapping files.
      */
@@ -63,9 +64,8 @@ public class MappingService {
     private final static Logger LOGGER = LoggerFactory.getLogger(MappingService.class);
 
     @Autowired
-    public MappingService(ApplicationProperties applicationProperties, IMappingRecordDao mappingRepo) {
+    public MappingService(ApplicationProperties applicationProperties) {
         init(applicationProperties);
-        this.mappingRepo = mappingRepo;
     }
 
     /**
@@ -138,7 +138,7 @@ public class MappingService {
                 Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
                 // execute mapping
                 Path resultFile;
-                resultFile = FileUtil.createTempFile(mappingId + "_", ".mapping");
+                resultFile = FileUtil.createTempFile(mappingId + "_" + srcFile.hashCode(), ".result");
                 PluginManager.soleInstance().mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
                 returnValue = Optional.of(resultFile);
                 // remove downloaded file
@@ -191,12 +191,12 @@ public class MappingService {
                 mapping.setMappingDocumentUri(newMappingFile.toString());
                 byte[] data = content.getBytes();
 
-                MessageDigest md = MessageDigest.getInstance("SHA1");
+                MessageDigest md = MessageDigest.getInstance("SHA256");
                 md.update(data, 0, data.length);
 
-                mapping.setDocumentHash("sha1:" + Hex.encodeHexString(md.digest()));
+                mapping.setDocumentHash("sha256:" + Hex.encodeHexString(md.digest()));
             } catch (NoSuchAlgorithmException ex) {
-                String message = "Failed to initialize SHA1 MessageDigest.";
+                String message = "Failed to initialize SHA256 MessageDigest.";
                 LOGGER.error(message, ex);
                 throw new MappingException(message, ex);
             } catch (IllegalArgumentException iae) {

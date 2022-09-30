@@ -60,5 +60,14 @@ public class MappingPluginException extends Exception {
         super(message, cause);
         this.state = state;
     }
+
+    /**
+     * This method returns the state of the plugin.
+     *
+     * @return The state of the plugin.
+     */
+    public MappingPluginState getState() {
+        return state;
+    }
 }
 

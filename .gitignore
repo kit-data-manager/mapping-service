@@ -236,4 +236,5 @@ gradle-app.setting
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,macos,gradle,linux
 lib/gemma
-!/plugins/gemma-plugin-0.1.0.jar
+!/plugins/gemma-plugin-0.1.0-SNAPSHOT-plain.jar
+!/plugins/empty-plugin-0.0.0-SNAPSHOT-plain.jar

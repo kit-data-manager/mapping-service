@@ -10,6 +10,7 @@ plugins {
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
+version = '0.1.0-SNAPSHOT'
 
 println "Running gradle version: $gradle.gradleVersion"
 println "Building ${name} version: ${version}"
@@ -30,6 +31,7 @@ repositories {
 
 ext {
     set('snippetsDir', file('build/generated-snippets'))
+    applicationProperties = System.getProperty('applicationProperties', 'src/main/resources/application.properties')
 }
 
 dependencies {
@@ -58,7 +60,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.3'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.6.RELEASE'
     testImplementation 'org.springframework.security:spring-security-test:5.7.3'
-    testImplementation 'org.springframework:spring-test:5.3.22'
+    testImplementation 'org.springframework:spring-test:5.3.23'
     testImplementation 'org.mockito:mockito-core:4.8.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
@@ -80,6 +82,9 @@ dependencies {
 test {
     outputs.dir snippetsDir
     finalizedBy jacocoTestReport
+    print("Running tests with configuration: ${applicationProperties}")
+    environment 'spring.config.location', applicationProperties
+//    environment 'spring.config.location', 'classpath:/test-config/'
     useJUnitPlatform()
 }
 
@@ -91,7 +96,7 @@ jacocoTestReport{
     dependsOn test
     reports {
         xml.required = true
-        html.required = false
+        html.required = true
     }
 }
 

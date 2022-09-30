@@ -1,11 +1,10 @@
 /*
  * Copyright 2022 Karlsruhe Institute of Technology.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,41 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.kit.datamanager.mappingservice.domain.acl;
+package edu.kit.datamanager.mappingservice.domain;
 
 import edu.kit.datamanager.annotations.SecureUpdate;
-import edu.kit.datamanager.util.EnumUtils;
 import edu.kit.datamanager.entities.PERMISSION;
+import edu.kit.datamanager.util.EnumUtils;
+import lombok.*;
 
+import javax.persistence.*;
 import java.util.Objects;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-import lombok.Data;
 
 /**
- * This class represents an entry in an access control list (ACL.
+ * This class represents an entry in an access control list (ACL).
+ *
  * @author jejkal
  */
 @Entity
 @Table(name = "mapper_acl")
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class AclEntry {
-
-    public AclEntry() {
-    }
-
-    public AclEntry(String identifier, PERMISSION permission) {
-        this();
-        this.sid = identifier;
-        this.permission = permission;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SecureUpdate("FORBIDDEN")
@@ -57,6 +43,11 @@ public class AclEntry {
     @SecureUpdate("ADMINISTRATE")
     @Enumerated(EnumType.STRING)
     private PERMISSION permission;
+
+    public AclEntry(String sid, PERMISSION permission) {
+        this.sid = sid;
+        this.permission = permission;
+    }
 
     @Override
     public int hashCode() {
