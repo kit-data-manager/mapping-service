@@ -60,7 +60,7 @@ jobs:
         run: ./gradlew clean
       - if: matrix.os == 'windows-latest'
         name: Test with Gradle on Windows
-        run: ./gradlew test -DapplicationProperties=src/test/resources/test-config/application-test-windows.properties
+        run: ./gradlew test -DapplicationProperties=src\test\resources\test-config\application-test-windows.properties
       - if: matrix.os != 'windows-latest'
         name: Test with Gradle on ${{ matrix.os }}
         run: ./gradlew test -DapplicationProperties=src/test/resources/test-config/application-test.properties
