@@ -99,13 +99,12 @@ class PluginManagerTest {
     @Test
     void mapFile() {
         try {
-            File outputFile = new File("src/test/resources/testOutput");
-            outputFile.delete();
-            assertFalse(outputFile.exists());
+            File outputFile = new File("/tmp/testOutput");
             PluginManager.soleInstance().mapFile("TEST_0.0.0", new File("mapping-schema").toPath(), new File("input").toPath(), outputFile.toPath());
             assertTrue(outputFile.exists());
             outputFile.delete();
         } catch (MappingPluginException e) {
+            e.printStackTrace();
             fail("Mapping failed");
         }
     }

@@ -30,6 +30,7 @@ repositories {
 
 ext {
     set('snippetsDir', file('build/generated-snippets'))
+    applicationProperties = System.getProperty('applicationProperties', 'src/main/resources/application.properties')
 }
 
 dependencies {
@@ -80,7 +81,9 @@ dependencies {
 test {
     outputs.dir snippetsDir
     finalizedBy jacocoTestReport
-    environment 'spring.config.location', 'classpath:/test-config/'
+    print("Running tests with configuration: ${applicationProperties}")
+    environment 'spring.config.location', applicationProperties
+//    environment 'spring.config.location', 'classpath:/test-config/'
     useJUnitPlatform()
 }
 
