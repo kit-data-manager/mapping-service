@@ -10,6 +10,7 @@ plugins {
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
+version = '0.1.0-SNAPSHOT'
 
 println "Running gradle version: $gradle.gradleVersion"
 println "Building ${name} version: ${version}"
