@@ -434,7 +434,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
-        assertEquals(1, mappingsDir.list().length);
+        assertEquals(2, mappingsDir.list().length);
         ObjectMapper map = new ObjectMapper();
         MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
         assertNotNull(resultRecord);
@@ -774,7 +774,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("mappingSchemas", mappingsDir.list()[0]);
+        assertEquals("my_dc_GEMMA.mapping", mappingsDir.list()[0]);
         assertEquals(1, mappingRecordDao.count());
     }
 
@@ -820,7 +820,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(delete(deleteMappingIdUrl)).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("mappingSchemas", mappingsDir.list()[0]);
+        assertEquals("my_dc_GEMMA.mapping", mappingsDir.list()[0]);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingRecordDao.count());
     }
@@ -844,7 +844,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("mappingSchemas", mappingsDir.list()[0]);
+        assertEquals("my_dc_GEMMA.mapping", mappingsDir.list()[0]);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingRecordDao.count());
     }
