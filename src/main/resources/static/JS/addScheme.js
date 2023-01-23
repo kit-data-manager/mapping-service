@@ -1,4 +1,4 @@
-const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration";
+const apiUrl = "./api/v1/mappingAdministration";
 
 let acl = []
 let types = []

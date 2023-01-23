@@ -1,5 +1,5 @@
-const execUrl = location.protocol + "//" + location.host + "/api/v1/mappingExecution/"
-const apiUrl = location.protocol + "//" + location.host + "/api/v1/mappingAdministration/";
+const execUrl = "./api/v1/mappingExecution/"
+const apiUrl = "./api/v1/mappingAdministration/";
 load()
 
 function load() {
