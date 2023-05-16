@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
@@ -37,6 +36,10 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 
 /**
  * Various utility methods for file handling.
@@ -46,174 +49,184 @@ import java.util.regex.Pattern;
  */
 public class FileUtil {
 
-    /**
-     * Default value for suffix of temporary files.
-     */
-    public static final String DEFAULT_SUFFIX = ".tmp";
-    /**
-     * Default value for prefix of temporary files.
-     */
-    public static final String DEFAULT_PREFIX = "MappingUtil_";
-    /**
-     * Logger for this class.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
+  /**
+   * Default value for suffix of temporary files.
+   */
+  public static final String DEFAULT_SUFFIX = ".tmp";
+  /**
+   * Default value for prefix of temporary files.
+   */
+  public static final String DEFAULT_PREFIX = "MappingUtil_";
+  /**
+   * Logger for this class.
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
-    private static final int MAX_LENGTH_OF_HEADER = 100;
+  private static final int MAX_LENGTH_OF_HEADER = 100;
 
-    private static final Pattern JSON_FIRST_BYTE = Pattern.compile("(\\R\\s)*\\s*\\{\\s*\"(.|\\s)*", Pattern.MULTILINE);//^\\s{\\s*\".*");
-    private static final Pattern XML_FIRST_BYTE = Pattern.compile("((.|\\s)*<\\?xml[^<]*)?\\s*<\\s*(\\w+:)?\\w+(.|\\s)*", Pattern.MULTILINE);
+  private static final Pattern JSON_FIRST_BYTE = Pattern.compile("(\\R\\s)*\\s*\\{\\s*\"(.|\\s)*", Pattern.MULTILINE);//^\\s{\\s*\".*");
+  private static final Pattern XML_FIRST_BYTE = Pattern.compile("((.|\\s)*<\\?xml[^<]*)?\\s*<\\s*(\\w+:)?\\w+(.|\\s)*", Pattern.MULTILINE);
 
-    /**
-     * Downloads or copy the file behind the given URI and returns its path on
-     * local disc. You should delete or move to another location afterwards.
-     *
-     * @param resourceURL the given URI
-     * @return the path to the created file.
-     */
-    public static Optional<Path> downloadResource(URI resourceURL) {
-        String content;
-        Path downloadedFile = null;
-        try {
-            if (resourceURL != null) {
-                String suffix = FilenameUtils.getExtension(resourceURL.getPath());
-                suffix = suffix.trim().isEmpty() ? DEFAULT_SUFFIX : "." + suffix;
-                if (resourceURL.getHost() != null) {
-                    content = SimpleServiceClient
-                            .create(resourceURL.toString())
-                            .accept(MediaType.TEXT_PLAIN)
-                            .getResource(String.class);
-                    downloadedFile = createTempFile("download", suffix);
-                    FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
-                } else {
-                    // copy local file to new place.
-                    File srcFile = new File(resourceURL.getPath());
-                    File destFile = FileUtil.createTempFile("local", suffix).toFile();
-                    FileUtils.copyFile(srcFile, destFile);
-                    downloadedFile = destFile.toPath();
-                }
-            }
-        } catch (Throwable tw) {
-            LOGGER.error("Error reading URI '" + resourceURL + "'", tw);
-            throw new MappingException("Error downloading resource from '" + resourceURL + "'!", tw);
-        }
-        downloadedFile = fixFileExtension(downloadedFile);
-
-        return Optional.ofNullable(downloadedFile);
-    }
-
-    /**
-     * Fix extension of file if possible.
-     *
-     * @param pathToFile the given URI
-     * @return the path to the (renamed) file.
-     */
-    public static Path fixFileExtension(Path pathToFile) {
-        Path returnFile = pathToFile;
-        Path renamedFile = pathToFile;
-        try {
-            if ((pathToFile != null) && (pathToFile.toFile().exists())) {
-                String contentOfFile = FileUtils.readFileToString(pathToFile.toFile(), StandardCharsets.UTF_8);
-                String newExtension = guessFileExtension(contentOfFile.getBytes());
-                if (newExtension != null) {
-                    if (!pathToFile.toString().endsWith(newExtension)) {
-                        renamedFile = Paths.get(pathToFile + newExtension);
-                        FileUtils.moveFile(pathToFile.toFile(), renamedFile.toFile());
-                        returnFile = renamedFile;
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            LOGGER.error("Error moving file '{}' to '{}'.", pathToFile, renamedFile);
-        }
-        return returnFile;
-    }
-
-    /**
-     * Create temporary file. Attention: The file will not be removed
-     * automatically.
-     *
-     * @param prefix prefix of the file
-     * @param suffix suffix of the file
-     * @return Path to file
-     * @throws MappingException if an error occurs
-     */
-    public static Path createTempFile(String prefix, String suffix) {
-        Path tempFile;
-        prefix = (prefix == null || prefix.trim().isEmpty()) ? DEFAULT_PREFIX : prefix;
-        suffix = (suffix == null || suffix.trim().isEmpty() || suffix.trim().equals(".")) ? DEFAULT_SUFFIX : suffix;
-        try {
-            tempFile = Files.createTempFile(prefix, suffix);
-        } catch (IOException ioe) {
-            throw new MappingException("Error creating tmp file!", ioe);
-        }
-        return tempFile;
-    }
-
-    /**
-     * Remove temporary file.
-     *
-     * @param tempFile Path to file
-     */
-    public static void removeFile(Path tempFile) {
-        try {
-            Files.deleteIfExists(tempFile);
-        } catch (IOException ioe) {
-            throw new MappingException("Error removing file '" + tempFile + "'!", ioe);
-        }
-    }
-
-    private static String guessFileExtension(byte[] schema) {
-        // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
-        int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
-        String schemaAsString = new String(schema, 0, length);
-        LOGGER.trace("Guess type for '{}'", schemaAsString);
-
-        Matcher m = JSON_FIRST_BYTE.matcher(schemaAsString);
-        if (m.matches()) {
-            return ".json";
+  /**
+   * Downloads or copy the file behind the given URI and returns its path on
+   * local disc. You should delete or move to another location afterwards.
+   *
+   * @param resourceURL the given URI
+   * @return the path to the created file.
+   */
+  public static Optional<Path> downloadResource(URI resourceURL) {
+    String content;
+    Path downloadedFile = null;
+    try {
+      if (resourceURL != null) {
+        String suffix = FilenameUtils.getExtension(resourceURL.getPath());
+        suffix = suffix.trim().isEmpty() ? DEFAULT_SUFFIX : "." + suffix;
+        if (resourceURL.getHost() != null) {
+          content = SimpleServiceClient
+                  .create(resourceURL.toString())
+                  .accept(MediaType.TEXT_PLAIN)
+                  .getResource(String.class);
+          downloadedFile = createTempFile("download", suffix);
+          FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
         } else {
-            m = XML_FIRST_BYTE.matcher(schemaAsString);
-            if (m.matches()) {
-                return ".xml";
-            }
+          // copy local file to new place.
+          File srcFile = new File(resourceURL.getPath());
+          File destFile = FileUtil.createTempFile("local", suffix).toFile();
+          FileUtils.copyFile(srcFile, destFile);
+          downloadedFile = destFile.toPath();
         }
-        return null;
+      }
+    } catch (Throwable tw) {
+      LOGGER.error("Error reading URI '" + resourceURL + "'", tw);
+      throw new MappingException("Error downloading resource from '" + resourceURL + "'!", tw);
     }
+    downloadedFile = fixFileExtension(downloadedFile);
 
-    /**
-     * This method clones a git repository into the 'lib' folder.
-     *
-     * @param repositoryUrl the url of the repository to clone
-     * @param branch the branch to clone
-     * @return the path to the cloned repository
-     */
-    public static Path cloneGitRepository(String repositoryUrl, String branch) {
-        String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
-        return cloneGitRepository(repositoryUrl, branch, target);
-    }
+    return Optional.ofNullable(downloadedFile);
+  }
 
-    /**
-     * This method clones a git repository into the 'lib' folder.
-     *
-     * @param repositoryUrl the url of the repository to clone
-     * @param branch the branch to clone
-     * @param targetFolder the target folder
-     * @return the path to the cloned repository
-     */
-    public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
-        File target = new File(targetFolder);
-        target.mkdirs();
+  /**
+   * Fix extension of file if possible.
+   *
+   * @param pathToFile the given URI
+   * @return the path to the (renamed) file.
+   */
+  public static Path fixFileExtension(Path pathToFile) {
+    Path returnFile = pathToFile;
+    Path renamedFile = pathToFile;
+    try {
+      if ((pathToFile != null) && (pathToFile.toFile().exists())) {
+        Tika tika = new Tika();
+        String mimeType = tika.detect(pathToFile.toFile());
+        MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+        MimeType estimatedMimeType = allTypes.forName(mimeType);
+        String newExtension = estimatedMimeType.getExtension(); // .jpg
 
-        LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
-        try {
-            Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
-        } catch (JGitInternalException e) {
-            LOGGER.info(e.getMessage());
-        } catch (GitAPIException ex) {
-            throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", ex);
+        if (newExtension != null) {
+          if (!pathToFile.toString().endsWith(newExtension)) {
+            renamedFile = Paths.get(pathToFile + newExtension);
+            FileUtils.moveFile(pathToFile.toFile(), renamedFile.toFile());
+            returnFile = renamedFile;
+          }
         }
-
-        return target.toPath();
+      }
+    } catch (IOException|MimeTypeException ex) {
+      LOGGER.error("Error moving file '{}' to '{}'.", pathToFile, renamedFile);
     }
+    return returnFile;
+  }
+
+  /**
+   * Create temporary file. Attention: The file will not be removed
+   * automatically.
+   *
+   * @param prefix prefix of the file
+   * @param suffix suffix of the file
+   * @return Path to file
+   * @throws MappingException if an error occurs
+   */
+  public static Path createTempFile(String prefix, String suffix) {
+    Path tempFile;
+    prefix = (prefix == null || prefix.trim().isEmpty()) ? DEFAULT_PREFIX : prefix;
+    suffix = (suffix == null || suffix.trim().isEmpty() || suffix.trim().equals(".")) ? DEFAULT_SUFFIX : suffix;
+    try {
+      tempFile = Files.createTempFile(prefix, suffix);
+    } catch (IOException ioe) {
+      throw new MappingException("Error creating tmp file!", ioe);
+    }
+    return tempFile;
+  }
+
+  /**
+   * Remove temporary file.
+   *
+   * @param tempFile Path to file
+   */
+  public static void removeFile(Path tempFile) {
+    try {
+      Files.deleteIfExists(tempFile);
+    } catch (IOException ioe) {
+      throw new MappingException("Error removing file '" + tempFile + "'!", ioe);
+    }
+  }
+
+  /**
+   * Guess the extension of the file from the first bytes using Apache Tika
+   *
+   * @param schema First bytes of the file.
+   * @return Estimated extension. e.g. '.xml'
+   */
+  private static String guessFileExtension(byte[] schema) {
+    // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
+    int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
+    String schemaAsString = new String(schema, 0, length);
+    LOGGER.trace("Guess type for '{}'", schemaAsString);
+
+    Matcher m = JSON_FIRST_BYTE.matcher(schemaAsString);
+    if (m.matches()) {
+      return ".json";
+    } else {
+      m = XML_FIRST_BYTE.matcher(schemaAsString);
+      if (m.matches()) {
+        return ".xml";
+      }
+    }
+    return null;
+  }
+
+  /**
+   * This method clones a git repository into the 'lib' folder.
+   *
+   * @param repositoryUrl the url of the repository to clone
+   * @param branch the branch to clone
+   * @return the path to the cloned repository
+   */
+  public static Path cloneGitRepository(String repositoryUrl, String branch) {
+    String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
+    return cloneGitRepository(repositoryUrl, branch, target);
+  }
+
+  /**
+   * This method clones a git repository into the 'lib' folder.
+   *
+   * @param repositoryUrl the url of the repository to clone
+   * @param branch the branch to clone
+   * @param targetFolder the target folder
+   * @return the path to the cloned repository
+   */
+  public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
+    File target = new File(targetFolder);
+    target.mkdirs();
+
+    LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+    try {
+      Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+    } catch (JGitInternalException e) {
+      LOGGER.info(e.getMessage());
+    } catch (GitAPIException ex) {
+      throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", ex);
+    }
+
+    return target.toPath();
+  }
 }
