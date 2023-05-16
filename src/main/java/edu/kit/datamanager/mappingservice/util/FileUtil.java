@@ -52,7 +52,7 @@ public class FileUtil {
   /**
    * Default value for suffix of temporary files.
    */
-  public static final String DEFAULT_SUFFIX = ".tmp";
+  public static final String DEFAULT_SUFFIX = ".html";
   /**
    * Default value for prefix of temporary files.
    */
@@ -61,9 +61,9 @@ public class FileUtil {
    * Logger for this class.
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-
+  
   private static final int MAX_LENGTH_OF_HEADER = 100;
-
+  
   private static final Pattern JSON_FIRST_BYTE = Pattern.compile("(\\R\\s)*\\s*\\{\\s*\"(.|\\s)*", Pattern.MULTILINE);//^\\s{\\s*\".*");
   private static final Pattern XML_FIRST_BYTE = Pattern.compile("((.|\\s)*<\\?xml[^<]*)?\\s*<\\s*(\\w+:)?\\w+(.|\\s)*", Pattern.MULTILINE);
 
@@ -101,7 +101,7 @@ public class FileUtil {
       throw new MappingException("Error downloading resource from '" + resourceURL + "'!", tw);
     }
     downloadedFile = fixFileExtension(downloadedFile);
-
+    
     return Optional.ofNullable(downloadedFile);
   }
 
@@ -114,14 +114,11 @@ public class FileUtil {
   public static Path fixFileExtension(Path pathToFile) {
     Path returnFile = pathToFile;
     Path renamedFile = pathToFile;
+    LOGGER.trace("fixFileExtension({})", pathToFile);
     try {
       if ((pathToFile != null) && (pathToFile.toFile().exists())) {
-        Tika tika = new Tika();
-        String mimeType = tika.detect(pathToFile.toFile());
-        MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
-        MimeType estimatedMimeType = allTypes.forName(mimeType);
-        String newExtension = estimatedMimeType.getExtension(); // .jpg
-
+        String contentOfFile = FileUtils.readFileToString(pathToFile.toFile(), StandardCharsets.UTF_8);
+        String newExtension = guessFileExtension(contentOfFile.getBytes());
         if (newExtension != null) {
           if (!pathToFile.toString().endsWith(newExtension)) {
             renamedFile = Paths.get(pathToFile + newExtension);
@@ -130,9 +127,10 @@ public class FileUtil {
           }
         }
       }
-    } catch (IOException|MimeTypeException ex) {
+    } catch (IOException ex) {
       LOGGER.error("Error moving file '{}' to '{}'.", pathToFile, renamedFile);
     }
+    LOGGER.trace("'{}' -> '{}'", pathToFile, returnFile);
     return returnFile;
   }
 
@@ -177,21 +175,38 @@ public class FileUtil {
    * @return Estimated extension. e.g. '.xml'
    */
   private static String guessFileExtension(byte[] schema) {
+    String returnValue = null;
     // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
     int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
     String schemaAsString = new String(schema, 0, length);
     LOGGER.trace("Guess type for '{}'", schemaAsString);
-
+    
     Matcher m = JSON_FIRST_BYTE.matcher(schemaAsString);
     if (m.matches()) {
-      return ".json";
+      returnValue = ".json";
     } else {
       m = XML_FIRST_BYTE.matcher(schemaAsString);
       if (m.matches()) {
-        return ".xml";
+        returnValue = ".xml";
       }
     }
-    return null;
+    if (returnValue == null) {
+      // Use tika library to estimate extension
+      LOGGER.trace("Use tika library to estimate extension.");
+      Tika tika = new Tika();
+      String mimeType;
+      mimeType = tika.detect(schema);
+      MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+      MimeType estimatedMimeType;
+      try {
+        estimatedMimeType = allTypes.forName(mimeType);
+        returnValue = estimatedMimeType.getExtension(); // .jpg
+        LOGGER.trace("Mimetype: '{}', Extension: '{}'", mimeType, returnValue);
+      } catch (MimeTypeException ex) {
+        LOGGER.error("Unknown mimetype '{}'", mimeType);
+      }
+    }
+    return returnValue;
   }
 
   /**
@@ -217,7 +232,7 @@ public class FileUtil {
   public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
     File target = new File(targetFolder);
     target.mkdirs();
-
+    
     LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
     try {
       Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
@@ -226,7 +241,7 @@ public class FileUtil {
     } catch (GitAPIException ex) {
       throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", ex);
     }
-
+    
     return target.toPath();
   }
 }
