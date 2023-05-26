@@ -413,13 +413,9 @@ public class MappingAdministrationControllerTest {
     public void testUpdateMapping() throws JsonProcessingException, Exception {
         System.out.println("updateMapping");
         testCreateMapping();
-        
-        System.out.println("mapp");
-        
-        String schemaDir = TEMP_DIR_4_MAPPING + "mappingSchemas/";
+               
+        String schemaDir = TEMP_DIR_4_MAPPING;
         File mappingsDir = Paths.get(schemaDir).toFile();
-        System.out.println("DIR " + mappingsDir);
-        System.out.println("LIST " + Arrays.asList(mappingsDir.list()));
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
         String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId;
