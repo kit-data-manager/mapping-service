@@ -142,11 +142,12 @@ public class FileUtilTest {
     public void testDownloadLocalResourceWithoutSuffix() {
         System.out.println("testDownloadLocalResource");
         File srcFile = new File("src/test/resources/examples/anyContentWithoutSuffix");
+        String expectedExtension = ".txt";
         assertTrue(srcFile.exists());
         Optional<Path> result = FileUtil.downloadResource(srcFile.getAbsoluteFile().toURI());
         assertTrue(result.isPresent());
         assertTrue(result.get().toFile().exists());
-        assertTrue(result.get().toString().endsWith(FileUtil.DEFAULT_SUFFIX));
+        assertTrue(result.get().toString().endsWith(expectedExtension));
         assertTrue(result.get().toFile().delete());
     }
 
@@ -263,14 +264,34 @@ public class FileUtilTest {
     @Test
     public void testFixFileExtensionUnknown() throws IOException {
         System.out.println("testFixFileExtensionUnknown");
+
         File srcFile = new File("src/test/resources/examples/anyContentWithoutSuffix");
         assertTrue(srcFile.exists());
-        String[] extensions = {"nosuffix", "json", ".json", ".xml"};
+        String[] extensions = {"nosuffix", "json", ".json", ".xml", ".txt"};
+        String expectedExtension = ".txt";
         for (String extension : extensions) {
             Path createTempFile = FileUtil.createTempFile(null, extension);
             Files.copy(srcFile, createTempFile.toFile());
             Path result = FileUtil.fixFileExtension(createTempFile);
-            assertTrue(result.toString().endsWith(extension));
+            assertTrue(result.toString().endsWith(expectedExtension), "Result: " + result.toString());
+            assertTrue(result.toFile().delete());
+
+        }
+    }
+
+    @Test
+    public void testFixZipFileExtensionUnknown() throws IOException {
+        System.out.println("testFixFileExtensionUnknown");
+
+        File srcFile = new File("src/test/resources/examples/record_json_zip");
+        assertTrue(srcFile.exists());
+        String[] extensions = {"nosuffix", ".zip", ".json", ".xml"};
+        String expectedExtension = ".zip";
+        for (String extension : extensions) {
+            Path createTempFile = FileUtil.createTempFile(null, extension);
+            Files.copy(srcFile, createTempFile.toFile());
+            Path result = FileUtil.fixFileExtension(createTempFile);
+            assertTrue(result.toString().endsWith(expectedExtension));
             assertTrue(result.toFile().delete());
 
         }

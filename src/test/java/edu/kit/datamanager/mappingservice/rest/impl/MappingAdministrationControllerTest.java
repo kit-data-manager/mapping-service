@@ -59,6 +59,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -412,7 +413,13 @@ public class MappingAdministrationControllerTest {
     public void testUpdateMapping() throws JsonProcessingException, Exception {
         System.out.println("updateMapping");
         testCreateMapping();
-        File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+        
+        System.out.println("mapp");
+        
+        String schemaDir = TEMP_DIR_4_MAPPING + "mappingSchemas/";
+        File mappingsDir = Paths.get(schemaDir).toFile();
+        System.out.println("DIR " + mappingsDir);
+        System.out.println("LIST " + Arrays.asList(mappingsDir.list()));
         String mappingId = MAPPING_ID;
         String mappingType = MAPPING_TYPE;
         String getMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId;
@@ -434,6 +441,8 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
                 file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isOk()).andReturn();
+        System.out.println("LIST AF " + Arrays.asList(mappingsDir.list()));
+        
         assertEquals(2, mappingsDir.list().length);
         ObjectMapper map = new ObjectMapper();
         MappingRecord resultRecord = map.readValue(result.getResponse().getContentAsString(), MappingRecord.class);
@@ -774,7 +783,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNotFound()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("my_dc_GEMMA.mapping", mappingsDir.list()[0]);
+        assertEquals("my_dc_GEMMA.mapping", expectedFilename);
         assertEquals(1, mappingRecordDao.count());
     }
 
@@ -820,7 +829,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(delete(deleteMappingIdUrl)).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("my_dc_GEMMA.mapping", mappingsDir.list()[0]);
+        assertEquals("my_dc_GEMMA.mapping", expectedFilename);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingRecordDao.count());
     }
@@ -844,7 +853,7 @@ public class MappingAdministrationControllerTest {
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
         assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("my_dc_GEMMA.mapping", mappingsDir.list()[0]);
+        assertEquals("my_dc_GEMMA.mapping", expectedFilename);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingRecordDao.count());
     }
