@@ -132,7 +132,8 @@ public class MappingAdministrationControllerTest {
     @Test
     public void testCreateMapping() throws Exception {
         System.out.println("createMapping");
-        File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+        
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
         MappingRecord record = new MappingRecord();
         record.setMappingId(MAPPING_ID);
@@ -149,7 +150,7 @@ public class MappingAdministrationControllerTest {
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
 
-        assertEquals(0, mappingsDir.listFiles().length);
+        assertEquals(0, Files.list(mappingsDir).count());
 
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                         file(recordFile).
@@ -159,8 +160,7 @@ public class MappingAdministrationControllerTest {
                 andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration")).
                 andReturn();
 
-        System.out.println(mappingsDir.getAbsolutePath());
-        assertEquals(1, mappingsDir.listFiles().length);
+        assertEquals(1, Files.list(mappingsDir).count());
     }
 
     /**

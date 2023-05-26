@@ -60,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         DirtiesContextTestExecutionListener.class,
         TransactionalTestExecutionListener.class,
         WithSecurityContextTestExecutionListener.class})
-@ActiveProfiles("test")
+//@ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41500"})
 public class MappingExecutionControllerTest {
 

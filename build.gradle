@@ -32,7 +32,8 @@ repositories {
 
 ext {
     set('snippetsDir', file('build/generated-snippets'))
-    applicationProperties = System.getProperty('applicationProperties', 'src/main/resources/application.properties')
+    applicationProperties = System.getProperty('applicationProperties', './src/test/resources/test-config/application-test.properties')
+    pythonLocation = System.getProperty('pythonLocation', 'file:///usr/bin/python3')
 }
 
 dependencies {
@@ -85,6 +86,7 @@ test {
     finalizedBy jacocoTestReport
     print("Running tests with configuration: ${applicationProperties}")
     environment 'spring.config.location', applicationProperties
+    environment 'pythonLocation', pythonLocation
 //    environment 'spring.config.location', 'classpath:/test-config/'
     useJUnitPlatform()
 }
@@ -115,6 +117,11 @@ jar {
 
 springBoot {    
     buildInfo()
+}
+
+bootRun {
+    systemProperty "spring.config.location", "file:$projectDir/"
+    systemProperty "pythonLocation", pythonLocation
 }
 
 bootJar {

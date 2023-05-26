@@ -44,18 +44,16 @@ import java.net.URISyntaxException;
 public interface IMappingExecutionController {
 
     @Operation(summary = "Map a document with an existing mapping.", description = "This endpoint allows the mapping of documents via a file upload. " +
-            "The prerequisite for this is a mapping that has already been created in advance via the \"/api/v1/mapping\" endpoint. " +
-            "The identifiers of this mapping must then be passed in this endpoint as parameters together with the document to be mapped as an upload. " +
-            "The result is returned as a response and is not stored on the server." +
-            "If no mappingType is specified, the mapping will be to elasticsearch. " +
-            "The result of this mapping will be returned as response as well as transferred to the elasticsearch installation that was entered in the applications.properties of the server.", responses = {
+            "The prerequisite for this is a mapping that has already been created in advance via the \"/api/v1/mapping\" endpoint or the GUI. " +
+            "The identifier of this mapping must then be passed to this endpoint as parameters together with the document to be mapped.", responses = {
             @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. " +
                     "The result will also be returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
-            @ApiResponse(responseCode = "400", description = "BAD REQUEST is returned if the mapping was not successful. " +
-                    "The corresponding reason is returned in the response text. " +
-                    "Possible reasons are a missing mapping or an unsuitable input.", content = @Content(mediaType = "String")),
-            @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR is returned if errors occur that do not necessarily depend on user input, " +
-                    "e.g. a faulty configuration. No more specific messages are returned for security reasons.")})
+            @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no mapping for mappingID could be found."),
+            @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
+                    + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
+                    + "document should be the reason for a mapper to fail."),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
+                    + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
 
     @RequestMapping(value = {"/{mappingID}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody

@@ -66,6 +66,10 @@ public class PluginManager {
         return soleInstance;
     }
 
+    public void unload(){
+        PluginLoader.unload();
+        plugins.clear();
+    }
     /**
      * Reloads the plugins from the 'plugins' directory.
      */

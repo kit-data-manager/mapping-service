@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
 
 import org.slf4j.Logger;
@@ -44,21 +43,31 @@ public class PluginLoader {
      */
     static Logger LOG = LoggerFactory.getLogger(PluginLoader.class);
 
+    static ClassLoader cl = null;
+
+    public static void unload() {
+        cl = null;
+        System.gc();
+    }
+
     /**
      * Load plugins from a given directory.
      *
      * @param plugDir Directory containing plugins.
      * @return Map of plugins.
-     * @throws IOException            If there is an error with the file system.
-     * @throws MappingPluginException If there is an error with the plugin or the input.
+     * @throws IOException If there is an error with the file system.
+     * @throws MappingPluginException If there is an error with the plugin or
+     * the input.
      */
     public static Map<String, IMappingPlugin> loadPlugins(File plugDir) throws IOException, MappingPluginException {
-        if (plugDir == null || plugDir.getAbsolutePath().isBlank())
+        if (plugDir == null || plugDir.getAbsolutePath().isBlank()) {
             throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Empty input!");
+        }
         File[] plugJars = plugDir.listFiles(new JARFileFilter());
-        if (plugJars == null || plugJars.length < 1)
+        if (plugJars == null || plugJars.length < 1) {
             throw new MappingPluginException(MappingPluginState.NOT_FOUND, "No plugins found.");
-        ClassLoader cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars));
+        }
+        cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars));
         List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
 
         List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
@@ -70,7 +79,6 @@ public class PluginLoader {
 
         return result;
     }
-
 
     private static URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
 
@@ -93,22 +101,22 @@ public class PluginLoader {
     private static List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
 
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
-        JarInputStream jaris = new JarInputStream(new FileInputStream(jar));
-        JarEntry ent;
-        while ((ent = jaris.getNextJarEntry()) != null) {
-            if (ent.getName().toLowerCase().endsWith(".class")) {
-                try {
-                    Class<?> cls = cl.loadClass(ent.getName().substring(0, ent.getName().length() - 6).replace('/', '.'));
-                    if (PluginLoader.isPluggableClass(cls)) {
-                        classes.add((Class<IMappingPlugin>) cls);
+        try (JarInputStream jaris = new JarInputStream(new FileInputStream(jar))) {
+            JarEntry ent;
+            while ((ent = jaris.getNextJarEntry()) != null) {
+                if (ent.getName().toLowerCase().endsWith(".class")) {
+                    try {
+                        Class<?> cls = cl.loadClass(ent.getName().substring(0, ent.getName().length() - 6).replace('/', '.'));
+                        if (PluginLoader.isPluggableClass(cls)) {
+                            classes.add((Class<IMappingPlugin>) cls);
+                        }
+                    } catch (ClassNotFoundException e) {
+                        LOG.info("Can't load Class " + ent.getName());
+                        throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't load Class " + ent.getName(), e);
                     }
-                } catch (ClassNotFoundException e) {
-                    LOG.info("Can't load Class " + ent.getName());
-                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't load Class " + ent.getName(), e);
                 }
             }
         }
-        jaris.close();
         return classes;
     }
 

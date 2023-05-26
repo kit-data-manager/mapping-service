@@ -92,32 +92,25 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
     @Override
     public ResponseEntity createMapping(@RequestPart(name = "record") final MultipartFile record, @RequestPart(name = "document") final MultipartFile document, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
-
-        LOG.trace("Performing createRecord({},...).", record);
+        LOG.trace("Performing createMapping({},...).", record);
 
         MappingRecord recordDocument;
         try {
-            if (record == null || record.isEmpty()) throw new IOException();
             recordDocument = Json.mapper().readValue(record.getInputStream(), MappingRecord.class);
         } catch (IOException ex) {
-            LOG.error("No metadata record provided. Returning HTTP BAD_REQUEST.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No mapping record provided.");
-        }
-        if ((recordDocument.getMappingId() == null) || (recordDocument.getMappingType() == null)) {
-            String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
-            LOG.error(message + "Returning HTTP BAD_REQUEST.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            LOG.error("Unable to deserialize MappingRecord.", ex);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unable to deserialize provided mapping record.");
         }
 
-        LOG.debug("Test for existing mapping record for given mappingId and mappingType.");
+        LOG.trace("Checking for existing mapping record for mappingId {}.", recordDocument.getMappingId());
         Optional<MappingRecord> findOne = mappingRecordDao.findByMappingId(recordDocument.getMappingId());
         if (findOne.isPresent()) {
-            LOG.error("Conflict with existing metadata record!");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Mapping record already exists! Please update existing record instead!");
+            LOG.error("Existing mapping record for mappingId {} found. Unable to proceed.", recordDocument.getMappingId());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("A mapping for id " + recordDocument.getMappingId() + " already exists.");
         }
 
         String callerPrincipal = (String) AuthenticationHelper.getAuthentication().getPrincipal();
-        LOG.trace("Checking resource for caller acl entry.");
+        LOG.trace("Checking provided MappingRecord for acl entry of caller id {}.", callerPrincipal);
 
         //check ACLs for caller
         AclEntry callerEntry = null;
@@ -130,14 +123,13 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         }
 
         if (callerEntry == null) {
-            LOG.debug("Adding caller entry with ADMINISTRATE permissions.");
-
+            LOG.trace("No acl entry found. Adding caller entry with ADMINISTRATE permissions.");
             callerEntry = new AclEntry();
             callerEntry.setSid(callerPrincipal);
             callerEntry.setPermission(PERMISSION.ADMINISTRATE);
             recordDocument.getAcl().add(callerEntry);
         } else {
-            LOG.debug("Ensuring ADMINISTRATE permissions for acl entry {}.", callerEntry);
+            LOG.debug("Acl entry found. Ensuring ADMINISTRATE permissions for acl entry {}.", callerEntry);
             //make sure at least the caller has administrative permissions
             callerEntry.setPermission(PERMISSION.ADMINISTRATE);
         }
@@ -147,7 +139,8 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             String contentOfFile = new String(document.getBytes(), StandardCharsets.UTF_8);
             mappingService.createMapping(contentOfFile, recordDocument);
         } catch (IOException ioe) {
-            throw new MappingException("Error: Can't read content of document!");
+            LOG.error("Unable to create mapping for provided inputs.", ioe);
+            return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
         }
 
         LOG.trace("Get mapping record.");
@@ -162,8 +155,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         URI locationUri;
         locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(recordDocument.getMappingId())).toUri();
 
-        LOG.trace("Schema record successfully persisted. Returning result.");
-        LOG.info("Successfully created mapping record with id '{}' and type '{}'.", recordDocument.getMappingId(), recordDocument.getMappingType());
+        LOG.trace("Successfully created mapping with id '{}' and type '{}'.", recordDocument.getMappingId(), recordDocument.getMappingType());
         return ResponseEntity.created(locationUri).eTag("\"" + etag + "\"").body(recordDocument);
     }
 
@@ -199,26 +191,32 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity<List<MappingRecord>> getMappings(@RequestParam(value = "mappingId", required = false) String mappingId, Pageable pgbl, WebRequest wr, HttpServletResponse hsr, UriComponentsBuilder ucb) {
-
+    public ResponseEntity<List<MappingRecord>> getMappings(@RequestParam(value = "typeId", required = false) String typeId, Pageable pgbl, WebRequest wr, HttpServletResponse hsr, UriComponentsBuilder ucb) {
         //if security is enabled, include principal in query
-        LOG.debug("Performing query for records.");
+        LOG.trace("Performing query for mapping records.");
         Page<MappingRecord> records;
-        try {
-            if ((mappingId == null)) records = mappingRecordDao.findAll(pgbl);
-            else records = mappingRecordDao.findByMappingIdIn(List.of(mappingId), pgbl);
-            LOG.trace("Cleaning up schemaDocumentUri of query result.");
-            List<MappingRecord> recordList = records.getContent();
+        //try {
+        if ((typeId == null)) {
+            LOG.trace("No mappingId provided. Querying for all mapping records.");
+            records = mappingRecordDao.findAll(pgbl);
+        } else {
+            LOG.trace("Querying for mapping records for mapping type {}.", typeId);
+            records = mappingRecordDao.findByMappingIdIn(List.of(typeId), pgbl);
+        }
+        LOG.trace("Cleaning up schemaDocumentUri of query result.");
+        List<MappingRecord> recordList = records.getContent();
 
-            recordList.forEach(this::fixMappingDocumentUri);
+        recordList.forEach(this::fixMappingDocumentUri);
 
-            String contentRange = ControllerUtils.getContentRangeHeader(pgbl.getPageNumber(), pgbl.getPageSize(), records.getTotalElements());
-            if (!records.isEmpty())
-                return ResponseEntity.status(HttpStatus.OK).header("Content-Range", contentRange).body(records.getContent());
-        } catch (Exception e) {
+        LOG.trace("Returning {} mapping record(s).", recordList.size());
+        String contentRange = ControllerUtils.getContentRangeHeader(pgbl.getPageNumber(), pgbl.getPageSize(), records.getTotalElements());
+        if (!records.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).header("Content-Range", contentRange).body(records.getContent());
+        }
+        /*} catch (Exception e) {
             e.printStackTrace();
             LOG.info("No records found. Returning empty array.");
-        }
+        }*/
         return ResponseEntity.status(HttpStatus.OK).body(new ArrayList<>());
     }
 
@@ -345,7 +343,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     /**
      * This method merges two MappingRecords.
      *
-     * @param managed  The existing MappingRecord.
+     * @param managed The existing MappingRecord.
      * @param provided The MappingRecord to merge.
      * @return The merged MappingRecord.
      */

@@ -18,6 +18,7 @@ package edu.kit.datamanager.mappingservice.rest.impl;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -65,17 +66,18 @@ public class MappingExecutionController implements IMappingExecutionController {
         LOG.debug("Document: {}", document.getName());
         LOG.debug("MappingID: {}", mappingID);
 
-        Path resultPath = null;
+        Path resultPath;
         if (!document.isEmpty() && !mappingID.isBlank()) {
             String extension = "." + FilenameUtils.getExtension(document.getOriginalFilename());
-            LOG.info("Found file with ending: {}", extension);
+            LOG.trace("Found file with ending: {}", extension);
             Path inputPath = FileUtil.createTempFile("inputMultipart", extension);
             LOG.info("Saved file to: {}", inputPath);
             File inputFile = inputPath.toFile();
             try {
                 document.transferTo(inputFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error("Failed to receive file from client.", e);
+                return ResponseEntity.internalServerError().body("Unable to write file to disk.");
             }
 
             Optional<MappingRecord> record = mappingRecordDao.findByMappingId(mappingID);
@@ -88,26 +90,30 @@ public class MappingExecutionController implements IMappingExecutionController {
             try {
                 LOG.debug(inputPath.toString());
                 resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID).get();
-            } catch (Exception e) {
-                LOG.error("Could not get resultPath");
-                e.printStackTrace();
+            } catch (MappingPluginException e) {
+                LOG.error("Failed to execute mapping.", e);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to execute mapping with id " + mappingID + " on provided input document.");
             }
+            LOG.trace("Removing uploaded file from {}.", inputFile);
             FileUtil.removeFile(inputPath);
+            LOG.trace("Input file successfully removed.");
         } else {
-            LOG.error("The input does not meet the minimal requirements. Have a look in the debug logs for more detailed information.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The input does not meet the minimal requirements." + "Please check if you provided all necessary information. This is documented in swagger '/swagger-ui/index.html'.");
+            String message = "Either mappingID or input document are missing. Unable to perform mapping.";
+            LOG.error(message);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
 
         if (resultPath == null) {
-            String message = "There is no result for the input. The input must be invalid.";
-            LOG.trace(message);
+            String message = "No mapping result was produced. Probably, the input document could not be processed by the mapper with id " + mappingID;
+            LOG.error(message);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         } else if (!Files.exists(resultPath) || !Files.isRegularFile(resultPath) || !Files.isReadable(resultPath)) {
-            LOG.trace("The result path {} is for some reason not reachable.", resultPath);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal error while accessing result");
+            String message = "The mapping result expected at path "+ resultPath + "F is not accessible. This indicates an error of the mapper implementation.";
+            LOG.trace(message);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
         }
 
-        LOG.info("Successfully mapped document with mapping {}.", mappingID);
+        LOG.trace("Successfully mapped document with mapping {}.", mappingID);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).body(new FileSystemResource(resultPath.toFile()));
     }
 }

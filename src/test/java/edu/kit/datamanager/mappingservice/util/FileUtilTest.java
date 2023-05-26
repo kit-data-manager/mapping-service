@@ -234,7 +234,7 @@ public class FileUtilTest {
         System.out.println("testFixFileExtensionXml");
         File srcFile = new File("src/test/resources/examples/gemma/simple.xml");
         assertTrue(srcFile.exists());
-        String[] extensions = {"nosuffix", "xml", ".xml ", ".xsd", ".json"};
+        String[] extensions = {"nosuffix", "xml", ".xml", ".xsd", ".json"};
         for (String extension : extensions) {
             Path createTempFile = FileUtil.createTempFile(null, extension);
             Files.copy(srcFile, createTempFile.toFile());
@@ -249,7 +249,7 @@ public class FileUtilTest {
         System.out.println("testFixFileExtensionJson");
         File srcFile = new File("src/test/resources/examples/gemma/simple.json");
         assertTrue(srcFile.exists());
-        String[] extensions = {"nosuffix", "json", ".json ", ".xml"};
+        String[] extensions = {"nosuffix", "json", ".json", ".xml"};
         for (String extension : extensions) {
             Path createTempFile = FileUtil.createTempFile(null, extension);
             Files.copy(srcFile, createTempFile.toFile());
@@ -265,7 +265,7 @@ public class FileUtilTest {
         System.out.println("testFixFileExtensionUnknown");
         File srcFile = new File("src/test/resources/examples/anyContentWithoutSuffix");
         assertTrue(srcFile.exists());
-        String[] extensions = {"nosuffix", "json", ".json ", ".xml"};
+        String[] extensions = {"nosuffix", "json", ".json", ".xml"};
         for (String extension : extensions) {
             Path createTempFile = FileUtil.createTempFile(null, extension);
             Files.copy(srcFile, createTempFile.toFile());

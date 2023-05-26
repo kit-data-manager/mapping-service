@@ -32,21 +32,10 @@ class PluginManagerTest {
     @Test
     void reloadPlugins() {
         assertEquals(2, PluginManager.soleInstance().getPlugins().size());
-
-        try {
-            Files.move(new File("./plugins").toPath(), new File("./plugins2").toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            fail("Could not move plugins folder");
-        }
-
-        PluginManager.soleInstance().reloadPlugins();
+        
+        PluginManager.soleInstance().unload();
+       
         assertEquals(0, PluginManager.soleInstance().getPlugins().size());
-
-        try {
-            Files.move(new File("./plugins2").toPath(), new File("./plugins").toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            fail("Could not move plugins2 folder");
-        }
 
         PluginManager.soleInstance().reloadPlugins();
         assertEquals(2, PluginManager.soleInstance().getPlugins().size());
