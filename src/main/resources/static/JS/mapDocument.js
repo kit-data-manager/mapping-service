@@ -31,9 +31,18 @@ function map() {
     http.open("POST", execUrl + id)
     http.send(formData)
     http.onload = () => {
+        let content_dispo = http.getResponseHeader("content-disposition");
+        let filename = content_dispo.substr(content_dispo.lastIndexOf(";") + 1);
+        download(http.responseText, filename, http.getResponseHeader("content-type"));
+        document.getElementById("progress").hidden = true
+        document.getElementById("downloadButton").hidden = false
+        document.getElementById("submit").disabled = false
+        
+       /* console.log(http.getAllResponseHeaders())
         console.log(http.responseText)
-        document.getElementById("downloadButton").setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
-        document.getElementById("downloadButton").setAttribute('download', "result.json");
+        
+       // document.getElementById("downloadButton").setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
+        //document.getElementById("downloadButton").setAttribute('download', "result.json");
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = false
         document.getElementById("submit").disabled = false
@@ -42,14 +51,15 @@ function map() {
         downloadHTTP.send();
         downloadHTTP.onload = () => {
             const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
-            element.setAttribute('download', "result.json");
+            //element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(http.responseText));
+            element.setAttribute('href', encodeURIComponent(http.responseText));
+            //element.setAttribute('download', "result.json");
             element.style.display = 'none';
             document.body.appendChild(element);
             element.click();
             document.body.removeChild(element);
         }
-
+*/
     }
     http.onprogress = () => {
         document.getElementById("progress").hidden = false

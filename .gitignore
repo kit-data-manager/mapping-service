@@ -6,11 +6,12 @@
 #!**/src/test/**/build/
 #
 #### Spring boot ###
-#**/application.properties
+**/application.properties
 #
 #### Gemma/python ###
 #/gemma
 #**/__pycache__
+**/output
 #
 #### STS ###
 #.apt_generated

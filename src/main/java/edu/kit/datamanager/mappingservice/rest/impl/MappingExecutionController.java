@@ -114,6 +114,10 @@ public class MappingExecutionController implements IMappingExecutionController {
         }
 
         LOG.trace("Successfully mapped document with mapping {}.", mappingID);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).body(new FileSystemResource(resultPath.toFile()));
+        return ResponseEntity.ok().
+                header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).
+                header(HttpHeaders.CONTENT_TYPE, String.valueOf("application/zip")).
+                header(HttpHeaders.CONTENT_DISPOSITION, String.valueOf("attachment; " + "result.zip")).
+                body(new FileSystemResource(resultPath.toFile()));
     }
 }

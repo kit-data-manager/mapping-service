@@ -68,6 +68,7 @@ public class PluginLoader {
             throw new MappingPluginException(MappingPluginState.NOT_FOUND, "No plugins found.");
         }
         cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars));
+        
         List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
 
         List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
