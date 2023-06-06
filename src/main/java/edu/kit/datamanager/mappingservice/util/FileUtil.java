@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -46,8 +47,9 @@ import org.apache.tika.mime.MimeTypes;
  *
  * @author maximilianiKIT
  * @author volkerhartmann
+ * @author jejkal
  */
-public class FileUtil {
+public class FileUtil{
 
   /**
    * Default value for suffix of temporary files.
@@ -61,9 +63,17 @@ public class FileUtil {
    * Logger for this class.
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-  
+
+  /**
+   * Header size used to check for JSON or XML.
+   */
   private static final int MAX_LENGTH_OF_HEADER = 100;
-  
+  /**
+   * Few first kilobytes of file allowing Tika to detect extension. They don't
+   * state explicitly how many kilobytes they need, so 8 should be fine.
+   */
+  private static final int FEW_KILO_BYTES_FOR_TIKA = 8 * 1024;
+
   private static final Pattern JSON_FIRST_BYTE = Pattern.compile("(\\R\\s)*\\s*\\{\\s*\"(.|\\s)*", Pattern.MULTILINE);//^\\s{\\s*\".*");
   private static final Pattern XML_FIRST_BYTE = Pattern.compile("((.|\\s)*<\\?xml[^<]*)?\\s*<\\s*(\\w+:)?\\w+(.|\\s)*", Pattern.MULTILINE);
 
@@ -74,21 +84,21 @@ public class FileUtil {
    * @param resourceURL the given URI
    * @return the path to the created file.
    */
-  public static Optional<Path> downloadResource(URI resourceURL) {
+  public static Optional<Path> downloadResource(URI resourceURL){
     String content;
     Path downloadedFile = null;
-    try {
-      if (resourceURL != null) {
+    try{
+      if(resourceURL != null){
         String suffix = FilenameUtils.getExtension(resourceURL.getPath());
         suffix = suffix.trim().isEmpty() ? DEFAULT_SUFFIX : "." + suffix;
-        if (resourceURL.getHost() != null) {
+        if(resourceURL.getHost() != null){
           content = SimpleServiceClient
                   .create(resourceURL.toString())
                   .accept(MediaType.TEXT_PLAIN)
                   .getResource(String.class);
           downloadedFile = createTempFile("download", suffix);
           FileUtils.writeStringToFile(downloadedFile.toFile(), content, StandardCharsets.UTF_8);
-        } else {
+        } else{
           // copy local file to new place.
           File srcFile = new File(resourceURL.getPath());
           File destFile = FileUtil.createTempFile("local", suffix).toFile();
@@ -96,12 +106,12 @@ public class FileUtil {
           downloadedFile = destFile.toPath();
         }
       }
-    } catch (Throwable tw) {
+    } catch(Throwable tw){
       LOGGER.error("Error reading URI '" + resourceURL + "'", tw);
       throw new MappingException("Error downloading resource from '" + resourceURL + "'!", tw);
     }
     downloadedFile = fixFileExtension(downloadedFile);
-    
+
     return Optional.ofNullable(downloadedFile);
   }
 
@@ -111,24 +121,33 @@ public class FileUtil {
    * @param pathToFile the given URI
    * @return the path to the (renamed) file.
    */
-  public static Path fixFileExtension(Path pathToFile) {
+  public static Path fixFileExtension(Path pathToFile){
     Path returnFile = pathToFile;
     Path renamedFile = pathToFile;
     LOGGER.trace("fixFileExtension({})", pathToFile);
-    try {
-      if ((pathToFile != null) && (pathToFile.toFile().exists())) {
-        String contentOfFile = FileUtils.readFileToString(pathToFile.toFile(), StandardCharsets.UTF_8);
-        String newExtension = guessFileExtension(contentOfFile.getBytes());
-        if (newExtension != null) {
-          if (!pathToFile.toString().endsWith(newExtension)) {
+    FileInputStream fin = null;
+    try{
+      if((pathToFile != null) && (pathToFile.toFile().exists())){
+        fin = new FileInputStream(pathToFile.toFile());
+        byte[] header = fin.readNBytes(FEW_KILO_BYTES_FOR_TIKA);
+        String newExtension = guessFileExtension(header);
+        if(newExtension != null){
+          if(!pathToFile.toString().endsWith(newExtension)){
             renamedFile = Paths.get(pathToFile + newExtension);
             FileUtils.moveFile(pathToFile.toFile(), renamedFile.toFile());
             returnFile = renamedFile;
           }
         }
       }
-    } catch (IOException ex) {
+    } catch(IOException ex){
       LOGGER.error("Error moving file '{}' to '{}'.", pathToFile, renamedFile);
+    } finally{
+      if(fin != null){
+        try{
+          fin.close();
+        } catch(Exception e){
+        }
+      }
     }
     LOGGER.trace("'{}' -> '{}'", pathToFile, returnFile);
     return returnFile;
@@ -143,13 +162,13 @@ public class FileUtil {
    * @return Path to file
    * @throws MappingException if an error occurs
    */
-  public static Path createTempFile(String prefix, String suffix) {
+  public static Path createTempFile(String prefix, String suffix){
     Path tempFile;
     prefix = (prefix == null || prefix.trim().isEmpty()) ? DEFAULT_PREFIX : prefix;
     suffix = (suffix == null || suffix.trim().isEmpty() || suffix.trim().equals(".")) ? DEFAULT_SUFFIX : suffix;
-    try {
+    try{
       tempFile = Files.createTempFile(prefix, suffix);
-    } catch (IOException ioe) {
+    } catch(IOException ioe){
       throw new MappingException("Error creating tmp file!", ioe);
     }
     return tempFile;
@@ -160,10 +179,10 @@ public class FileUtil {
    *
    * @param tempFile Path to file
    */
-  public static void removeFile(Path tempFile) {
-    try {
+  public static void removeFile(Path tempFile){
+    try{
       Files.deleteIfExists(tempFile);
-    } catch (IOException ioe) {
+    } catch(IOException ioe){
       throw new MappingException("Error removing file '" + tempFile + "'!", ioe);
     }
   }
@@ -171,38 +190,36 @@ public class FileUtil {
   /**
    * Guess the extension of the file from the first bytes using Apache Tika
    *
-   * @param schema First bytes of the file.
+   * @param fewKilobytesOfFile First few kilobytes of the file.
    * @return Estimated extension. e.g. '.xml'
    */
-  private static String guessFileExtension(byte[] schema) {
+  private static String guessFileExtension(byte[] fewKilobytesOfFile){
     String returnValue = null;
-    // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
-    int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
-    String schemaAsString = new String(schema, 0, length);
-    LOGGER.trace("Guess type for '{}'", schemaAsString);
-    
-    Matcher m = JSON_FIRST_BYTE.matcher(schemaAsString);
-    if (m.matches()) {
+    String headerAsString = new String(fewKilobytesOfFile, 0, MAX_LENGTH_OF_HEADER);
+    LOGGER.trace("Guess type for '{}'", headerAsString);
+
+    Matcher m = JSON_FIRST_BYTE.matcher(headerAsString);
+    if(m.matches()){
       returnValue = ".json";
-    } else {
-      m = XML_FIRST_BYTE.matcher(schemaAsString);
-      if (m.matches()) {
+    } else{
+      m = XML_FIRST_BYTE.matcher(headerAsString);
+      if(m.matches()){
         returnValue = ".xml";
       }
     }
-    if (returnValue == null) {
+    if(returnValue == null){
       // Use tika library to estimate extension
       LOGGER.trace("Use tika library to estimate extension.");
       Tika tika = new Tika();
       String mimeType;
-      mimeType = tika.detect(schema);
+      mimeType = tika.detect(fewKilobytesOfFile);
       MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
       MimeType estimatedMimeType;
-      try {
+      try{
         estimatedMimeType = allTypes.forName(mimeType);
         returnValue = estimatedMimeType.getExtension(); // .jpg
         LOGGER.trace("Mimetype: '{}', Extension: '{}'", mimeType, returnValue);
-      } catch (MimeTypeException ex) {
+      } catch(MimeTypeException ex){
         LOGGER.error("Unknown mimetype '{}'", mimeType);
       }
     }
@@ -216,7 +233,7 @@ public class FileUtil {
    * @param branch the branch to clone
    * @return the path to the cloned repository
    */
-  public static Path cloneGitRepository(String repositoryUrl, String branch) {
+  public static Path cloneGitRepository(String repositoryUrl, String branch){
     String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
     return cloneGitRepository(repositoryUrl, branch, target);
   }
@@ -229,19 +246,19 @@ public class FileUtil {
    * @param targetFolder the target folder
    * @return the path to the cloned repository
    */
-  public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
+  public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder){
     File target = new File(targetFolder);
     target.mkdirs();
-    
+
     LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
-    try {
+    try{
       Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
-    } catch (JGitInternalException e) {
+    } catch(JGitInternalException e){
       LOGGER.info(e.getMessage());
-    } catch (GitAPIException ex) {
+    } catch(GitAPIException ex){
       throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", ex);
     }
-    
+
     return target.toPath();
   }
 }
