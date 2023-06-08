@@ -53,8 +53,9 @@ public interface IMappingAdministrationController {
             + "the mapping identifier and mapping type, and the mapping document, which defines the rules for the mapping applied by the given mapping type. ",
             responses = {
                 @ApiResponse(responseCode = "201", description = "CREATED is returned only if the record has been validated, persisted and the mapping document was successfully validated and stored.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
-                @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if the provided mapping record or the mapping document is invalid."),
-                @ApiResponse(responseCode = "409", description = "CONFLICT is returned, if there is already a mapping for the provided mapping id.")})
+                @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if the provided mapping record or the mapping document are invalid."),
+                @ApiResponse(responseCode = "409", description = "CONFLICT is returned, if there is already a mapping for the provided mapping id."),
+                @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, an unexpected exception occured while persisting the mapping.")})
 
     @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
@@ -62,7 +63,7 @@ public interface IMappingAdministrationController {
             @Parameter(description = "JSON representation of the mapping record.", required = true) @RequestPart(name = "record") final MultipartFile record,
             @Parameter(description = "The mapping document associated with the record. "
                     + "The format of the document is defined by the mapping type, which is given by the mappingType attribute of the mapping record.", required = true) @RequestPart(name = "document") final MultipartFile document,
-            final HttpServletRequest request,
+            final WebRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;
 
@@ -73,17 +74,17 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no record for the provided identifier was found.")})
     @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET}, produces = {"application/vnd.datamanager.mapping-record+json"})
     @ResponseBody
-    ResponseEntity<MappingRecord> getMappingById(
+    ResponseEntity getMappingById(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
-            Pageable pgbl,
             WebRequest wr,
             HttpServletResponse hsr);
 
     @Operation(summary = "Get the mapping document associated with a given mapping identifier.", description = "Obtain a single mapping document identified by the mapping identifier. "
             + "Depending on a user's role, accessing a specific record may be allowed or forbidden. ",
             responses = {
-                @ApiResponse(responseCode = "200", description = "OK and the mapping document are returned if the mapping exists and the user has sufficient permission."),
-                @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned, if no record for the provided identifier was found.")})
+                @ApiResponse(responseCode = "200", description = "OK and the mapping document are returned if the mapping exists and the user has sufficient permission.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
+                @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned, if no record for the provided identifier was found."),
+                @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, if the mapping document could not be read from the local file system.")})
 
     @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET})
     @ResponseBody
@@ -110,8 +111,9 @@ public interface IMappingAdministrationController {
     @Operation(summary = "Update a mapping record.", description = "Apply an update to the mapping record and/or the mapping document identified by provided identifier and/or its ",
             responses = {
                 @ApiResponse(responseCode = "200", description = "OK is returned in case of a successful update, e.g. the record (if provided) was in the correct format and the document (if provided) matches the provided schema id. The updated record is returned in the response.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
-                @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if the provided metadata record is invalid or if the validation using the provided schema failed."),
-                @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no record for the provided identifier was found.")})
+                @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if the provided mapping record is invalid."),
+                @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no record for the provided identifier was found."),
+                @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned if the mapping could not be persisted for unknown reasons.")})
     @RequestMapping(value = "/{mappingId}", method = RequestMethod.PUT, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {"application/json"})
     @Parameters({
         @Parameter(name = "If-Match", description = "ETag of the current mapping record. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})

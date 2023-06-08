@@ -19,6 +19,7 @@ import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -63,61 +64,71 @@ public class MappingExecutionController implements IMappingExecutionController {
 
     @Override
     public ResponseEntity mapDocument(MultipartFile document, String mappingID, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
-        LOG.debug("Document: {}", document.getName());
-        LOG.debug("MappingID: {}", mappingID);
+        LOG.trace("Performing mapDocument(File#{}, {})", document.getOriginalFilename(), mappingID);
 
-        Path resultPath;
+        Optional<Path> resultPath;
         if (!document.isEmpty() && !mappingID.isBlank()) {
-            String extension = "." + FilenameUtils.getExtension(document.getOriginalFilename());
-            LOG.trace("Found file with ending: {}", extension);
-            Path inputPath = FileUtil.createTempFile("inputMultipart", extension);
-            LOG.info("Saved file to: {}", inputPath);
-            File inputFile = inputPath.toFile();
-            try {
-                document.transferTo(inputFile);
-            } catch (IOException e) {
-                LOG.error("Failed to receive file from client.", e);
-                return ResponseEntity.internalServerError().body("Unable to write file to disk.");
-            }
-
+            LOG.trace("Obtaining mapping for id {}.", mappingID);
             Optional<MappingRecord> record = mappingRecordDao.findByMappingId(mappingID);
             if (record.isEmpty()) {
-                String message = String.format("No mapping record found for mapping %s.", mappingID);
-                LOG.error(message + " Returning 404.");
+                String message = String.format("No mapping found for mapping id %s.", mappingID);
+                LOG.error(message + " Returning HTTP 404.");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
             }
 
+            LOG.trace("Receiving mapping input file.");
+            String extension = "." + FilenameUtils.getExtension(document.getOriginalFilename());
+            LOG.trace("Found file extension: {}", extension);
+            Path inputPath = FileUtil.createTempFile("inputMultipart", extension);
+            LOG.trace("Writing user upload to: {}", inputPath);
+            File inputFile = inputPath.toFile();
             try {
-                LOG.debug(inputPath.toString());
-                resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID).get();
+                document.transferTo(inputFile);
+                LOG.trace("Successfully received user upload.");
+            } catch (IOException e) {
+                LOG.error("Failed to receive upload from user.", e);
+                return ResponseEntity.internalServerError().body("Unable to write user upload to disk.");
+            }
+
+            try {
+                LOG.trace("Performing mapping process of file {} via mapping service", inputPath.toString());
+
+                resultPath = mappingService.executeMapping(inputFile.toURI(), mappingID);
+                if (resultPath.isPresent()) {
+                    LOG.trace("Mapping process finished. Output written to {}.", resultPath.toString());
+                } else {
+                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Mapping process finished, but no result was returned.");
+                }
             } catch (MappingPluginException e) {
                 LOG.error("Failed to execute mapping.", e);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to execute mapping with id " + mappingID + " on provided input document.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to execute mapping with id " + mappingID + " on provided input document.");
             }
-            LOG.trace("Removing uploaded file from {}.", inputFile);
+            LOG.trace("Removing user upload at {}.", inputFile);
             FileUtil.removeFile(inputPath);
-            LOG.trace("Input file successfully removed.");
+            LOG.trace("User upload successfully removed.");
         } else {
-            String message = "Either mappingID or input document are missing. Unable to perform mapping.";
+            String message = "Either mapping id or input document are missing. Unable to perform mapping.";
             LOG.error(message);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
 
-        if (resultPath == null) {
-            String message = "No mapping result was produced. Probably, the input document could not be processed by the mapper with id " + mappingID;
-            LOG.error(message);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-        } else if (!Files.exists(resultPath) || !Files.isRegularFile(resultPath) || !Files.isReadable(resultPath)) {
-            String message = "The mapping result expected at path "+ resultPath + "F is not accessible. This indicates an error of the mapper implementation.";
+        Path result = resultPath.get();
+        if (!Files.exists(result) || !Files.isRegularFile(result) || !Files.isReadable(result)) {
+            String message = "The mapping result expected at path " + result + " is not accessible. This indicates an error of the mapper implementation.";
             LOG.trace(message);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
         }
 
-        LOG.trace("Successfully mapped document with mapping {}.", mappingID);
+        LOG.trace("Determining mime type for mapping result.");
+        String mimeType = FileUtil.getMimeType(result);
+        LOG.trace("Determining file extension for mapping result.");
+        String extension = FileUtil.getExtensionForMimeType(mimeType);
+
+        LOG.trace("Using mime type {} and extension {}.", mimeType, extension);
         return ResponseEntity.ok().
-                header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resultPath.toFile().length())).
-                header(HttpHeaders.CONTENT_TYPE, String.valueOf("application/zip")).
-                header(HttpHeaders.CONTENT_DISPOSITION, String.valueOf("attachment; " + "result.zip")).
-                body(new FileSystemResource(resultPath.toFile()));
+                header(HttpHeaders.CONTENT_LENGTH, String.valueOf(result.toFile().length())).
+                header(HttpHeaders.CONTENT_TYPE, mimeType).
+                header(HttpHeaders.CONTENT_DISPOSITION, String.valueOf("attachment; " + "result." + extension)).
+                body(new FileSystemResource(result.toFile()));
     }
 }

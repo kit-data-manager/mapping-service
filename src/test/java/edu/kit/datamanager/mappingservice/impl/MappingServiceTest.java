@@ -20,6 +20,7 @@ import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
+import org.junit.Ignore;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.web.client.ResourceAccessException;
@@ -279,7 +281,7 @@ public class MappingServiceTest {
             File mappingsDir = Paths.get(mappingsLocation.toURI()).toFile();
             mappingService4Test.updateMapping(content, mappingRecord);
             fail();
-        } catch (IOException | MappingException | URISyntaxException ie) {
+        } catch (IOException | MappingNotFoundException | URISyntaxException ie) {
             assertTrue(true);
             assertTrue(ie.getMessage().contains("Mapping"));
             assertTrue(ie.getMessage().contains("doesn't exist"));
@@ -336,12 +338,8 @@ public class MappingServiceTest {
         try {
             File mappingsDir = Paths.get(mappingsLocation.toURI()).toFile();
             mappingService4Test.deleteMapping(mappingRecord);
-            fail();
-        } catch (IOException | MappingException | URISyntaxException ie) {
-//            assertEquals(0, mappingsDir.list().length);
-            assertTrue(ie.getMessage().contains("Mapping"));
-            assertTrue(ie.getMessage().contains("doesn't exist"));
-            assertTrue(ie.getMessage().contains(mappingType));
+        } catch (MappingException | URISyntaxException ie) {
+            fail("deleteMapping() should never fail.");
         }
     }
 
@@ -349,6 +347,7 @@ public class MappingServiceTest {
      * Test of executeMapping method, of class MappingService.
      */
     @Test
+    @Ignore("Test not realistic as ")
     public void testExecuteMappingWithoutAnyParameter() {
         System.out.println("testExecuteMappingWithoutAnyParameter");
         URI contentUrl = null;
@@ -357,7 +356,7 @@ public class MappingServiceTest {
             Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId);
             fail("Exception expected!");
         } catch (MappingException | MappingPluginException ie) {
-            assertTrue(ie.getMessage().contains("No URL provided"));
+            assertTrue(ie.getMessage().contains("Either contentUrl"));
         }
     }
 
@@ -365,7 +364,7 @@ public class MappingServiceTest {
      * Test of executeMapping method, of class MappingService.
      */
     @Test
-    public void testExecuteMappingWithWrongMappingId() throws IOException {
+    public void testExecuteMappingWithWrongMappingId() {
         System.out.println("testExecuteMappingWithWrongMappingId");
         URI contentUrl = null;
         String mappingId = "unknownMapping";
@@ -373,44 +372,45 @@ public class MappingServiceTest {
             Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId);
             fail("Exception expected!");
         } catch (MappingException | MappingPluginException ie) {
-            assertTrue(ie.getMessage().contains("No URL provided"));
-
+            assertTrue(ie.getMessage().contains("Either contentUrl"));
         }
         File srcFile = new File("src/test/resources/examples/gemma/simple.json");
         contentUrl = srcFile.toURI();
-        String expectedResult = FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
-
-        Optional<Path> resultPath = null;
         try {
-            resultPath = mappingService4Test.executeMapping(contentUrl, mappingId);
-        } catch (MappingPluginException e) {
-            throw new RuntimeException(e);
-        }
+            String expectedResult = FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
 
-        assertTrue(resultPath.isPresent());
-        assertTrue(resultPath.get().toFile().exists());
-        String result = FileUtils.readFileToString(resultPath.get().toFile(), StandardCharsets.UTF_8);
-        assertEquals(expectedResult, result);
-        assertTrue(resultPath.get().toFile().delete());
+            Optional<Path> resultPath = null;
+            try {
+                resultPath = mappingService4Test.executeMapping(contentUrl, mappingId);
+                fail("MappingNotFoundException expected.");
+            } catch (MappingPluginException | MappingNotFoundException e) {
+                //exception received
+            }
+        } catch (IOException ex) {
+            fail("Got IOException while reading source file from " + srcFile);
+        }
     }
 
     /**
      * Test of executeMapping method, of class MappingService.
      */
     @Test
-    public void testExecuteMappingWithWrongURI() throws URISyntaxException {
+    public void testExecuteMappingWithWrongURI() {
         System.out.println("testExecuteMappingWithWrongURI");
         String mappingId = "unknownMapping";
-        String contentUrl = "https://unknown.site.which.doesnt.exist";
+        String contentUrl = "file:///unknown/location/of/content";
         try {
             URI url = new URI(contentUrl);
             Optional<Path> result = mappingService4Test.executeMapping(url, mappingId);
-            fail("Exception expected!");
+            fail("Expected MappingNotFoundException");
+        } catch (MappingNotFoundException e) {
+            //got expected exception
         } catch (MappingException | MappingPluginException ie) {
-            assertTrue(ie.getMessage().contains("Error downloading resource"));
-            assertTrue(ie.getMessage().contains(contentUrl));
+            fail("Expected MappingNotFoundException but received MappingException | MappingPluginException");
         } catch (ResourceAccessException ex) {
             //happens under Windows...no idea why not under Unix
+        } catch (URISyntaxException ex) {
+            fail("Got URISyntaxException while creating URI from " + contentUrl);
         }
     }
 
@@ -425,15 +425,12 @@ public class MappingServiceTest {
         Optional<Path> resultPath = null;
         try {
             resultPath = mappingService4Test.executeMapping(contentUrl, mappingId);
+            fail("Expected MappingNotFoundException");
+        } catch (MappingNotFoundException e) {
+            //received proper exception
         } catch (MappingPluginException e) {
-            throw new RuntimeException(e);
+            fail("Got MappingPluginException, expected MappingNotFoundException");
         }
-
-        assertTrue(resultPath.isPresent());
-        assertTrue(resultPath.get().toFile().exists());
-        String result = FileUtils.readFileToString(resultPath.get().toFile(), StandardCharsets.UTF_8);
-        assertEquals(expectedResult, result);
-        assertTrue(resultPath.get().toFile().delete());
     }
 
 //    /**

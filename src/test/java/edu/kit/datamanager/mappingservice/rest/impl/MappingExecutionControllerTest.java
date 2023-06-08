@@ -60,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         DirtiesContextTestExecutionListener.class,
         TransactionalTestExecutionListener.class,
         WithSecurityContextTestExecutionListener.class})
-//@ActiveProfiles("test")
+@ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41500"})
 public class MappingExecutionControllerTest {
 
@@ -100,7 +100,7 @@ public class MappingExecutionControllerTest {
                         file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isCreated()).
-                andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration")).
+                andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration/*")).
                 andReturn();
 
         System.out.println(mappingsDir.getAbsolutePath());
@@ -184,7 +184,7 @@ public class MappingExecutionControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingExecution/xsfdfg").file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isNotFound()).
-                andExpect(content().string("No mapping record found for mapping xsfdfg.")).
+                andExpect(content().string("No mapping found for mapping id xsfdfg.")).
                 andReturn();
     }
 

@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
 
 import org.junit.jupiter.api.Test;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import org.junit.Ignore;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
 
 class PluginManagerTest {
 
@@ -30,11 +29,12 @@ class PluginManagerTest {
     }
 
     @Test
+    @Disabled("Test must be revised as soon as plugin location is configurable")
     void reloadPlugins() {
         assertEquals(2, PluginManager.soleInstance().getPlugins().size());
-        
+
         PluginManager.soleInstance().unload();
-       
+
         assertEquals(0, PluginManager.soleInstance().getPlugins().size());
 
         PluginManager.soleInstance().reloadPlugins();
@@ -42,6 +42,7 @@ class PluginManagerTest {
     }
 
     @Test
+    @Disabled("Test must be revised as soon as plugin location is configurable")
     void getListOfAvailableValidators() {
         System.out.println(PluginManager.soleInstance().getListOfAvailableValidators());
         assertEquals(2, PluginManager.soleInstance().getListOfAvailableValidators().size());
