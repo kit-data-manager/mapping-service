@@ -94,7 +94,7 @@ test {
     println("Running tests with python: ${pythonExecutable}")
     println("Running tests in directory: ${userDir}")
     environment 'spring.config.location', applicationProperties
-    environment 'pythonLocation', pythonExecutable
+    environment 'pythonExecutable', pythonExecutable
     useJUnitPlatform()
     testLogging.showStandardStreams = true
 }

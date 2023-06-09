@@ -43,8 +43,8 @@ public class ApplicationProperties {
      * The absolute path to the python interpreter.
      */
     @ExecutableFileURL
-    @Value("${mapping-service.pythonLocation}")
-    private URL pythonLocation;
+    @Value("${mapping-service.pythonExecutable}")
+    private URL pythonExecutable;
 
     /**
      * The absolute path where the plugins are stored.

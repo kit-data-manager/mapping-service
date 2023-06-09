@@ -89,9 +89,9 @@ public class PythonRunnerUtil {
      * @throws MappingPluginException if an error occurs.
      */
     public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
-        if (configuration == null || configuration.getPythonLocation() == null) return MappingPluginState.UNKNOWN_ERROR;
+        if (configuration == null || configuration.getPythonExecutable()== null) return MappingPluginState.UNKNOWN_ERROR;
         ArrayList<String> command = new ArrayList<>();
-        command.add(configuration.getPythonLocation().getPath());
+        command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
         Collections.addAll(command, args);
         ShellRunnerUtil.run(output, error, command.toArray(new String[0]));
