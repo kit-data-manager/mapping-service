@@ -12,20 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.rest;
 
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.MimeTypeUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class PluginInformationTest {
 
     private PluginInformation pluginInformation;
+
+    @Autowired
+    private PluginManager pluginManager;
 
     @BeforeEach
     void setUp() {
@@ -208,14 +216,15 @@ class PluginInformationTest {
     }
 
     @Test
-    void testIDConstructor(){
+    void testIDConstructor() {
         try {
-            assertEquals(pluginInformation, new PluginInformation("TEST_0.0.0"));
+            assertEquals(pluginInformation, new PluginInformation("TEST_0.0.0", pluginManager));
         } catch (MappingPluginException e) {
+            e.printStackTrace();
             fail(e);
         }
         try {
-            new PluginInformation(null);
+            new PluginInformation(null, pluginManager);
             fail("Expected exception");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.NOT_FOUND, e.getState());

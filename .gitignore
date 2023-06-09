@@ -4,13 +4,15 @@
 #!gradle/wrapper/gradle-wrapper.jar
 #!**/src/main/**/build/
 #!**/src/test/**/build/
+lib/
 #
 #### Spring boot ###
-#**/application.properties
+**/application.properties
 #
 #### Gemma/python ###
 #/gemma
 #**/__pycache__
+**/output
 #
 #### STS ###
 #.apt_generated
@@ -129,6 +131,7 @@ fabric.properties
 # See https://github.com/joeblau/gitignore.io/issues/186 and https://github.com/joeblau/gitignore.io/issues/360
 
 .idea/
+.fleet
 
 # Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-249601023
 

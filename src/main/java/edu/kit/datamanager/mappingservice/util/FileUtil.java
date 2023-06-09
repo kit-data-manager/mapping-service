@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -37,29 +37,54 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 
 /**
  * Various utility methods for file handling.
  *
  * @author maximilianiKIT
  * @author volkerhartmann
+ * @author jejkal
  */
 public class FileUtil {
 
     /**
      * Default value for suffix of temporary files.
      */
-    public static final String DEFAULT_SUFFIX = ".tmp";
+    public static final String DEFAULT_SUFFIX = ".html";
     /**
      * Default value for prefix of temporary files.
      */
     public static final String DEFAULT_PREFIX = "MappingUtil_";
+
+    /**
+     * Default mime type if detection fails.
+     */
+    public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
+
+    /**
+     * Default file extension used if no file extension could be determined
+     * based on the mime type.
+     */
+    public static final String DEFAULT_FILE_EXTENSION = "bin";
+
     /**
      * Logger for this class.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
+    /**
+     * Header size used to check for JSON or XML.
+     */
     private static final int MAX_LENGTH_OF_HEADER = 100;
+    /**
+     * Few first kilobytes of file allowing Tika to detect extension. They don't
+     * state explicitly how many kilobytes they need, so 8 should be fine.
+     */
+    private static final int FEW_KILO_BYTES_FOR_TIKA = 8 * 1024;
 
     private static final Pattern JSON_FIRST_BYTE = Pattern.compile("(\\R\\s)*\\s*\\{\\s*\"(.|\\s)*", Pattern.MULTILINE);//^\\s{\\s*\".*");
     private static final Pattern XML_FIRST_BYTE = Pattern.compile("((.|\\s)*<\\?xml[^<]*)?\\s*<\\s*(\\w+:)?\\w+(.|\\s)*", Pattern.MULTILINE);
@@ -111,10 +136,14 @@ public class FileUtil {
     public static Path fixFileExtension(Path pathToFile) {
         Path returnFile = pathToFile;
         Path renamedFile = pathToFile;
+        LOGGER.trace("fixFileExtension({})", pathToFile);
+        FileInputStream fin = null;
         try {
             if ((pathToFile != null) && (pathToFile.toFile().exists())) {
-                String contentOfFile = FileUtils.readFileToString(pathToFile.toFile(), StandardCharsets.UTF_8);
-                String newExtension = guessFileExtension(contentOfFile.getBytes());
+                fin = new FileInputStream(pathToFile.toFile());
+                byte[] header = fin.readNBytes(FEW_KILO_BYTES_FOR_TIKA);
+                fin.close();
+                String newExtension = guessFileExtension(header);
                 if (newExtension != null) {
                     if (!pathToFile.toString().endsWith(newExtension)) {
                         renamedFile = Paths.get(pathToFile + newExtension);
@@ -126,6 +155,7 @@ public class FileUtil {
         } catch (IOException ex) {
             LOGGER.error("Error moving file '{}' to '{}'.", pathToFile, renamedFile);
         }
+        LOGGER.trace("'{}' -> '{}'", pathToFile, returnFile);
         return returnFile;
     }
 
@@ -163,22 +193,90 @@ public class FileUtil {
         }
     }
 
-    private static String guessFileExtension(byte[] schema) {
-        // Cut schema to a maximum of MAX_LENGTH_OF_HEADER characters.
-        int length = Math.min(schema.length, MAX_LENGTH_OF_HEADER);
-        String schemaAsString = new String(schema, 0, length);
-        LOGGER.trace("Guess type for '{}'", schemaAsString);
+    /**
+     * Detect the mime type of the file at the given path. If detection fails,
+     * application/octet-stream is returned as default.
+     *
+     * @param file Path to file
+     *
+     * @return The mime type of application/octet-stream as fallback.
+     */
+    public static String getMimeType(Path file) {
+        file = fixFileExtension(file);
+        Tika tika = new Tika();
+        String mimeType = DEFAULT_MIME_TYPE;
+        LOGGER.trace("Performing mime type detection for file {}.", file.toString());
+        try {
+            mimeType = tika.detect(file);
+            LOGGER.trace("Detected mime type {} for file {}.", mimeType, file.toString());
+        } catch (IOException e) {
+            LOGGER.warn("Failed to detect media type for file " + file.toString() + ". Returning application/octet-stream.", e);
+        }
+        return mimeType;
+    }
 
-        Matcher m = JSON_FIRST_BYTE.matcher(schemaAsString);
+    /**
+     * Detect the mime type of the file at the given path. If detection fails,
+     * application/octet-stream is returned as default.
+     *
+     * @param mimeType The mime type as string.
+     *
+     * @return The extension if it could be determined by mime type or 'bin'
+     * otherwise.
+     */
+    public static String getExtensionForMimeType(String mimeType) {
+        String ext = DEFAULT_FILE_EXTENSION;
+        LOGGER.trace("Obtaining mime type for string {}.", mimeType);
+        try {
+            MimeType type = MimeTypes.getDefaultMimeTypes().forName(mimeType);
+            LOGGER.trace("Obtained mime type {}. Getting default extension.", type);
+            ext = type.getExtension();
+            if (ext.isEmpty()) {
+                LOGGER.trace("Returning default extension {}.", ext);
+            }
+        } catch (MimeTypeException ex) {
+            LOGGER.error("Failed to obtain mime type for string {}.", mimeType);
+        }
+        return ext;
+    }
+
+    /**
+     * Guess the extension of the file from the first bytes using Apache Tika
+     *
+     * @param fewKilobytesOfFile First few kilobytes of the file.
+     * @return Estimated extension. e.g. '.xml'
+     */
+    private static String guessFileExtension(byte[] fewKilobytesOfFile) {
+        String returnValue = null;
+        String headerAsString = new String(fewKilobytesOfFile, 0, Math.min(fewKilobytesOfFile.length, MAX_LENGTH_OF_HEADER));
+        LOGGER.trace("Guess type for '{}'", headerAsString);
+
+        Matcher m = JSON_FIRST_BYTE.matcher(headerAsString);
         if (m.matches()) {
-            return ".json";
+            returnValue = ".json";
         } else {
-            m = XML_FIRST_BYTE.matcher(schemaAsString);
+            m = XML_FIRST_BYTE.matcher(headerAsString);
             if (m.matches()) {
-                return ".xml";
+                returnValue = ".xml";
             }
         }
-        return null;
+        if (returnValue == null) {
+            // Use tika library to estimate extension
+            LOGGER.trace("Use tika library to estimate extension.");
+            Tika tika = new Tika();
+            String mimeType;
+            mimeType = tika.detect(fewKilobytesOfFile);
+            MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+            MimeType estimatedMimeType;
+            try {
+                estimatedMimeType = allTypes.forName(mimeType);
+                returnValue = estimatedMimeType.getExtension(); // .jpg
+                LOGGER.trace("Mimetype: '{}', Extension: '{}'", mimeType, returnValue);
+            } catch (MimeTypeException ex) {
+                LOGGER.error("Unknown mimetype '{}'", mimeType);
+            }
+        }
+        return returnValue;
     }
 
     /**

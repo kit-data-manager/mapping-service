@@ -16,6 +16,7 @@
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
 <script defer src="JS/mapDocument.js"></script>
+<script defer src="JS/download.js"></script>
 
 <header class="row align-items-center navbar">
     <h1 class="header col-auto">Mapping-Service GUI</h1>
@@ -27,11 +28,11 @@
         <script src="JS/dark-mode-switch.js"></script>
     </div>
     <ul class="nav nav-pills d-flex flex-wrap py-3 mb-4 border-bottom p-3">
-        <li class="nav-item"><a href="/index.html" class="nav-link" aria-current="page">Home</a></li>
-        <li class="nav-item"><a href="/addScheme.html" class="nav-link">Add mapping scheme</a></li>
-        <li class="nav-item"><a href="/showSchemes.html" class="nav-link">Show all mapping schemes</a></li>
-        <li class="nav-item"><a href="/mapDocument.html" class="nav-link active">Map a document</a></li>
-        <li class="nav-item"><a href="/swagger-ui/index.html" class="nav-link">REST Documentation</a></li>
+        <li class="nav-item"><a href="./index.html" class="nav-link" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="./addScheme.html" class="nav-link">Add mapping scheme</a></li>
+        <li class="nav-item"><a href="./showSchemes.html" class="nav-link">Show all mapping schemes</a></li>
+        <li class="nav-item"><a href="./mapDocument.html" class="nav-link active">Map a document</a></li>
+        <li class="nav-item"><a href="./swagger-ui/index.html" class="nav-link">REST Documentation</a></li>
     </ul>
 </header>
 <main role="main">
@@ -42,7 +43,7 @@
             <label for="id" class="col-form-label">Identifier</label>
             <input type="text" id="id" class="form-control" aria-describedby="idHelpInline" required>
             <span id="idHelpInline" class="form-text">
-                Enter the ID of the mapping you want to use or select a mapping in the <a href="showSchemes.html">list of mappings</a>.
+                Enter the ID of the mapping you want to use or select a mapping in the <a href="./showSchemes.html">list of mappings</a>.
             </span>
         </div>
 

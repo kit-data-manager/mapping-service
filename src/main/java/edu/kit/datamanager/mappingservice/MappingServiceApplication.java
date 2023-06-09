@@ -24,11 +24,16 @@ public class MappingServiceApplication {
         return new ApplicationProperties();
     }
 
+    @Bean
+    public PluginManager pluginManager(){
+        return new PluginManager(applicationProperties());
+    }
+    
     public static void main(String[] args) {
         SpringApplication.run(MappingServiceApplication.class, args);
 
-        PluginManager.soleInstance().getListOfAvailableValidators().forEach((value) -> LOG.info("Found validator: " + value));
-        PythonRunnerUtil.printPythonVersion();
+        //pluginManager().getListOfAvailableValidators().forEach((value) -> LOG.info("Found validator: " + value));
+        //PythonRunnerUtil.printPythonVersion();
 
         System.out.println("Mapping service is running! Access it at http://localhost:8095");
     }
