@@ -42,8 +42,8 @@ Before you can start the mapping-service, you  first have to create an `applicat
 and modify it according to your needs. Espacially the following properties (at the end of the file) are important:
 - `spring.datasource.url=jdbc:h2:file:/tmp/mapping-service/database`
 The path points to the location of the database in which your configured mappings are stored.
-- `mapping-service.pythonLocation=${pythonExecutable:'file:///usr/bin/python3'}` \
-If no pythonLocation is provided externally (see above) the default `/usr/bin/python3` is used.
+- `mapping-service.pythonExecutable=${pythonExecutable:'file:///usr/bin/python3'}` \
+If no pythonExecutable is provided externally (see above) the default `/usr/bin/python3` is used.
 - `mapping-service.pluginLocation=file:///tmp/mapping-service/plugins` \
 The local folder where available plugins are located.
 - `mapping-service.mappingsLocation:file:///tmp/mapping-service/` \
