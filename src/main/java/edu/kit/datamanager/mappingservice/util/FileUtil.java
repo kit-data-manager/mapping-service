@@ -202,6 +202,7 @@ public class FileUtil {
      * @return The mime type of application/octet-stream as fallback.
      */
     public static String getMimeType(Path file) {
+        file = fixFileExtension(file);
         Tika tika = new Tika();
         String mimeType = DEFAULT_MIME_TYPE;
         LOGGER.trace("Performing mime type detection for file {}.", file.toString());

@@ -17,7 +17,6 @@ package edu.kit.datamanager.mappingservice.configuration;
 
 import edu.kit.datamanager.annotations.ExecutableFileURL;
 import edu.kit.datamanager.annotations.LocalFolderURL;
-import edu.kit.datamanager.configuration.GenericPluginProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,8 +27,8 @@ import org.springframework.validation.annotation.Validated;
 import java.net.URL;
 
 /**
- * This class is used to configure the application.
- * It reads the values from the application.properties file.
+ * This class is used to configure the application. It reads the values from the
+ * application.properties file.
  *
  * @author maximilianiKIT
  */
@@ -39,12 +38,20 @@ import java.net.URL;
 @Validated
 @EqualsAndHashCode
 public class ApplicationProperties {
+
     /**
      * The absolute path to the python interpreter.
      */
     @ExecutableFileURL
     @Value("${mapping-service.pythonLocation}")
     private URL pythonLocation;
+
+    /**
+     * The absolute path where the plugins are stored.
+     */
+    @LocalFolderURL
+    @Value("${mapping-service.pluginLocation}")
+    private URL pluginLocation;
 
     /**
      * The absolute path where the mappings are stored.

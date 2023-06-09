@@ -128,7 +128,7 @@ public class MappingExecutionController implements IMappingExecutionController {
         return ResponseEntity.ok().
                 header(HttpHeaders.CONTENT_LENGTH, String.valueOf(result.toFile().length())).
                 header(HttpHeaders.CONTENT_TYPE, mimeType).
-                header(HttpHeaders.CONTENT_DISPOSITION, String.valueOf("attachment; " + "result." + extension)).
+                header(HttpHeaders.CONTENT_DISPOSITION, String.valueOf("attachment;" + "result" + extension)).
                 body(new FileSystemResource(result.toFile()));
     }
 }

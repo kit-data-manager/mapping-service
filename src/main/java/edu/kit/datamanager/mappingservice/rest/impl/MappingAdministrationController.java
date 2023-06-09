@@ -81,13 +81,19 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     private final IMappingRecordDao mappingRecordDao;
 
     /**
+     * The plugin manager.
+     */
+    private final PluginManager pluginManager;
+
+    /**
      * Connection to the executive logic of the mapping service.
      */
     private final MappingService mappingService;
 
-    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, MappingService mappingService) {
+    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, PluginManager pluginManager, MappingService mappingService) {
         this.mappingRecordDao = mappingRecordDao;
         this.mappingService = mappingService;
+        this.pluginManager = pluginManager;
     }
 
     @Override
@@ -346,9 +352,9 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         LOG.trace("Performing getAllAvailableMappingTypes()");
 
         List<PluginInformation> plugins = new ArrayList<>();
-        PluginManager.soleInstance().getListOfAvailableValidators().forEach((id) -> {
+        pluginManager.getListOfAvailableValidators().forEach((id) -> {
             try {
-                plugins.add(new PluginInformation(id));
+                plugins.add(new PluginInformation(id, pluginManager));
             } catch (MappingPluginException ex) {
                 LOG.error("Error getting plugin information for id " + id, ex);
             }
@@ -361,7 +367,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     @Override
     public ResponseEntity<String> reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
         LOG.trace("Reloading available plugins.");
-        PluginManager.soleInstance().reloadPlugins();
+        pluginManager.reloadPlugins();
         LOG.trace("Plugins successfully reloaded.");
         return ResponseEntity.noContent().build();
     }

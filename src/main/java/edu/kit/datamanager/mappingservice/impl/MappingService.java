@@ -57,6 +57,12 @@ public class MappingService {
      */
     @Autowired
     private IMappingRecordDao mappingRepo;
+
+    /**
+     * The Plugin Manager.
+     */
+    @Autowired
+    private PluginManager pluginManager;
     /**
      * Path to directory holding all mapping files.
      */
@@ -176,7 +182,7 @@ public class MappingService {
             Path resultFile;
             resultFile = FileUtil.createTempFile(mappingId + "_" + srcFile.hashCode(), ".result");
             LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
-            MappingPluginState result = PluginManager.soleInstance().mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
+            MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
             LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
             returnValue = Optional.of(resultFile);
             // remove downloaded file

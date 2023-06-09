@@ -140,3 +140,10 @@ bootJar {
 release {
     tagTemplate = 'v${version}'
 }
+
+task buildPluginJar(type: Jar) {
+ description = 'Bundeling only plugin classes'
+ archiveFileName.set("default-plugins-${version}.jar")
+ from sourceSets.main.output
+ include '**/plugins/impl/*.class'
+}

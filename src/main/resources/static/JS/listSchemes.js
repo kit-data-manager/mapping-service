@@ -1,7 +1,6 @@
 const apiUrl = "./api/v1/mappingAdministration/";
 
 let records = new Map();
-getRecords();
 
 function getRecords() {
     const http = new XMLHttpRequest();

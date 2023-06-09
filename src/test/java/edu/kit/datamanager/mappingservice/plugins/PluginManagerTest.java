@@ -16,70 +16,71 @@ package edu.kit.datamanager.mappingservice.plugins;
 
 import org.junit.jupiter.api.Test;
 import java.io.File;
-import org.junit.Ignore;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class PluginManagerTest {
 
-    @Test
-    void soleInstance() {
-        assertNotNull(PluginManager.soleInstance());
-        assertEquals(PluginManager.soleInstance(), PluginManager.soleInstance());
-    }
+    @Autowired
+    private PluginManager pluginManager;
 
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
     void reloadPlugins() {
-        assertEquals(2, PluginManager.soleInstance().getPlugins().size());
+        assertEquals(2, pluginManager.getPlugins().size());
 
-        PluginManager.soleInstance().unload();
+        pluginManager.unload();
 
-        assertEquals(0, PluginManager.soleInstance().getPlugins().size());
+        assertEquals(0, pluginManager.getPlugins().size());
 
-        PluginManager.soleInstance().reloadPlugins();
-        assertEquals(2, PluginManager.soleInstance().getPlugins().size());
+        pluginManager.reloadPlugins();
+        assertEquals(2, pluginManager.getPlugins().size());
     }
 
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
     void getListOfAvailableValidators() {
-        System.out.println(PluginManager.soleInstance().getListOfAvailableValidators());
-        assertEquals(2, PluginManager.soleInstance().getListOfAvailableValidators().size());
+        System.out.println(pluginManager.getListOfAvailableValidators());
+        assertEquals(2, pluginManager.getListOfAvailableValidators().size());
     }
 
     @Test
     void mapFileInvalidParameters() {
         try {
-            PluginManager.soleInstance().mapFile(null, null, null, null);
+            pluginManager.mapFile(null, null, null, null);
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
             assertEquals("Plugin ID is null.", e.getMessage());
         }
 
         try {
-            PluginManager.soleInstance().mapFile("test", null, null, null);
+            pluginManager.mapFile("test", null, null, null);
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
             assertEquals("Path to mapping schema is null.", e.getMessage());
         }
 
         try {
-            PluginManager.soleInstance().mapFile("test", new File("test").toPath(), null, null);
+            pluginManager.mapFile("test", new File("test").toPath(), null, null);
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
             assertEquals("Path to input file is null.", e.getMessage());
         }
 
         try {
-            PluginManager.soleInstance().mapFile("test", new File("test").toPath(), new File("testInput").toPath(), null);
+            pluginManager.mapFile("test", new File("test").toPath(), new File("testInput").toPath(), null);
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
             assertEquals("Path to output file is null.", e.getMessage());
         }
 
         try {
-            PluginManager.soleInstance().mapFile("test", new File("test").toPath(), new File("testInput").toPath(), new File("testOutput").toPath());
+            pluginManager.mapFile("test", new File("test").toPath(), new File("testInput").toPath(), new File("testOutput").toPath());
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.NOT_FOUND, e.getState());
             assertEquals("Plugin 'test' not found!", e.getMessage());
@@ -90,7 +91,7 @@ class PluginManagerTest {
     void mapFile() {
         try {
             File outputFile = new File("/tmp/testOutput");
-            PluginManager.soleInstance().mapFile("TEST_0.0.0", new File("mapping-schema").toPath(), new File("input").toPath(), outputFile.toPath());
+            pluginManager.mapFile("TEST_0.0.0", new File("mapping-schema").toPath(), new File("input").toPath(), outputFile.toPath());
             assertTrue(outputFile.exists());
             outputFile.delete();
         } catch (MappingPluginException e) {
