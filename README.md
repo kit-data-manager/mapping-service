@@ -27,13 +27,13 @@ Dependencies that are needed to build and are not being downloaded via gradle:
 
 ### Python Location
 
-Currently, mapping-service requires Python to be installed in order to build and to run. At runtime, the Python location is configured in 
-`application.properties`(see below). For building the mapping-service Python location is set to `/usr/bin/python3` by default. In case you want to build 
+Currently, mapping-service requires Python to be installed in order to build and to run. At runtime, the Python executable is configured in 
+`application.properties`(see below). For building the mapping-service Python executable is set to `/usr/bin/python3` by default. In case you want to build 
 the mapping-service on a machine on which the Python installation is located elsewhere, e.g., under Windows, you can provide the Python location 
 used at compile time externally, i.e.:
 
 ```
-.\gradlew -Pclean-release "-DpythonLocation=file:///C:/Python310/python.exe" build
+.\gradlew -Pclean-release "-DpythonExecutable=file:///C:/Python310/python.exe" build
 ```
 
 ## How to start
@@ -42,7 +42,7 @@ Before you can start the mapping-service, you  first have to create an `applicat
 and modify it according to your needs. Espacially the following properties (at the end of the file) are important:
 - `spring.datasource.url=jdbc:h2:file:/tmp/mapping-service/database`
 The path points to the location of the database in which your configured mappings are stored.
-- `mapping-service.pythonLocation=${pythonLocation:'file:///usr/bin/python3'}` \
+- `mapping-service.pythonLocation=${pythonExecutable:'file:///usr/bin/python3'}` \
 If no pythonLocation is provided externally (see above) the default `/usr/bin/python3` is used.
 - `mapping-service.pluginLocation=file:///tmp/mapping-service/plugins` \
 The local folder where available plugins are located.

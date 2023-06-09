@@ -36,7 +36,7 @@ repositories {
 ext {
     set('snippetsDir', file('build/generated-snippets'))
     applicationProperties = System.getProperty('applicationProperties', './src/test/resources/test-config/application-test.properties')
-    pythonLocation = System.getProperty('pythonLocation', 'file:///c:/python310/python.exe')
+    pythonLocation = System.getProperty('pythonExecutable', 'file:///c:/python310/python.exe')
 }
 
 dependencies {
