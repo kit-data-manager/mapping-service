@@ -11,7 +11,6 @@ plugins {
 
 description = 'Generic mapping service supporting different mapping implementations.'
 group = 'edu.kit.datamanager'
-version = '0.1.0-SNAPSHOT'
 
 println "Running gradle version: $gradle.gradleVersion"
 println "Building ${name} version: ${version}"
@@ -27,6 +26,11 @@ configurations {
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17
+
+if (project.hasProperty('release')) {
+    println 'Using \'release\' profile for building ' + project.getName()
+    apply from: 'gradle/profile-deploy.gradle'
+}
 
 repositories {
     mavenLocal()
@@ -121,6 +125,9 @@ jar {
     manifest {
         attributes 'Main-Class': 'edu.kit.datamanager.mapping-service.MappingServiceApplication'
     }
+    archiveBaseName = 'mapping-service'
+    // version is defined in file 'gradle.properties'
+    archiveVersion = System.getenv('version')
 }
 
 springBoot {    
