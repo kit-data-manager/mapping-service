@@ -126,7 +126,7 @@ springBoot {
 
 bootRun {
     systemProperty "spring.config.location", "file:$projectDir/"
-    systemProperty "pythonLocation", pythonLocation
+    systemProperty "pythonLocation", pythonExecutable
 }
 
 bootJar {
