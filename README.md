@@ -1,15 +1,12 @@
 # Mapping-Service
 
-[![Java CI with Gradle](https://github.com/maximilianiKIT/mapping-service/actions/workflows/CI.yml/badge.svg)](https://github.com/maximilianiKIT/mapping-service/actions/workflows/CI.yml)
-[![CodeQL](https://github.com/maximilianiKIT/mapping-service/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/maximilianiKIT/mapping-service/actions/workflows/codeql-analysis.yml)
-[![codecov](https://codecov.io/gh/maximilianiKIT/mapping-service/branch/main/graph/badge.svg?token=XFhZruKFaE)](https://codecov.io/gh/maximilianiKIT/mapping-service)
-[![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)](https://github.com/maximilianiKIT/mapping-service/blob/c3ab1c96643b3409774eafd4c8f0843cb9ae2aa1/LICENSE)
+[![Java CI with Gradle](https://github.com/kit-data-manager/mapping-service/actions/workflows/CI.yml/badge.svg)](https://github.com/kit-data-manager/mapping-service/actions/workflows/CI.yml)
+[![CodeQL](https://github.com/kit-data-manager/mapping-service/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/kit-data-manager/mapping-service/actions/workflows/codeql-analysis.yml)
+[![codecov](https://codecov.io/gh/kit-data-manager/mapping-service/branch/main/graph/badge.svg?token=XFhZruKFaE)](https://codecov.io/gh/kit-data-manager/mapping-service)
+[![License](https://img.shields.io/github/license/kit-data-manager/indexing-service.svg)](https://github.com/kit-data-manager/mapping-service/blob/c3ab1c96643b3409774eafd4c8f0843cb9ae2aa1/LICENSE)
 
-:warning:
-Not fully tested yet!
-The mapping-service provides a generic interface for mapping various documents. 
-The tools required for this, such as Gemma, JOLT, XSLT, ... can be loaded into the mapping-service as plugins, regardless of the programming language in which they were developed. 
-These tools are then made usable via the REST-API and a Web-UI. 
+The mapping-service provides a generic interface for mapping various documents. The tools required for this, such as Gemma, JOLT, XSLT, ... can be 
+loaded into the mapping-service as plugins, regardless of the programming language in which they were developed. These tools are then made usable via the REST-API and a Web-UI. 
 The mapping schemas are stored in a database and can be managed via the REST-API and the Web-UI.
 
 The Web-UI is accessible via the following URL: [http://\<IP or hostname>:8095](http://localhost:8095)
