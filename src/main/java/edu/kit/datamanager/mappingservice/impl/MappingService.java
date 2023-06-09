@@ -18,8 +18,11 @@ package edu.kit.datamanager.mappingservice.impl;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.exception.DuplicateMappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import org.apache.commons.codec.binary.Hex;
@@ -48,11 +51,18 @@ import java.util.Optional;
  */
 @Service
 public class MappingService {
+
     /**
      * Repo holding all MappingRecords.
      */
     @Autowired
     private IMappingRecordDao mappingRepo;
+
+    /**
+     * The Plugin Manager.
+     */
+    @Autowired
+    private PluginManager pluginManager;
     /**
      * Path to directory holding all mapping files.
      */
@@ -71,33 +81,51 @@ public class MappingService {
     /**
      * Save content to mapping file and get the mapping location.
      *
-     * @param content       Content of the mapping file.
+     * @param content Content of the mapping file.
      * @param mappingRecord record of the mapping
+     *
+     * @return The created mapping record.
+     *
+     * @throws IOException if the provided content could not be persisted.
      */
-    public void createMapping(String content, MappingRecord mappingRecord) throws IOException {
+    public MappingRecord createMapping(String content, MappingRecord mappingRecord) throws IOException {
+        LOGGER.trace("Creating mapping with id {}.", mappingRecord.getMappingId());
         Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdIn(Collections.singletonList(mappingRecord.getMappingId()));
         if (findMapping.iterator().hasNext()) {
+            LOGGER.error("Unable to create mapping with id {}. Mapping id is alreadyy used.", mappingRecord.getMappingId());
             mappingRecord = findMapping.iterator().next();
-            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' already exists!");
+            throw new DuplicateMappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' already exists!");
         }
+
+        LOGGER.trace("Saving mapping file.");
         saveMappingFile(content, mappingRecord);
-        mappingRepo.save(mappingRecord);
+        LOGGER.trace("Persisting mapping record.");
+        MappingRecord result = mappingRepo.save(mappingRecord);
+        LOGGER.trace("Mapping with id {} successfully created.", result.getMappingId());
+        return mappingRecord;
     }
 
     /**
      * Update content of mapping file and get the mapping location.
      *
-     * @param content       Content of the mapping file.
+     * @param content Content of the mapping file.
      * @param mappingRecord record of the mapping
      */
-    public void updateMapping(String content, MappingRecord mappingRecord) throws IOException {
+    public void updateMapping(String content, MappingRecord mappingRecord) throws MappingNotFoundException, IOException {
         Optional<MappingRecord> findMapping = mappingRepo.findByMappingId(mappingRecord.getMappingId());
         if (findMapping.isEmpty()) {
-            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
+            LOGGER.error("Failed to update mapping with id {}. Mapping not found.", mappingRecord.getMappingId());
+            throw new MappingNotFoundException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
         }
+
+        LOGGER.trace("Updating mapping with id {}.", mappingRecord.getMappingId());
         mappingRecord.setMappingDocumentUri(findMapping.get().getMappingDocumentUri());
+        LOGGER.trace("Saving mapping file.");
         saveMappingFile(content, mappingRecord);
+        LOGGER.trace("Persisting mapping record.");
         mappingRepo.save(mappingRecord);
+        LOGGER.trace("Mapping with id {} successfully updated.", mappingRecord.getMappingId());
+
     }
 
     /**
@@ -105,14 +133,22 @@ public class MappingService {
      *
      * @param mappingRecord record of the mapping
      */
-    public void deleteMapping(MappingRecord mappingRecord) throws IOException {
+    public void deleteMapping(MappingRecord mappingRecord) {
         Optional<MappingRecord> findMapping = mappingRepo.findByMappingId(mappingRecord.getMappingId());
         if (findMapping.isEmpty()) {
-            throw new MappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' doesn't exist!");
+            //deletion skipped, no error needed
+            LOGGER.trace("Mapping with id {} not found. Skipping deletion.", mappingRecord.getMappingId());
+            return;
         }
+        LOGGER.trace("Deleting mapping with id {}.", mappingRecord.getMappingId());
         mappingRecord = findMapping.get();
-        deleteMappingFile(mappingRecord);
+        try {
+            deleteMappingFile(mappingRecord);
+        } catch (IOException e) {
+            LOGGER.error("Failed to delete mapping file at " + mappingRecord.getMappingDocumentUri() + ". Please remove it manually.", e);
+        }
         mappingRepo.delete(mappingRecord);
+        LOGGER.trace("Mapping with id {} deleted.", mappingRecord.getMappingId());
     }
 
     /**
@@ -120,43 +156,53 @@ public class MappingService {
      * mapping is found the src file will be returned.
      *
      * @param contentUrl Content of the src file.
-     * @param mappingId  id of the mapping
+     * @param mappingId id of the mapping
      * @return Path to result file.
      */
     public Optional<Path> executeMapping(URI contentUrl, String mappingId) throws MappingPluginException {
+        LOGGER.trace("Executing mapping of content {} using mapping with id {}.", contentUrl, mappingId);
+        if (contentUrl == null || mappingId == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Either contentUrl or mappingId are not provided.");
+        }
+
         Optional<Path> returnValue;
-        Optional<Path> download = FileUtil.downloadResource(contentUrl);
+        Path srcFile = Paths.get(contentUrl);//FileUtil.downloadResource(contentUrl);
         MappingRecord mappingRecord;
 
-        if (download.isPresent()) {
-            LOGGER.trace("Execute Mapping for '{}', and mapping '{}'.", contentUrl.toString(), mappingId);
-            Path srcFile = download.get();
-            // Get mapping file
-            Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
-            if (optionalMappingRecord.isPresent()) {
-                mappingRecord = optionalMappingRecord.get();
-                Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
-                // execute mapping
-                Path resultFile;
-                resultFile = FileUtil.createTempFile(mappingId + "_" + srcFile.hashCode(), ".result");
-                PluginManager.soleInstance().mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
-                returnValue = Optional.of(resultFile);
-                // remove downloaded file
-                FileUtil.removeFile(srcFile);
-            } else {
-                returnValue = Optional.of(srcFile);
-            }
+        //if(download.isPresent()){
+        // Path srcFile = download.get();
+        // Get mapping file
+        LOGGER.trace("Searching for mapping with id {}.", mappingId);
+        Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
+        if (optionalMappingRecord.isPresent()) {
+            LOGGER.trace("Mapping for id {} found. Creating temporary output file.");
+            mappingRecord = optionalMappingRecord.get();
+            Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
+            // execute mapping
+            Path resultFile;
+            resultFile = FileUtil.createTempFile(mappingId + "_" + srcFile.hashCode(), ".result");
+            LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
+            MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
+            LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
+            returnValue = Optional.of(resultFile);
+            // remove downloaded file
+            FileUtil.removeFile(srcFile);
         } else {
-            String message = contentUrl != null ? "Error: Downloading content from '" + contentUrl + "'!" : "Error: No URL provided!";
-            throw new MappingException(message);
+            LOGGER.error("Unable to find mapping with id {}.", mappingId);
+            throw new MappingNotFoundException("Unable to find mapping with id " + mappingId + ".");
         }
+        /*} else{
+      String message = contentUrl != null ? "Error: Downloading content from '" + contentUrl + "'!" : "Error: No URL provided!";
+      throw new MappingException(message);
+    }*/
         return returnValue;
     }
 
     /**
      * Initalize mappings directory and mappingUtil instance.
      *
-     * @param applicationProperties Properties holding mapping directory setting.
+     * @param applicationProperties Properties holding mapping directory
+     * setting.
      */
     private void init(ApplicationProperties applicationProperties) {
         if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {

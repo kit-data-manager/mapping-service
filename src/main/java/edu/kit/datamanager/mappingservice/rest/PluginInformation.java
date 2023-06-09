@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.rest;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -43,6 +42,7 @@ import java.util.Objects;
 @ToString
 @RequiredArgsConstructor
 public class PluginInformation implements Serializable {
+
     /**
      * ID of the plugin.
      */
@@ -65,7 +65,8 @@ public class PluginInformation implements Serializable {
     String description;
 
     /**
-     * URI to the plugin, the plugins author, ... or the tool which is used by the plugin.
+     * URI to the plugin, the plugins author, ... or the tool which is used by
+     * the plugin.
      */
     String uri;
 
@@ -80,11 +81,12 @@ public class PluginInformation implements Serializable {
     String[] outputTypes;
 
     /**
-     * Constructor for creating a PluginInformation object by getting these information from the plugins themselves via the PluginManager.
+     * Constructor for creating a PluginInformation object by getting these
+     * information from the plugins themselves via the PluginManager.
      */
-    public PluginInformation(String id) throws MappingPluginException {
+    public PluginInformation(String id, PluginManager manager) throws MappingPluginException {
         this.id = id;
-        IMappingPlugin p = PluginManager.soleInstance().getPlugins().get(id);
+        IMappingPlugin p = manager.getPlugins().get(id);
         if (p != null) {
             this.name = p.name();
             this.version = p.version();
@@ -96,13 +98,19 @@ public class PluginInformation implements Serializable {
             ArrayList<String> outputTypesList = new ArrayList<>();
             Arrays.stream(p.outputTypes()).toList().forEach(mimeType -> outputTypesList.add(mimeType.toString()));
             this.outputTypes = outputTypesList.toArray(new String[0]);
-        } else throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin with id " + id + " not found.");
+        } else {
+            throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin with id " + id + " not found.");
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
         PluginInformation that = (PluginInformation) o;
         return id != null && Objects.equals(id, that.id);
     }

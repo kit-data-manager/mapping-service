@@ -60,29 +60,29 @@ public class PluginLoader {
      * the input.
      */
     public static Map<String, IMappingPlugin> loadPlugins(File plugDir) throws IOException, MappingPluginException {
-        if (plugDir == null || plugDir.getAbsolutePath().isBlank()) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Empty input!");
-        }
-        File[] plugJars = plugDir.listFiles(new JARFileFilter());
-        if (plugJars == null || plugJars.length < 1) {
-            throw new MappingPluginException(MappingPluginState.NOT_FOUND, "No plugins found.");
-        }
-        cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars));
-        
-        List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
-
-        List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
         Map<String, IMappingPlugin> result = new HashMap<>();
-        for (IMappingPlugin i : IMappingPluginList) {
-            i.setup();
-            result.put(i.id(), i);
-        }
+        if (plugDir == null || plugDir.getAbsolutePath().isBlank()) {
+            LOG.warn("Plugin folder " + plugDir + " is null. Unable to load plugins.");
+        } else {
+            File[] plugJars = plugDir.listFiles(new JARFileFilter());
+            if (plugJars == null || plugJars.length < 1) {
+                LOG.warn("Plugin folder " + plugDir + " is empty. Unable to load plugins.");
+            } else {
+                cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars), Thread.currentThread().getContextClassLoader());
 
+                List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
+                List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
+
+                for (IMappingPlugin i : IMappingPluginList) {
+                    i.setup();
+                    result.put(i.id(), i);
+                }
+            }
+        }
         return result;
     }
 
     private static URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
-
         URL[] urls = new URL[files.length];
         for (int i = 0; i < files.length; i++) {
             urls[i] = files[i].toURI().toURL();
@@ -91,16 +91,17 @@ public class PluginLoader {
     }
 
     private static List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, ClassLoader cl) throws IOException, MappingPluginException {
-
+        LOG.trace("Extracting classes from plugin JARs.");
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
         for (File jar : jars) {
+            LOG.trace("Processing file {}.", jar.getAbsolutePath());
             classes.addAll(PluginLoader.extractClassesFromJAR(jar, cl));
         }
         return classes;
     }
 
     private static List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
-
+        LOG.trace("Extracting plugin classes from file {}.", jar.getAbsolutePath());
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
         try (JarInputStream jaris = new JarInputStream(new FileInputStream(jar))) {
             JarEntry ent;
@@ -108,10 +109,12 @@ public class PluginLoader {
                 if (ent.getName().toLowerCase().endsWith(".class")) {
                     try {
                         Class<?> cls = cl.loadClass(ent.getName().substring(0, ent.getName().length() - 6).replace('/', '.'));
+                        LOG.trace("Checking {}.", cls);
                         if (PluginLoader.isPluggableClass(cls)) {
+                            LOG.trace("Plugin class found.");
                             classes.add((Class<IMappingPlugin>) cls);
                         }
-                    } catch (ClassNotFoundException e) {
+                    } catch (ClassNotFoundException | NoClassDefFoundError e) {
                         LOG.info("Can't load Class " + ent.getName());
                         throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't load Class " + ent.getName(), e);
                     }
@@ -122,9 +125,11 @@ public class PluginLoader {
     }
 
     private static boolean isPluggableClass(Class<?> cls) {
-
         for (Class<?> i : cls.getInterfaces()) {
+            LOG.trace("Checking {} against {}.", i, IMappingPlugin.class);
+LOG.trace("ASSIGN {}", IMappingPlugin.class.isAssignableFrom(cls));
             if (i.equals(IMappingPlugin.class)) {
+                LOG.trace("IMappingPlugin interface found.");
                 return true;
             }
         }
@@ -132,8 +137,10 @@ public class PluginLoader {
     }
 
     private static List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggable) throws MappingPluginException {
+        LOG.trace("Instantiating plugins from list: {}", pluggable);
         List<IMappingPlugin> plugs = new ArrayList<>(pluggable.size());
         for (Class<IMappingPlugin> plug : pluggable) {
+            LOG.trace("Instantiating plugin from class {}.", plug);
             try {
                 plugs.add(plug.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {

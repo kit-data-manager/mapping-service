@@ -35,7 +35,7 @@ function map() {
         let filename = content_dispo.substr(content_dispo.lastIndexOf(";") + 1);
         download(http.responseText, filename, http.getResponseHeader("content-type"));
         document.getElementById("progress").hidden = true
-        document.getElementById("downloadButton").hidden = false
+        document.getElementById("downloadButton").hidden = true
         document.getElementById("submit").disabled = false
         
        /* console.log(http.getAllResponseHeaders())

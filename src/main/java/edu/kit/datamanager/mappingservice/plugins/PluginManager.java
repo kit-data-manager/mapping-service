@@ -12,86 +12,88 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Class for managing plugins and their execution.
  *
  * @author maximilianiKIT
  */
+@Component
 public class PluginManager {
+
     /**
      * Logger for this class.
      */
     static Logger LOG = LoggerFactory.getLogger(IMappingPlugin.class);
 
     /**
-     * Singleton instance.
+     * Application properties autowired at instantiation time.
      */
-    private static final PluginManager soleInstance = new PluginManager();
+    private final ApplicationProperties applicationProperties;
 
     /**
      * Map of plugins.
      */
-    private Map<String, IMappingPlugin> plugins;
-
-    static {
-        soleInstance.reloadPlugins(); // loads plugins on startup
-    }
+    private Map<String, IMappingPlugin> plugins = new HashMap<>();
 
     /**
-     * Private constructor for singleton.
-     * This enforces singularity.
-     */
-    private PluginManager() {
-    }
-
-    /**
-     * Get the singleton instance of this class.
+     * Constructor with autowired applicationProperties.
      *
-     * @return singleton instance
+     * @param applicationProperties Application properties autowired at
+     * instantiation time.
      */
-    public static PluginManager soleInstance() {
-        return soleInstance;
+    @Autowired
+    public PluginManager(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+        reloadPlugins();
     }
 
-    public void unload(){
+    /**
+     * Unload all plugins and reload them from the configured plugin folder.
+     */
+    public final void unload() {
         PluginLoader.unload();
         plugins.clear();
     }
+
     /**
      * Reloads the plugins from the 'plugins' directory.
      */
-    public void reloadPlugins() {
-        Map<String, IMappingPlugin> plugins1;
+    public final void reloadPlugins() {
+        unload();
         try {
-            plugins1 = PluginLoader.loadPlugins(new File("./plugins"));
-        } catch (Exception e) {
-            LOG.info("No plugins loaded.", e);
-            plugins1 = new HashMap<>();
+            plugins = PluginLoader.loadPlugins(Paths.get(applicationProperties.getPluginLocation().toURI()).toFile());
+        } catch (URISyntaxException ex) {
+            LOG.error("Mapping plugin location " + applicationProperties.getPluginLocation() + " cannot be converted to URI", ex);
+        } catch (IOException ioe) {
+            LOG.error("Failed to open plugin libraries at plugin location " + applicationProperties.getPluginLocation() + ".", ioe);
+        } catch (MappingPluginException e) {
+            LOG.info("Unable to obtain plugin classes from libraries at plugin location " + applicationProperties.getPluginLocation() + ".", e);
         }
-        plugins = plugins1;
     }
 
-
     /**
-     * Gets the map of plugins.
-     * The key is the plugin id.
+     * Gets the map of plugins. The key is the plugin id.
      *
      * @return map of plugins
      */
-    public Map<String, IMappingPlugin> getPlugins() {
+    public final Map<String, IMappingPlugin> getPlugins() {
         return plugins;
     }
 
@@ -100,37 +102,44 @@ public class PluginManager {
      *
      * @return List of plugin ids
      */
-    public List<String> getListOfAvailableValidators() {
-        Map<String, IMappingPlugin> map = PluginManager.soleInstance().getPlugins();
+    public final List<String> getListOfAvailableValidators() {
+        Map<String, IMappingPlugin> map = getPlugins();
         List<String> result = new ArrayList<>();
-        for (var entry : map.entrySet()) {
+        map.entrySet().forEach(entry -> {
             result.add(entry.getKey());
-        }
+        });
         return result;
     }
 
     /**
      * Executes a mapping on a plugin.
      *
-     * @param pluginId    ID of the plugin to execute.
+     * @param pluginId ID of the plugin to execute.
      * @param mappingFile Path to the mapping schema.
-     * @param inputFile   Path to the input file.
-     * @param outputFile  Path where the output is temporarily stored.
-     * @return MappingPluginState.SUCCESS if the plugin was executed successfully.
-     * @throws MappingPluginException If there is an error with the plugin or the input.
+     * @param inputFile Path to the input file.
+     * @param outputFile Path where the output is temporarily stored.
+     * @return MappingPluginState.SUCCESS if the plugin was executed
+     * successfully.
+     * @throws MappingPluginException If there is an error with the plugin or
+     * the input.
      */
-    public MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
-//        for (var entry : plugins.entrySet()) {
-//            if (entry.getKey().equals(pluginId)) {
-//                return entry.getValue().mapFile(mappingFile, inputFile, outputFile);
-//            }
-//        }
-        if (pluginId == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Plugin ID is null.");
-        if (mappingFile == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to mapping schema is null.");
-        if (inputFile == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to input file is null.");
-        if (outputFile == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to output file is null.");
+    public final MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
+        if (pluginId == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Plugin ID is null.");
+        }
+        if (mappingFile == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to mapping schema is null.");
+        }
+        if (inputFile == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to input file is null.");
+        }
+        if (outputFile == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to output file is null.");
+        }
 
-        if(plugins.containsKey(pluginId)) return plugins.get(pluginId).mapFile(mappingFile, inputFile, outputFile);
+        if (plugins.containsKey(pluginId)) {
+            return plugins.get(pluginId).mapFile(mappingFile, inputFile, outputFile);
+        }
         throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin '" + pluginId + "' not found!");
     }
 }

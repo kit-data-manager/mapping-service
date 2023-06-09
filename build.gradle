@@ -36,7 +36,8 @@ repositories {
 ext {
     set('snippetsDir', file('build/generated-snippets'))
     applicationProperties = System.getProperty('applicationProperties', './src/test/resources/test-config/application-test.properties')
-    pythonLocation = System.getProperty('pythonLocation', 'file:///usr/bin/python3')
+    pythonExecutable = System.getProperty('pythonExecutable', 'file:///usr/bin/python3')
+    userDir = System.getProperty('user.dir')
 }
 
 dependencies {
@@ -89,11 +90,13 @@ dependencies {
 test {
     outputs.dir snippetsDir
     finalizedBy jacocoTestReport
-    print("Running tests with configuration: ${applicationProperties}")
+    println("Running tests with configuration: ${applicationProperties}")
+    println("Running tests with python: ${pythonExecutable}")
+    println("Running tests in directory: ${userDir}")
     environment 'spring.config.location', applicationProperties
-    environment 'pythonLocation', pythonLocation
-//    environment 'spring.config.location', 'classpath:/test-config/'
+    environment 'pythonExecutable', pythonExecutable
     useJUnitPlatform()
+    testLogging.showStandardStreams = true
 }
 
 jacoco {
@@ -126,7 +129,7 @@ springBoot {
 
 bootRun {
     systemProperty "spring.config.location", "file:$projectDir/"
-    systemProperty "pythonLocation", pythonLocation
+    systemProperty "pythonLocation", pythonExecutable
 }
 
 bootJar {
@@ -139,4 +142,11 @@ bootJar {
 
 release {
     tagTemplate = 'v${version}'
+}
+
+task buildPluginJar(type: Jar) {
+ description = 'Bundeling only plugin classes'
+ archiveFileName.set("default-plugins-${version}.jar")
+ from sourceSets.main.output
+ include '**/plugins/impl/*.class'
 }

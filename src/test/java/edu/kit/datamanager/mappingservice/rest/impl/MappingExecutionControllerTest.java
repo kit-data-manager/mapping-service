@@ -50,17 +50,16 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @EnableRuleMigrationSupport
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = MappingServiceApplication.class)
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
-        DependencyInjectionTestExecutionListener.class,
-        DirtiesContextTestExecutionListener.class,
-        TransactionalTestExecutionListener.class,
-        WithSecurityContextTestExecutionListener.class})
-//@ActiveProfiles("test")
+    DependencyInjectionTestExecutionListener.class,
+    DirtiesContextTestExecutionListener.class,
+    TransactionalTestExecutionListener.class,
+    WithSecurityContextTestExecutionListener.class})
+@ActiveProfiles("test")
 @TestPropertySource(properties = {"server.port=41500"})
 public class MappingExecutionControllerTest {
 
@@ -96,11 +95,11 @@ public class MappingExecutionControllerTest {
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
-                        file(recordFile).
-                        file(mappingFile)).
+                file(recordFile).
+                file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isCreated()).
-                andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration")).
+                andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration/*")).
                 andReturn();
 
         System.out.println(mappingsDir.getAbsolutePath());
@@ -140,8 +139,7 @@ public class MappingExecutionControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.multipart(MAPPING_URL).file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isOk()).
-                andExpect(content().string("Hello World!")).
-                andReturn();
+                andExpect(header().string("content-disposition", "attachment;result.txt")).andReturn();
     }
 
     @Test
@@ -164,7 +162,6 @@ public class MappingExecutionControllerTest {
 //                andExpect(content().string("There is no result for the input. The input must be invalid.")).
 //                andReturn();
 //    }
-
     @Test
     void mapWithMissingParameters() throws Exception {
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/examples/gemma/simple.json"), StandardCharsets.UTF_8);
@@ -184,7 +181,7 @@ public class MappingExecutionControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingExecution/xsfdfg").file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isNotFound()).
-                andExpect(content().string("No mapping record found for mapping xsfdfg.")).
+                andExpect(content().string("No mapping found for mapping id xsfdfg.")).
                 andReturn();
     }
 
@@ -199,7 +196,6 @@ public class MappingExecutionControllerTest {
 //                andExpect(content().string("No mapping record found for mapping my_dc/gkahjg.")).
 //                andReturn();
 //    }
-
 //    @Test
 //    void mapWithTypeMissing() throws Exception {
 //        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/examples/gemma/simple.json"), StandardCharsets.UTF_8);
