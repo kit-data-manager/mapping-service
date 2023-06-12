@@ -45,6 +45,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /**
@@ -108,10 +109,11 @@ public class MappingExecutionController implements IMappingExecutionController{
       } catch(MappingPluginException e){
         LOG.error("Failed to execute mapping.", e);
         throw new MappingExecutionException("Failed to execute mapping with id " + mappingID + " on provided input document.");
+      } finally{
+        LOG.trace("Removing user upload at {}.", inputFile);
+        FileUtil.removeFile(inputPath);
+        LOG.trace("User upload successfully removed.");
       }
-      LOG.trace("Removing user upload at {}.", inputFile);
-      FileUtil.removeFile(inputPath);
-      LOG.trace("User upload successfully removed.");
     } else{
       String message = "Either mapping id or input document are missing. Unable to perform mapping.";
       LOG.error(message);
@@ -124,14 +126,14 @@ public class MappingExecutionController implements IMappingExecutionController{
       LOG.error(message);
       throw new MappingExecutionException(message);
     }
-    
+
     LOG.trace("Determining mime type for mapping result.");
     result = FileUtil.fixFileExtension(result);
-    
+
     String mimeType = FileUtil.getMimeType(result);
     LOG.trace("Determining file extension for mapping result.");
     String extension = FileUtil.getExtensionForMimeType(mimeType);
-  
+
     LOG.trace("Using mime type {} and extension {}.", mimeType, extension);
 
     response.setStatus(HttpStatus.OK.value());
@@ -143,15 +145,19 @@ public class MappingExecutionController implements IMappingExecutionController{
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;" + "filename=result" + extension);
     try{
       Files.copy(result, response.getOutputStream());
+
     } catch(IOException ex){
       String message = "Failed to write mapping result file to stream.";
       LOG.error(message, ex);
       throw new MappingExecutionException(message);
+    } finally{
+      LOG.trace("Result file successfully transferred to client. Removing file {} from disk.", result);
+      try{
+        Files.delete(result);
+        LOG.trace("Result file successfully removed.");
+      } catch(IOException ignored){
+        LOG.warn("Failed to remove result file. Please remove manually.");
+      }
     }
-    /*return ResponseEntity.ok().
-            header(HttpHeaders.CONTENT_LENGTH, String.valueOf(result.toFile().length())).
-            header(HttpHeaders.CONTENT_TYPE, mimeType).
-            header(HttpHeaders.CONTENT_DISPOSITION, String.valueOf("attachment;" + "result" + extension)).
-            body(new FileSystemResource(result.toFile()));*/
   }
 }
