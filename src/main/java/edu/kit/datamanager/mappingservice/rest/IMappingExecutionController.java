@@ -53,7 +53,7 @@ public interface IMappingExecutionController {
 
     @RequestMapping(value = {"/{mappingID}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
-    ResponseEntity mapDocument(
+    void mapDocument(
             @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
             @Parameter(description = "The mappingID of the already defined mapping.", required = true) @PathVariable(value = "mappingID") String mappingID,
             final HttpServletRequest request,
