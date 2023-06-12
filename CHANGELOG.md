@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - No more empty downloads in GUI
 - User input and result data for mapping execution gets now reliably removed in case of success and error
+- Fixed pythonExecutable config variable name and default value
 
 ## [1.0.0] - date 2023-06-09
 ### New Features
