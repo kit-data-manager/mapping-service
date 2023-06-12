@@ -74,6 +74,7 @@ public class PluginLoader {
                 List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
 
                 for (IMappingPlugin i : IMappingPluginList) {
+                    //TODO: Add error handling in case setup of one plugin fails
                     i.setup();
                     result.put(i.id(), i);
                 }
