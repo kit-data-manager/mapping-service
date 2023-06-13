@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##[Unreleased]
 
 ## [1.0.1]
+### New Features
+- Simple alert is shown if mapping fails to provide some feedback
+
 ### Fixed
 - No more empty downloads in GUI
 - User input and result data for mapping execution gets now reliably removed in case of success and error
