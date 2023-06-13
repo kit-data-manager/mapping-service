@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+##[Unreleased]
+
+## [1.0.1]
+### New Features
+- Simple alert is shown if mapping fails to provide some feedback
+
+### Fixed
+- No more empty downloads in GUI
+- User input and result data for mapping execution gets now reliably removed in case of success and error
+- Fixed pythonExecutable config variable name and default value
 
 ## [1.0.0] - date 2023-06-09
 ### New Features
@@ -34,7 +43,8 @@ and mapping of metadata documents delivered by RabbitMQ
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
-[Unreleased]: https://github.com/kit-data-manager/indexing-service/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kit-data-manager/indexing-service/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/kit-data-manager/indexing-service/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.4...v1.0.0
 [0.0.4]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.2...v0.0.3
