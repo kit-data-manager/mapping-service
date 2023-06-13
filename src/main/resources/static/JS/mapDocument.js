@@ -32,11 +32,15 @@ function map() {
     http.responseType = 'blob';
     
     http.onload = () => {
-        let content_dispo = http.getResponseHeader("content-disposition");
-        let filename = content_dispo.substr(content_dispo.lastIndexOf("=") + 1);
-        let content_type =http.getResponseHeader("content-type");
-        console.log("Downloading result to " + filename + " with content type " + content_type);
-        download(http.response, filename, content_type);
+        if(http.status === 200){
+            let content_dispo = http.getResponseHeader("content-disposition");
+            let filename = content_dispo.substr(content_dispo.lastIndexOf("=") + 1);
+            let content_type =http.getResponseHeader("content-type");
+            console.log("Downloading result to " + filename + " with content type " + content_type);
+            download(http.response, filename, content_type);
+        }else{
+            alert("A remote mapping error occured. Please check server logs for details.")
+        }
         document.getElementById("progress").hidden = true
         document.getElementById("downloadButton").hidden = true
         document.getElementById("submit").disabled = false
