@@ -43,9 +43,9 @@ and mapping of metadata documents delivered by RabbitMQ
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
-[Unreleased]: https://github.com/kit-data-manager/indexing-service/compare/v1.0.1...HEAD
-[1.0.1]: https://github.com/kit-data-manager/indexing-service/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.4...v1.0.0
-[0.0.4]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.3...v0.0.4
-[0.0.3]: https://github.com/kit-data-manager/indexing-service/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/kit-data-manager/metastore2/indexing-service/tag/v0.0.2
+[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/kit-data-manager/mapping-service/compare/v0.0.4...v1.0.0
+[0.0.4]: https://github.com/kit-data-manager/mapping-service/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/kit-data-manager/mapping-service/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/kit-data-manager/mapping-service/tag/v0.0.2
