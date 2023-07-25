@@ -219,8 +219,12 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.trace("Mapping document at path {} either does not exist or is no file or is not readable. Returning HTTP INTERNAL_SERVER_ERROR.", mappingDocumentPath);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Metadata document on server either does not exist or is no file or is not readable.");
         }
+
+        LOG.trace("Get ETag of MappingRecord.");
+        String etag = record.getEtag();
+
         LOG.trace("Mapping document found. Returning result.");
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_LENGTH, String.valueOf(mappingDocumentPath.toFile().length())).body(new FileSystemResource(mappingDocumentPath.toFile()));
+        return ResponseEntity.ok().eTag("\"" + etag + "\"").header(HttpHeaders.CONTENT_LENGTH, String.valueOf(mappingDocumentPath.toFile().length())).body(new FileSystemResource(mappingDocumentPath.toFile()));
     }
 
     @Override
