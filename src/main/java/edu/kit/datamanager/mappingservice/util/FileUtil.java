@@ -292,7 +292,8 @@ public class FileUtil {
     }
 
     /**
-     * This method clones a git repository into the 'lib' folder.
+     * This method clones a git repository into the 'lib' folder. If the folder
+     * already exists, a pull is performed.
      *
      * @param repositoryUrl the url of the repository to clone
      * @param branch the branch to clone
@@ -301,17 +302,24 @@ public class FileUtil {
      */
     public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
         File target = new File(targetFolder);
-        target.mkdirs();
+        if (target.exists()) {
+            try {
+                Git.open(target).pull().call();
+            } catch (IOException | JGitInternalException | GitAPIException e) {
+                LOGGER.error("Error pulling git repository at '" + target + "'!", e);
+                throw new MappingException("Error pulling git repository at '" + target + "'!", e);
+            }
+        } else {
+            target.mkdirs();
 
-        LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
-        try {
-            Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
-        } catch (JGitInternalException e) {
-            LOGGER.info(e.getMessage());
-        } catch (GitAPIException ex) {
-            throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", ex);
+            LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+            try {
+                Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+            } catch (JGitInternalException | GitAPIException e) {
+                LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
+                throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
+            }
         }
-
         return target.toPath();
     }
 }
