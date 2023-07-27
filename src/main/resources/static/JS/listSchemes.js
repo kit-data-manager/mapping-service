@@ -8,7 +8,7 @@ function getRecords() {
     http.send();
     http.onprogress = () => {
         document.getElementById("progress").hidden = false;
-    }
+    };
     http.onload = (e) => {
         const results = JSON.parse(http.responseText);
         if (results.length > 0) {
@@ -19,24 +19,24 @@ function getRecords() {
             document.getElementById("progress").hidden = false;
             console.log(results[i].mappingId);
             const schemaHttp = new XMLHttpRequest();
-            var schema
+            //var schema
             var ETAG
 
             schemaHttp.open("GET", apiUrl + results[i].mappingId);
-            schemaHttp.setRequestHeader("Content-Type", "application/json");
+            schemaHttp.setRequestHeader("Accept", "application/vnd.datamanager.mapping-record+json");
             schemaHttp.send();
             schemaHttp.onload = (e) => {
-                schema = JSON.parse(schemaHttp.responseText);
+              //  schema = JSON.parse(schemaHttp.responseText);
                 ETAG = schemaHttp.getResponseHeader("ETag");
                 console.log("Received Data:");
                 console.log({
                     "record": results[i],
-                    "schema": schema,
+                    //"schema": schema,
                     "ETAG": ETAG
                 });
                 records.set(results[i].mappingId, {
                     "record": results[i],
-                    "schema": schema,
+                    //"schema": schema,
                     "ETAG": ETAG
                 })
                 console.log(records);
