@@ -128,7 +128,7 @@ public class PluginLoader {
     private static boolean isPluggableClass(Class<?> cls) {
         for (Class<?> i : cls.getInterfaces()) {
             LOG.trace("Checking {} against {}.", i, IMappingPlugin.class);
-LOG.trace("ASSIGN {}", IMappingPlugin.class.isAssignableFrom(cls));
+            LOG.trace("ASSIGN {}", IMappingPlugin.class.isAssignableFrom(cls));
             if (i.equals(IMappingPlugin.class)) {
                 LOG.trace("IMappingPlugin interface found.");
                 return true;
