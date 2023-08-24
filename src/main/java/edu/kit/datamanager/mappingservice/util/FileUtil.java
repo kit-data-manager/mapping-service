@@ -143,7 +143,7 @@ public class FileUtil {
                 fin = new FileInputStream(pathToFile.toFile());
                 byte[] header = fin.readNBytes(FEW_KILO_BYTES_FOR_TIKA);
                 fin.close();
-                String newExtension = guessFileExtension(header);
+                String newExtension = guessFileExtension(pathToFile.getFileName().toString(), header);
                 if (newExtension != null) {
                     if (!pathToFile.toString().endsWith(newExtension)) {
                         renamedFile = Paths.get(pathToFile + newExtension);
@@ -243,10 +243,11 @@ public class FileUtil {
     /**
      * Guess the extension of the file from the first bytes using Apache Tika
      *
+     * @param filename The name of the file to support mime type detection.
      * @param fewKilobytesOfFile First few kilobytes of the file.
      * @return Estimated extension. e.g. '.xml'
      */
-    private static String guessFileExtension(byte[] fewKilobytesOfFile) {
+    private static String guessFileExtension(String filename, byte[] fewKilobytesOfFile) {
         String returnValue = null;
         String headerAsString = new String(fewKilobytesOfFile, 0, Math.min(fewKilobytesOfFile.length, MAX_LENGTH_OF_HEADER));
         LOGGER.trace("Guess type for '{}'", headerAsString);
@@ -265,7 +266,7 @@ public class FileUtil {
             LOGGER.trace("Use tika library to estimate extension.");
             Tika tika = new Tika();
             String mimeType;
-            mimeType = tika.detect(fewKilobytesOfFile);
+            mimeType = tika.detect(fewKilobytesOfFile, filename);
             MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
             MimeType estimatedMimeType;
             try {
