@@ -48,7 +48,7 @@ public class FileUtilTest {
         Optional<Path> result = FileUtil.downloadResource(resourceURL);
         assertTrue(result.isPresent());
         assertTrue(result.get().toFile().exists());
-        assertTrue(result.get().toString().endsWith(FileUtil.DEFAULT_SUFFIX));
+        assertTrue(result.get().toString().endsWith("html"));
         assertTrue(result.get().toFile().delete());
     }
 
