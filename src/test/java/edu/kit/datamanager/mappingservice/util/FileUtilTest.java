@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author hartmann-v
  */
 public class FileUtilTest {
+
     /**
      * Test of downloadResource method, of class GemmaMapping.
      */
@@ -267,13 +268,17 @@ public class FileUtilTest {
 
         File srcFile = new File("src/test/resources/examples/anyContentWithoutSuffix");
         assertTrue(srcFile.exists());
-        String[] extensions = {"nosuffix", "json", ".json", ".xml", ".txt"};
+        String[] extensions = {"", ".json", ".xml", ".txt"};
         String expectedExtension = ".txt";
         for (String extension : extensions) {
             Path createTempFile = FileUtil.createTempFile(null, extension);
             Files.copy(srcFile, createTempFile.toFile());
             Path result = FileUtil.fixFileExtension(createTempFile);
-            assertTrue(result.toString().endsWith(expectedExtension), "Result: " + result.toString());
+            if (extension.startsWith(".")) {
+                assertTrue(result.toString().endsWith(extension), "Result: " + result.toString());
+            } else {
+                assertTrue(result.toString().endsWith(expectedExtension), "Result: " + result.toString());
+            }
             assertTrue(result.toFile().delete());
 
         }

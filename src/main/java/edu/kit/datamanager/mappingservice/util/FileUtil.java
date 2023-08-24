@@ -54,7 +54,7 @@ public class FileUtil {
     /**
      * Default value for suffix of temporary files.
      */
-    public static final String DEFAULT_SUFFIX = ".html";
+    public static final String DEFAULT_SUFFIX = ".txt";
     /**
      * Default value for prefix of temporary files.
      */
