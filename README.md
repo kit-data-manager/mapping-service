@@ -20,7 +20,7 @@ Dependencies that are needed to build and are not being downloaded via gradle:
 - Python 3
 - pip (runtime only)
 
-`./gradlew -Pclean-release build`
+`./gradlew build`
 
 ### Python Location
 
@@ -30,7 +30,7 @@ the mapping-service on a machine on which the Python installation is located els
 used at compile time externally, i.e.:
 
 ```
-.\gradlew -Pclean-release "-DpythonExecutable=file:///C:/Python310/python.exe" build
+.\gradlew "-DpythonExecutable=file:///C:/Python310/python.exe" build
 ```
 
 ## How to start
@@ -73,6 +73,139 @@ Ideally, for production use, you place everything (`mapping-service-<VERSION>.ja
 and `spring.datasource.url`) in a separate folder from where you then call the mapping-service via: 
 
 `java -jar mapping-service-<VERSION>.jar`
+
+## Installation
+There are three ways to install metaStore2 as a microservice:
+- [Using](#Installation-via-GitHub-Packages) the image available via [GitHub Packages](https://github.com/orgs/kit-data-manager/packages?repo_name=mapping-service) (***recommended***)
+- [Building](#Build-docker-container-locally) docker image locally
+- [Building](#Build-and-run-locally) and running locally
+
+## Installation via GitHub Packages
+### Prerequisites
+In order to run this microservice via docker you'll need:
+
+* [Docker](https://www.docker.com/) 
+
+### Installation
+Typically, there is no need for locally building images as all version are accessible via GitHub Packages.
+Have a look of available images and their tags [here](https://github.com/orgs/kit-data-manager/packages?repo_name=mapping-service) 
+Just follow instructions [below](#Build-docker-container).
+
+## Build docker container locally
+### Prerequisites
+In order to run this microservice via docker you'll need:
+
+* [Docker](https://www.docker.com/) 
+* [git](https://git-scm.com/) 
+
+### Installation
+#### Clone repository
+First of all you'll have to clone this repository:
+```
+user@localhost:/home/user/$ git clone https://github.com/kit-data-manager/mapping-service.git
+Clone to 'mapping-service'
+[...]
+user@localhost:/home/user/$ cd mapping-service
+user@localhost:/home/user/mapping-service$
+```
+
+#### Create image
+Now you'll have to create an image containing the microservice. This can be done via a script.
+On default the created images will be tagged as follows:
+
+*'latest tag'-'actual date(yyyy-mm-dd)'* (e.g.: 1.2.0-2023-06-27)
+
+```
+user@localhost:/home/user/mapping-service$ bash docker/buildDocker.sh
+---------------------------------------------------------------------------
+Build docker container ghcr.io/kit-data-manager/mapping-service:1.2.0-2023-06-27
+---------------------------------------------------------------------------
+[...]
+---------------------------------------------------------------------------
+Now you can create and start the container by calling ...
+---------------------------------------------------------------------------
+user@localhost:/home/user/mapping-service$
+```
+
+#### Build docker container
+After building image you have to create (and start) a container for executing microservice:
+```
+# If you want to use a specific image you may list all possible tags first.
+user@localhost:/home/user/mapping-service$ docker images ghcr.io/kit-data-manager/mapping-service --format {{.Tag}}
+1.2.0-2023-06-27
+user@localhost:/home/user/mapping-service$ docker run -d -p8095:8095 --name mapping4docker ghcr.io/kit-data-manager/mapping-service:1.2.0-2023-06-27
+57c973e7092bfc3778569f90632d60775dfecd12352f13a4fd2fdf4270865286
+user@localhost:/home/user/mapping-service$
+```
+
+#### Customize settings
+If you want to overwrite default configuration of your docker container you have to
+'mount' a config directory containing 'application.properties' with your adapted settings.
+Therefor you have to provide an additional flag to the command mentioned before:
+```
+# Overwriting default settings
+# Create config folder
+user@localhost:/home/user/mapping-service$ mkdir config
+# Place your own 'application.properties' inside the config directory
+# Create/run container
+user@localhost:/home/user/mapping-service$ docker run -d -p8095:8095 -v `pwd`/config:/spring/mapping-service/config --name mapping4docker ghcr.io/kit-data-manager/mapping-service:1.2.0-2023-06-27
+57c973e7092bfc3778569f90632d60775dfecd12352f13a4fd2fdf4270865286
+user@localhost:/home/user/mapping-service$
+```
+
+#### Stop docker container
+If you want to stop container just type
+```
+user@localhost:/home/user/mapping-service$ docker stop mapping4docker
+```
+
+#### (Re)start docker container
+If you want to (re)start container just type
+```
+user@localhost:/home/user/mapping-service$ docker start mapping4docker
+```
+
+## Build and run locally
+### Prerequisites
+In order to run this microservice via docker you'll need:
+
+* [Java SE Development Kit >= 17](https://openjdk.java.net/) 
+* [git](https://git-scm.com/) 
+
+### Installation
+#### Clone repository
+First of all you'll have to clone this repository:
+```
+user@localhost:/home/user/$ git clone https://github.com/kit-data-manager/mapping-service.git
+Clone to 'mapping-service'
+[...]
+user@localhost:/home/user/$ cd mapping-service
+user@localhost:/home/user/mapping-service$
+```
+#### Build service 
+To build service just execute the build.sh script:
+```
+user@localhost:/home/user/mapping-service$bash build.sh /PATH/TO/EMPTY/INSTALLATION/DIRECTORY
+---------------------------------------------------------------------------
+Build microservice of mapping-service at /PATH/TO/EMPTY/INSTALLATION/DIRECTORY
+---------------------------------------------------------------------------
+[...]
+---------------------------------------------------------------------------
+Now you can start the service by calling /PATH/TO/EMPTY/INSTALLATION/DIRECTORY/run.sh
+---------------------------------------------------------------------------
+user@localhost:/home/user/mapping-service$
+```
+#### Customize settings
+If you want to overwrite default configuration of your docker container you have to
+add a file named 'application.properties' to the 'config' directory inside your installation
+path (/PATH/TO/EMPTY/INSTALLATION/DIRECTORY)selected before. The added file should
+only contain your adapted settings. e.g. in case you want to change only the port to '1234' your
+'application.properties' should look like this:
+```
+# Overwriting default settings from ../application.properties
+# Server settings
+server.port: 1234
+```
 
 ## License
 
