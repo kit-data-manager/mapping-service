@@ -128,6 +128,8 @@ jar {
     archiveBaseName = 'mapping-service'
     // version is defined in file 'gradle.properties'
     archiveVersion = System.getenv('version')
+    // disable plain jar file
+    enabled = false
 }
 
 springBoot {    
@@ -156,4 +158,12 @@ task buildPluginJar(type: Jar) {
  archiveFileName.set("default-plugins-${version}.jar")
  from sourceSets.main.output
  include '**/plugins/impl/*.class'
+}
+
+// task for printing project name.
+// should be the last task inside file
+task printProjectName {
+    doLast {
+        println "${project.name}"
+    }
 }
