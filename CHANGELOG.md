@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Improved file extension correction for download allowing to distinguish between different textfile flavours
 
+## [1.0.2] - date 2023-07-27
+### New Features
+- Plugins loading their code via GitHub now also pull changes while being reloaded
+
+### Fixed
+- Mappings can now be deleted from the UI
+- Mappings with missing mapping files are now visible in the UI and can be deleted
+
 ## [1.0.1] - date 2023-06-13
 ### New Features
 - Simple alert is shown if mapping fails to provide some feedback
@@ -45,7 +53,8 @@ and mapping of metadata documents delivered by RabbitMQ
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
-[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kit-data-manager/mapping-service/compare/v0.0.4...v1.0.0
 [0.0.4]: https://github.com/kit-data-manager/mapping-service/compare/v0.0.3...v0.0.4
