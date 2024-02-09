@@ -6,7 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
+### New Features
+### Changed
+
+## [1.0.4] . date 2024-02-09
+### Fixed
+- Missing project name while building docker via build script.
+- Fix relative paths for JS and CSS 
+
+### Changed
+- Bump gradle from 7.5.1 to 7.6.4
+- Add default context path (mapping-service)
+
+## [1.0.3] - date 2024-02-07
+### Fixed
 - Improved file extension correction for download allowing to distinguish between different textfile flavours
+
+### New Features
+- Dockerization of service
 
 ## [1.0.2] - date 2023-07-27
 ### New Features
@@ -53,7 +70,9 @@ and mapping of metadata documents delivered by RabbitMQ
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
-[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kit-data-manager/mapping-service/compare/v0.0.4...v1.0.0
