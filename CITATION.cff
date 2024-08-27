@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Inckmann"
+  given-names: "Maximilian"
+  affiliation: Karlsruhe Institute of Technology
+  email: maximilian.inckmann@kit.edu
+  orcid: "https://orcid.org/0009-0005-2800-4833"
+- family-names: "Jejkal"
+  given-names: "Thomas"
+  affiliation: Karlsruhe Institute of Technology
+  email: thomas.jejkal@kit.edu
+  orcid: "https://orcid.org/0000-0003-2804-688X"
+- family-names: "Hartmann"
+  given-names: "Volker"
+  affiliation: Karlsruhe Institute of Technology
+  email: volker.hartmann@kit.edu
+  orcid: "https://orcid.org/0000-0001-6383-5214"
+- family-names: "Pfeil"
+  given-names: "Andreas"
+  affiliation: Karlsruhe Institute of Technology
+  email: andreas.pfeil@kit.edu
+  orcid: "https://orcid.org/0000-0001-6575-1022"
+title: "mapping-service"
+type: software
+abstract: The mapping-service provides a generic interface for mapping various documents. Mappers can be added as plugins regardless of the programming language in which they were developed and are then made usable via the REST-API and a Web-UI.
+date-released: 2020-10-15
+url: "https://github.com/kit-data-manager/mapping-service"
+repository-code: "https://github.com/kit-data-manager/mapping-service"
+license: Apache-2.0
