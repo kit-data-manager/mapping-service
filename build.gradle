@@ -1,7 +1,7 @@
 plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'org.springframework.boot' version '2.6.6'
-    id "org.asciidoctor.jvm.convert" version "3.3.0"
+    id "org.asciidoctor.jvm.convert" version "4.0.3"
     id "org.owasp.dependencycheck" version "7.3.0"
     id 'net.researchgate.release' version '3.0.2'
     id "com.gorylenko.gradle-git-properties" version "2.4.1"
@@ -59,12 +59,12 @@ dependencies {
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.json:json:20220320'
     implementation 'com.github.jknack:handlebars:4.3.0'
-    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'com.google.guava:guava:33.3.0-jre'
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'javax.validation:validation-api:2.0.1.Final'
     implementation 'edu.kit.datamanager:service-base:1.0.4'
     // apache
-    implementation "org.apache.tika:tika-core:2.7.0"
+    implementation "org.apache.tika:tika-core:2.9.2"
 
     testImplementation platform('org.junit:junit-bom:5.9.0')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
