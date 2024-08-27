@@ -64,7 +64,7 @@ dependencies {
     implementation 'javax.validation:validation-api:2.0.1.Final'
     implementation 'edu.kit.datamanager:service-base:1.0.4'
     // apache
-    implementation "org.apache.tika:tika-core:2.7.0"
+    implementation "org.apache.tika:tika-core:2.9.2"
 
     testImplementation platform('org.junit:junit-bom:5.9.0')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
