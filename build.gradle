@@ -55,7 +55,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.11'
     implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.11'
     implementation 'org.javers:javers-spring-boot-starter-sql:6.6.5'
-    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.json:json:20220320'
     implementation 'com.github.jknack:handlebars:4.3.0'
@@ -86,7 +86,7 @@ dependencies {
 
     runtimeOnly 'com.h2database:h2:2.1.214'
     runtimeOnly 'org.postgresql:postgresql:42.7.4'
-    runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.13'
+    runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:2.0.6.RELEASE'
 }
