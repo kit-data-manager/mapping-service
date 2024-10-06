@@ -80,9 +80,9 @@ dependencies {
     testImplementation 'org.junit.vintage:junit-vintage-engine:5.11.2'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.7.18'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    compileOnly 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
 
     runtimeOnly 'com.h2database:h2:2.1.214'
     runtimeOnly 'org.postgresql:postgresql:42.7.4'
