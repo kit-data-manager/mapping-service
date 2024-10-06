@@ -79,7 +79,7 @@ dependencies {
     testImplementation 'net.bytebuddy:byte-buddy:1.12.16'
     testImplementation 'org.junit.vintage:junit-vintage-engine:5.11.1'
 
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.7.3'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.7.18'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
