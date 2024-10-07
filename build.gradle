@@ -88,7 +88,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql:42.7.4'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
-    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:2.0.6.RELEASE'
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.1'
 }
 
 test {
