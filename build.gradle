@@ -49,7 +49,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.7.3'
     implementation 'org.springframework.boot:spring-boot-starter-security:2.7.3'
     implementation 'org.springframework.boot:spring-boot-starter-validation:2.7.3'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.3'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.18'
     implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.18'
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.11'
     implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.11'
