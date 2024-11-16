@@ -84,7 +84,7 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok:1.18.34'
 
-    runtimeOnly 'com.h2database:h2:2.1.214'
+    runtimeOnly 'com.h2database:h2:2.3.232'
     runtimeOnly 'org.postgresql:postgresql:42.7.4'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
