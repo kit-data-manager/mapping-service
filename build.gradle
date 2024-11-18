@@ -70,7 +70,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
     testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.11.3'
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.18'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.8.RELEASE'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.3'
     testImplementation 'org.springframework.security:spring-security-test:5.7.3'
     testImplementation 'org.springframework:spring-test:5.3.39'
     testImplementation 'org.mockito:mockito-core:4.11.0'
