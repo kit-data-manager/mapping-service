@@ -37,7 +37,7 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python3
       uses: actions/setup-python@v4
       with:
@@ -95,7 +95,7 @@ jobs:
       matrix:
         language: [ 'java' ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python3
         uses: actions/setup-python@v4
