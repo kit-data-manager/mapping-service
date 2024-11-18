@@ -53,7 +53,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.18'
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.11'
     implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.11'
-    implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.11'
+    implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.8.0'
     implementation 'org.javers:javers-spring-boot-starter-sql:6.6.5'
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.4'
