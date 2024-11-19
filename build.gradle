@@ -73,7 +73,7 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.8.RELEASE'
     testImplementation 'org.springframework.security:spring-security-test:5.8.15'
     testImplementation 'org.springframework:spring-test:5.3.39'
-    testImplementation 'org.mockito:mockito-core:4.11.0'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     testImplementation 'net.bytebuddy:byte-buddy:1.15.10'
