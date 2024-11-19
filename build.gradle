@@ -54,7 +54,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-ui:1.8.0'
     implementation 'org.springdoc:springdoc-openapi-data-rest:1.8.0'
     implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.8.0'
-    implementation 'org.javers:javers-spring-boot-starter-sql:6.14.0'
+    implementation 'org.javers:javers-spring-boot-starter-sql:7.7.0'
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.json:json:20220320'
