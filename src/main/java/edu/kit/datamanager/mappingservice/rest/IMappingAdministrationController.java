@@ -33,9 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -57,7 +55,7 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "409", description = "CONFLICT is returned, if there is already a mapping for the provided mapping id."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, an unexpected exception occured while persisting the mapping.")})
 
-    @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @RequestMapping(path = "/", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity<MappingRecord> createMapping(
             @Parameter(description = "JSON representation of the mapping record.", required = true) @RequestPart(name = "record") final MultipartFile record,
@@ -98,7 +96,7 @@ public interface IMappingAdministrationController {
             + "records are returned.",
             responses = {
                 @ApiResponse(responseCode = "200", description = "OK and a list of records, which might be empty.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = MappingRecord.class))))})
-    @RequestMapping(value = {""}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/"}, method = {RequestMethod.GET})
     @PageableAsQueryParam
     @ResponseBody
     ResponseEntity<List<MappingRecord>> getMappings(

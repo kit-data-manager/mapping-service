@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,9 +45,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -97,7 +95,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity createMapping(
+    public ResponseEntity<MappingRecord> createMapping(
             @RequestPart(name = "record") final MultipartFile record,
             @RequestPart(name = "document") final MultipartFile document,
             WebRequest wr,
@@ -112,7 +110,8 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
             LOG.error("Unable to deserialize mapping record.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unable to deserialize provided mapping record.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//.body("Unable to deserialize provided mapping record.");
         }
 
         LOG.trace("Obtaining caller principle for authorization purposes.");
@@ -148,7 +147,8 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             mappingRecord = mappingService.createMapping(contentOfFile, mappingRecord);
         } catch (IOException ioe) {
             LOG.error("Unable to create mapping for provided inputs.", ioe);
-            return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
+           //return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         LOG.trace("Mapping successfully persisted. Updating document URI.");

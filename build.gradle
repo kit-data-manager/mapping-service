@@ -1,10 +1,12 @@
 plugins {
+    id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.6'
-    id 'org.springframework.boot' version '2.7.18'
-    id "org.asciidoctor.jvm.convert" version "4.0.3"
+    id 'org.asciidoctor.jvm.convert' version '4.0.3'
+    id 'io.freefair.maven-publish-java' version '8.10.2'
     id "org.owasp.dependencycheck" version "11.1.0"
     id 'net.researchgate.release' version '3.0.2'
     id "com.gorylenko.gradle-git-properties" version "2.4.2"
+    id 'io.freefair.lombok' version '8.10.2'
     id 'java'
     id 'jacoco'
 }
@@ -24,12 +26,15 @@ configurations {
     }
 }
 
-sourceCompatibility = 1.17
-targetCompatibility = 1.17
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
-if (project.hasProperty('release')) {
-    println 'Using \'release\' profile for building ' + project.getName()
-    apply from: 'gradle/profile-deploy.gradle'
+if (System.getProperty('profile') == 'minimal') {
+    println 'Using minimal profile for building ' + project.getName()
+    apply from: 'gradle/profile-minimal.gradle'   
+} else {
+    println 'Using default profile executing all tests for building ' + project.getName()
+    apply from: 'gradle/profile-complete.gradle'
 }
 
 repositories {
@@ -40,21 +45,34 @@ repositories {
 ext {
     set('snippetsDir', file('build/generated-snippets'))
     applicationProperties = System.getProperty('applicationProperties', './src/test/resources/test-config/application-test.properties')
-    pythonExecutable = System.getProperty('pythonExecutable', 'file:///usr/bin/python3')
+    pythonExecutable = System.getProperty('pythonExecutable', 'file:///c:/python310/python.exe')
     userDir = System.getProperty('user.dir')
+    set('springBootVersion', "3.2.1")
+    set('springDocVersion', "2.6.0")
+    set('javersVersion', "7.6.3")
+    set('keycloakVersion', "19.0.0")
 }
 
 dependencies {
     implementation 'org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.7.18'
-    implementation 'org.springframework.boot:spring-boot-starter-security:2.7.18'
-    implementation 'org.springframework.boot:spring-boot-starter-validation:2.7.18'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.18'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.18'
-    implementation 'org.springdoc:springdoc-openapi-ui:1.8.0'
-    implementation 'org.springdoc:springdoc-openapi-data-rest:1.8.0'
-    implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.8.0'
-    implementation 'org.javers:javers-spring-boot-starter-sql:6.14.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation "org.springframework.boot:spring-boot-starter-data-rest"
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+     // springdoc
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-common:${springDocVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${springDocVersion}"
+
+    // cloud support
+    implementation "org.springframework.cloud:spring-cloud-starter-config:4.1.3"
+    implementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.3"
+    implementation "org.springframework.cloud:spring-cloud-gateway-mvc:4.1.5"
+
+    implementation "org.javers:javers-spring-boot-starter-sql:${javersVersion}"
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.json:json:20220320'
@@ -66,29 +84,32 @@ dependencies {
     // apache
     implementation "org.apache.tika:tika-core:2.9.2"
 
-    testImplementation platform('org.junit:junit-bom:5.11.3')
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport:5.11.3'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.18'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:2.0.8.RELEASE'
-    testImplementation 'org.springframework.security:spring-security-test:5.8.15'
-    testImplementation 'org.springframework:spring-test:5.3.39'
-    testImplementation 'org.mockito:mockito-core:4.11.0'
+    testImplementation platform('org.junit:junit-bom')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-migrationsupport'
+    testImplementation 'org.junit.vintage:junit-vintage-engine'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    //testImplementation 'org.springframework:spring-test'
+
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.2'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     testImplementation 'net.bytebuddy:byte-buddy:1.15.10'
-    testImplementation 'org.junit.vintage:junit-vintage-engine:5.11.3'
 
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.7.18'
-    annotationProcessor 'org.projectlombok:lombok:1.18.36'
-
-    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     runtimeOnly 'com.h2database:h2:2.3.232'
     runtimeOnly 'org.postgresql:postgresql:42.7.4'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.3'
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Xlint:unchecked']
 }
 
 test {
@@ -121,7 +142,7 @@ asciidoctor {
     dependsOn test
 }
 
-jar {
+/*jar {
     manifest {
         attributes 'Main-Class': 'edu.kit.datamanager.mapping-service.MappingServiceApplication'
     }
@@ -130,6 +151,16 @@ jar {
     archiveVersion = System.getenv('version')
     // disable plain jar file
     enabled = false
+}*/
+
+bootJar {
+    println 'Create bootable jar...'
+    archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+    }
+    launchScript()
 }
 
 springBoot {    

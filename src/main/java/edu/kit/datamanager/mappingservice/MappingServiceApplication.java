@@ -2,7 +2,6 @@ package edu.kit.datamanager.mappingservice;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -10,16 +9,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
+@ComponentScan({"edu.kit.datamanager.mappingservice"})
 @EntityScan("edu.kit.datamanager")
 @Configuration
 public class MappingServiceApplication {
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
     @Bean
-    @ConfigurationProperties("repo")
     public ApplicationProperties applicationProperties() {
         return new ApplicationProperties();
     }
