@@ -106,6 +106,7 @@ jobs:
       - name: Set up OpenJDK
         uses: actions/setup-java@v4
         with:
+          distribution: 'zulu'
           java-version: 17
 
       - name: 'Dependency Review'
