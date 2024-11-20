@@ -43,6 +43,8 @@ jobs:
         run: mkdir -p /tmp/mapping-service/{schemas,plugins}
       - name: Copy Plugins
         run: cp plugins/* /tmp/mapping-service/plugins
+      - name: List Plugins
+        run: ls -la /tmp/mapping-service/plugins
       - name: Clean
         run: ./gradlew clean
 #      - if: matrix.os == 'windows-latest'
