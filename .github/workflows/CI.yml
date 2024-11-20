@@ -40,7 +40,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Prepare
-        run: mkdir -p /tmp/mapping-service/{schemas, plugins}
+        run: mkdir -p /tmp/mapping-service/{schemas,plugins}
       - name: Copy Plugins
         run: cp plugins/* /tmp/mapping-service/plugins
       - name: Clean
