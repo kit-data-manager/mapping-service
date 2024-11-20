@@ -2,7 +2,7 @@
 ----
 HTTP/1.1 200 OK
 ETag: "104363025"
-Content-Length: 434
+Content-Length: 418
 Accept-Ranges: bytes
 Content-Type: application/json
 

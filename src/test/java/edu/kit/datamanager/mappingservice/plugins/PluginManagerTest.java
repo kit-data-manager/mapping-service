@@ -16,6 +16,7 @@ package edu.kit.datamanager.mappingservice.plugins;
 
 import org.junit.jupiter.api.Test;
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,7 @@ class PluginManagerTest {
 
     @Autowired
     private PluginManager pluginManager;
-
+  
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
     void reloadPlugins() {

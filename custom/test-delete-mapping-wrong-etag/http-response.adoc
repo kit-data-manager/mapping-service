@@ -3,7 +3,7 @@
 HTTP/1.1 200 OK
 ETag: "104363025"
 Content-Type: application/vnd.datamanager.mapping-record+json
-Content-Length: 551
+Content-Length: 531
 
 {
   "mappingId" : "my_dc",
@@ -24,6 +24,6 @@ Content-Length: 551
     "permission" : "ADMINISTRATE"
   } ],
   "mappingDocumentUri" : "http://localhost:8095/api/v1/mappingAdministration/my_dc",
-  "documentHash" : "sha256:0b415cfd8c084ea65ec2c9200a85a95402184011d442e5ab343021660420127f"
+  "documentHash" : "sha256:de0cd19a4ffc603e8940e990cd2dc689e029d308224c71992c4cd099a588aa0b"
 }
 ----

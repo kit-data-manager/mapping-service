@@ -83,6 +83,7 @@ public class WebSecurityConfig {
                         requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMIN", "ACTUATOR", "SERVICE_WRITE").
                         //  requestMatchers(new AntPathRequestMatcher("/oaipmh")).permitAll().
                         requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll().
+                        requestMatchers(new AntPathRequestMatcher("/error")).permitAll().
                         //requestMatchers(new AntPathRequestMatcher("/api/v1/")).permitAll().
                         requestMatchers(AUTH_WHITELIST_SWAGGER_UI).permitAll().
                         anyRequest().authenticated()
