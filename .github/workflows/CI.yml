@@ -50,7 +50,7 @@ jobs:
 #        run: ./gradlew build -DapplicationProperties="src\test\resources\test-config\application-test-windows.properties"
       - if: matrix.os != 'windows-latest'
         name: Test with Gradle on ${{ matrix.os }}
-        run: ./gradlew build -DapplicationProperties="src/test/resources/test-config/application-test.properties" -DpythonLocation=`which python3`
+        run: ./gradlew build -DapplicationProperties="src/test/resources/test-config/application-test.properties" -DpythonLocation=`which python`
       - name: Generate report
         run: ./gradlew jacocoTestReport
 #      - name: Codecov
