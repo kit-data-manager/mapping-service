@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
@@ -29,15 +28,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+@SpringBootTest
 @ActiveProfiles("test")
 class PluginLoaderTest {
-    
-  @Autowired
+
+    @Autowired
+    private PluginManager pluginManager;
+
+    @Autowired
     private ApplicationProperties applicationProperties;
 
-    
     @BeforeEach
     void setUp() throws Exception {
         try {
@@ -45,8 +48,9 @@ class PluginLoaderTest {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        pluginManager.reloadPlugins();
     }
-    
+
     @Test
     void valid() {
         System.out.println("Test valid");
@@ -56,7 +60,7 @@ class PluginLoaderTest {
         } catch (Exception e) {
             fail(e);
         }
-        for (var entry: plugins.entrySet()){
+        for (var entry : plugins.entrySet()) {
             System.out.println(entry.getValue().id());
         }
         try {
@@ -75,7 +79,7 @@ class PluginLoaderTest {
     }
 
     @Test
-    void invalidPath(){
+    void invalidPath() {
         Map<String, IMappingPlugin> plugins = null;
         try {
             PluginLoader.loadPlugins(new File("./invalid/test"));
@@ -94,7 +98,6 @@ class PluginLoaderTest {
 //            fail(e);
 //        }
 //    }
-
     @Test
     void nullInput() {
         Map<String, IMappingPlugin> plugins = null;
@@ -105,6 +108,7 @@ class PluginLoaderTest {
         } catch (MappingPluginException validationWarning) {
         }
     }
+
     @Test
     void emptyinput() {
         Map<String, IMappingPlugin> plugins = null;
