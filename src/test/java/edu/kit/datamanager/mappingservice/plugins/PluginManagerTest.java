@@ -14,16 +14,18 @@
  */
 package edu.kit.datamanager.mappingservice.plugins;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.junit.jupiter.api.Test;
 import java.io.File;
-import java.util.concurrent.CompletableFuture;
+import java.io.IOException;
+import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -31,7 +33,19 @@ class PluginManagerTest {
 
     @Autowired
     private PluginManager pluginManager;
-  
+
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        try {
+            FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
     void reloadPlugins() {

@@ -1,4 +1,6 @@
 [source,bash]
 ----
-$ http GET 'http://localhost:8095/api/v1/mappingAdministration/my_dc'
+$ http --multipart PUT 'http://localhost:8095/api/v1/mappingAdministration/my_dc' \
+    'If-Match:"104363025"' \
+    'record'@'record.json'
 ----

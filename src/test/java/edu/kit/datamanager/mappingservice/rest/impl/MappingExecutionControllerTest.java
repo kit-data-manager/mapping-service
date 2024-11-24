@@ -2,6 +2,7 @@ package edu.kit.datamanager.mappingservice.rest.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.entities.PERMISSION;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.AclEntry;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
@@ -76,6 +77,9 @@ public class MappingExecutionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private ApplicationProperties applicationProperties;
+    
     private void createMapping() throws Exception {
         System.out.println("createMapping");
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
@@ -118,6 +122,13 @@ public class MappingExecutionControllerTest {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        
+        try{
+            FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+        }catch(IOException ex){
+            ex.printStackTrace();
+        }
+        
       /*  this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .apply(documentationConfiguration(restDocumentation)
                         .uris().withPort(8095)

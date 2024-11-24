@@ -1,5 +1,5 @@
 [source,bash]
 ----
-$ curl 'http://localhost:8095/api/v1/mappingAdministration/my_dc' -i -X GET \
-    -H 'Accept: application/vnd.datamanager.mapping-record+json'
+$ curl 'http://localhost:8095/api/v1/mappingAdministration/my_dc' -i -X DELETE \
+    -H 'If-Match: somethingTotallyWrong'
 ----

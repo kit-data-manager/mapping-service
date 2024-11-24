@@ -320,7 +320,7 @@ public class FileUtilTest {
     void cloneValidGitRepository() {
         Path util = null;
         try {
-            util = FileUtil.cloneGitRepository("https://github.com/maximilianiKIT/mapping-service.git", "main", "/tmp/test");
+            util = FileUtil.cloneGitRepository("https://github.com/kit-data-manager/mapping-service.git", "main", "/tmp/test");
         } catch (Exception e) {
             fail(e);
         }
@@ -331,7 +331,7 @@ public class FileUtilTest {
         assertNotNull(util);
         util = null;
         try {
-            util = FileUtil.cloneGitRepository("https://github.com/maximilianiKIT/mapping-service.git", "main");
+            util = FileUtil.cloneGitRepository("https://github.com/kit-data-manager/mapping-service.git", "main");
         } catch (Exception e) {
             fail(e);
         }

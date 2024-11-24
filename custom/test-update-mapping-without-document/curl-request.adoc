@@ -1,4 +1,7 @@
 [source,bash]
 ----
-$ curl 'http://localhost:8095/api/v1/mappingAdministration/my_dc' -i -X GET
+$ curl 'http://localhost:8095/api/v1/mappingAdministration/my_dc' -i -X PUT \
+    -H 'Content-Type: multipart/form-data' \
+    -H 'If-Match: "104363025"' \
+    -F 'record=@record.json;type=application/json'
 ----

@@ -1,6 +1,14 @@
 [source,http,options="nowrap"]
 ----
-GET /api/v1/mappingAdministration/my_dc HTTP/1.1
+PUT /api/v1/mappingAdministration/my_dc HTTP/1.1
+Content-Type: multipart/form-data; boundary=6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
+If-Match: "104363025"
 Host: localhost:8095
 
+--6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
+Content-Disposition: form-data; name=record; filename=record.json
+Content-Type: application/json
+
+{"mappingId":"my_dc","mappingType":"GEMMA","title":"TITEL","description":"DESCRIPTION","acl":[{"id":null,"sid":"SELF","permission":"READ"},{"id":null,"sid":"someoneelse","permission":"ADMINISTRATE"}],"mappingDocumentUri":"http://localhost:8095/api/v1/mappingAdministration/my_dc","documentHash":"sha256:0b415cfd8c084ea65ec2c9200a85a95402184011d442e5ab343021660420127f"}
+--6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm--
 ----
