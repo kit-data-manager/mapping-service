@@ -138,6 +138,7 @@ public class PluginManager {
         }
 
         if (plugins.containsKey(pluginId)) {
+            LOG.trace("Plugin found. Performing mapFile({}, {}, {}).", mappingFile, inputFile, outputFile);
             return plugins.get(pluginId).mapFile(mappingFile, inputFile, outputFile);
         }
         throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin '" + pluginId + "' not found!");

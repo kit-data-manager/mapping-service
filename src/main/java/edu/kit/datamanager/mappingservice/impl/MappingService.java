@@ -17,8 +17,10 @@ package edu.kit.datamanager.mappingservice.impl;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
+import edu.kit.datamanager.mappingservice.domain.JobStatus;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.DuplicateMappingException;
+import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,6 +48,8 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * Service for managing mappings.
@@ -63,10 +68,21 @@ public class MappingService {
      */
     @Autowired
     private PluginManager pluginManager;
+
+    @Autowired
+    protected JobManager jobManager;
+
     /**
      * Path to directory holding all mapping files.
      */
     private Path mappingsDirectory;
+
+    /**
+     * Path to directory holding all job outputs.
+     */
+    private Path jobsOutputDirectory;
+
+    private ApplicationProperties applicationProperties;
 
     /**
      * Logger for this class.
@@ -75,7 +91,8 @@ public class MappingService {
 
     @Autowired
     public MappingService(ApplicationProperties applicationProperties) {
-        init(applicationProperties);
+        this.applicationProperties = applicationProperties;
+        init(this.applicationProperties);
     }
 
     /**
@@ -198,6 +215,166 @@ public class MappingService {
         return returnValue;
     }
 
+    @Async("asyncExecutor")
+    public CompletableFuture<JobStatus> executeMappingAsync(String jobId, URI contentUrl, String mappingId) throws MappingPluginException {
+        LOGGER.trace("Executing mapping of content {} using mapping with id {}.", contentUrl, mappingId);
+                CompletableFuture<JobStatus> task = new CompletableFuture<>();
+
+        if (contentUrl == null || mappingId == null) {
+            task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Either contentUrl or mappingId are not provided."));
+        }
+
+        Optional<Path> returnValue;
+        Path srcFile = Paths.get(contentUrl);
+        MappingRecord mappingRecord;
+
+        // Get mapping file
+        LOGGER.trace("Searching for mapping with id {}.", mappingId);
+        Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
+        if (optionalMappingRecord.isPresent()) {
+            LOGGER.trace("Mapping for id {} found. Creating temporary output file.", mappingId);
+            mappingRecord = optionalMappingRecord.get();
+            Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
+            // execute mapping
+            Path resultFile = getOutputFile(jobId).toPath();
+            LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
+            MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
+
+            LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
+            returnValue = Optional.of(resultFile);
+            // remove downloaded file
+            FileUtil.removeFile(srcFile);
+            task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, returnValue.get().toFile()));
+        } else {
+            LOGGER.error("Unable to find mapping with id {}.", mappingId);
+            task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Unable to find mapping with id " + mappingId + "."));
+            //throw new MappingNotFoundException("Unable to find mapping with id " + mappingId + ".");
+        }
+        return task;
+    }
+
+    protected static final String JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND = "Job with supplied job-id not found!";
+
+    public CompletableFuture<JobStatus> fetchJobElseThrowException(String jobId) throws Exception {
+        CompletableFuture<JobStatus> job = fetchJob(jobId);
+        if (null == job) {
+            LOGGER.error("Job-id {} not found.", jobId);
+            throw new Exception(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND);
+        }
+        return job;
+    }
+
+    public CompletableFuture<JobStatus> fetchJob(String jobId) {
+        @SuppressWarnings("unchecked")
+        CompletableFuture<JobStatus> completableFuture = (CompletableFuture<JobStatus>) jobManager.getJob(jobId);
+
+        return completableFuture;
+    }
+
+    public JobStatus getJobStatus(String jobId) throws Throwable {
+        CompletableFuture<JobStatus> completableFuture = fetchJobElseThrowException(jobId);
+
+        if (!completableFuture.isDone()) {
+            return JobStatus.status(jobId, JobStatus.STATUS.RUNNING);
+        }
+
+        Throwable[] errors = new Throwable[1];
+        JobStatus[] simpleResponses = new JobStatus[1];
+        completableFuture.whenComplete((response, ex) -> {
+            if (ex != null) {
+                errors[0] = ex.getCause();
+            } else {
+                StringBuilder outputFileUri = new StringBuilder("/api/v1/mappingExecution/");
+                outputFileUri.append(jobId).append("/");
+                outputFileUri.append("output-file");
+                response.setOutputFileURI(outputFileUri.toString());
+                simpleResponses[0] = response;
+            }
+        });
+
+        if (errors[0] != null) {
+            throw errors[0];
+        }
+
+        return simpleResponses[0];
+    }
+
+    public File getJobOutputFile(String jobId) throws Throwable {
+        CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
+
+        if (null == completableFuture) {
+            File outputFile = getOutputFile(jobId);
+            if (outputFile.exists()) {
+                return outputFile;
+            }
+
+            throw new JobProcessingException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND, true);
+        }
+
+        if (!completableFuture.isDone()) {
+            throw new JobProcessingException("Job is still in progress...", true);
+        }
+
+        Throwable[] errors = new Throwable[1];
+        JobStatus[] jobStatus = new JobStatus[1];
+        completableFuture.whenComplete((response, ex) -> {
+            if (ex != null) {
+                errors[0] = ex.getCause();
+            } else {
+                jobStatus[0] = response;
+            }
+        });
+
+        if (errors[0] != null) {
+            throw errors[0];
+        }
+
+        return jobStatus[0].getJobOutput();
+    }
+
+    public JobStatus deleteJobAndAssociatedData(String jobId) throws Exception {
+        CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
+
+        if (null == completableFuture) {
+            File outputFile = getOutputFile(jobId);
+            if (outputFile.exists()) {
+                outputFile.delete();
+                return JobStatus.status(jobId, JobStatus.STATUS.DELETED);
+            }
+
+            throw new JobProcessingException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND, true);
+        }
+
+        if (!completableFuture.isDone()) {
+            return JobStatus.status(jobId, JobStatus.STATUS.RUNNING);
+        }
+
+        completableFuture.whenComplete((response, ex) -> {
+            if (ex != null) {
+                LOGGER.error("Job failed with exception.", ex);
+            }
+
+            if (null != response && null != response.getJobOutput()) {
+                if (response.getJobOutput().exists()) {
+                    response.getJobOutput().delete();
+                }
+            } else {
+                File outputFile = getOutputFile(jobId);
+                if (outputFile.exists()) {
+                    outputFile.delete();
+                }
+            }
+
+            jobManager.removeJob(jobId);
+        });
+
+        return JobStatus.status(jobId, JobStatus.STATUS.DELETED);
+    }
+
+    private File getOutputFile(String jobId) {
+        return jobsOutputDirectory.resolve(jobId + ".out").toFile();
+    }
+
     /**
      * Initalize mappings directory and mappingUtil instance.
      *
@@ -211,6 +388,12 @@ public class MappingService {
             } catch (IOException e) {
                 throw new MappingException("Could not initialize directory '" + applicationProperties.getMappingsLocation() + "' for mapping.", e);
             }
+            try {
+                jobsOutputDirectory = Files.createDirectories(new File(applicationProperties.getJobOutputLocation().getPath()).getAbsoluteFile().toPath());
+            } catch (IOException e) {
+                throw new MappingException("Could not initialize directory '" + applicationProperties.getJobOutputLocation() + "' for job outputs.", e);
+            }
+
         } else {
             throw new MappingException("Could not initialize mapping directory due to missing location!");
         }

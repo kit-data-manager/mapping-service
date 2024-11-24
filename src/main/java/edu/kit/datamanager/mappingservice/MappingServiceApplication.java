@@ -11,11 +11,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @ComponentScan({"edu.kit.datamanager.mappingservice"})
 @EntityScan("edu.kit.datamanager")
 @Configuration
+@EnableAsync
 public class MappingServiceApplication {
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
