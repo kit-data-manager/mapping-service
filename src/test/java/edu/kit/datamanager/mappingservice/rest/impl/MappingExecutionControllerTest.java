@@ -6,6 +6,7 @@ import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.AclEntry;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,22 +65,25 @@ public class MappingExecutionControllerTest {
     private static final String MAPPING_URL = "/api/v1/mappingExecution/" + MAPPING_ID;
     private static final String MAPPING_TITLE = "TITEL";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @RegisterExtension
-    final RestDocumentationExtension restDocumentation = new RestDocumentationExtension ("custom");
-    
+    final RestDocumentationExtension restDocumentation = new RestDocumentationExtension("custom");
+
     @Autowired
     private IMappingRecordDao mappingRecordDao;
-    
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Autowired
     private ApplicationProperties applicationProperties;
     
+    @Autowired
+    private PluginManager pluginManager;
+
     private void createMapping() throws Exception {
         System.out.println("createMapping");
         File mappingsDir = Paths.get(TEMP_DIR_4_MAPPING).toFile();
@@ -110,8 +114,8 @@ public class MappingExecutionControllerTest {
     }
 
     @BeforeEach
-    void setUp(RestDocumentationContextProvider  restDocumentation) throws Exception {
-       mappingRecordDao.deleteAll();
+    void setUp(RestDocumentationContextProvider restDocumentation) throws Exception {
+        mappingRecordDao.deleteAll();
         try {
             try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_ALL)))) {
                 walk.sorted(Comparator.reverseOrder())
@@ -122,14 +126,15 @@ public class MappingExecutionControllerTest {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        
-        try{
+
+        try {
             FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
-        }catch(IOException ex){
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
-        
-      /*  this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+
+        pluginManager.reloadPlugins();
+        /*  this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .apply(documentationConfiguration(restDocumentation)
                         .uris().withPort(8095)
                         .and().operationPreprocessors()
@@ -137,7 +142,7 @@ public class MappingExecutionControllerTest {
                         .withResponseDefaults(Preprocessors.removeHeaders("X-Content-Type-Options", "X-XSS-Protection", "X-Frame-Options"), prettyPrint()))
                 .alwaysDo(document("{method-name}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
                 .build();
-*/
+         */
         createMapping();
     }
 
@@ -193,7 +198,7 @@ public class MappingExecutionControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingExecution/xsfdfg").file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isNotFound()).
-               //andExpect(content().string("No mapping found for mapping id xsfdfg.")).
+                //andExpect(content().string("No mapping found for mapping id xsfdfg.")).
                 andReturn();
     }
 
