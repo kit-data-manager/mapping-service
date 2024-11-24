@@ -19,7 +19,6 @@ jobs:
 #        os: [ubuntu-latest, windows-latest, macos-latest]
         os: [ubuntu-latest]
         jdk: [17]
-        python-version: [3.9]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -29,10 +28,10 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.jdk }}
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.10'
       - name: Get Python location
         run: python -c "import os, sys; print(sys.executable)"
       - name: Update pip
