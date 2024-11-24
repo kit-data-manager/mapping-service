@@ -15,24 +15,42 @@
 
 package edu.kit.datamanager.mappingservice.plugins;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.MimeTypeUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class PluginLoaderTest {
+    
+  @Autowired
+    private ApplicationProperties applicationProperties;
 
+    
+    @BeforeEach
+    void setUp() throws Exception {
+        try {
+            FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
     @Test
     void valid() {
         System.out.println("Test valid");
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(new File("./plugins"));
+            plugins = PluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (Exception e) {
             fail(e);
         }
