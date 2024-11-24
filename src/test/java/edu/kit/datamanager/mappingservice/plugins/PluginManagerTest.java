@@ -44,6 +44,7 @@ class PluginManagerTest {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        pluginManager.reloadPlugins();
     }
 
     @Test
