@@ -275,7 +275,6 @@ public class FileUtilTest {
             Files.copy(srcFile, createTempFile.toFile());
             Path result = FileUtil.fixFileExtension(createTempFile);
             if (extension.startsWith(".")) {
-                System.out.println("EXPECT " + extension);
                 assertTrue(result.toString().endsWith(extension), "Result: " + result.toString());
             } else {
                 assertTrue(result.toString().endsWith(expectedExtension), "Result: " + result.toString());

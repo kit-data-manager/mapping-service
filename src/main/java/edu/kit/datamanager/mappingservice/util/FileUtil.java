@@ -251,10 +251,8 @@ public class FileUtil {
         String returnValue = null;
         String headerAsString = new String(fewKilobytesOfFile, 0, Math.min(fewKilobytesOfFile.length, MAX_LENGTH_OF_HEADER));
         LOGGER.trace("Guess type for '{}'", headerAsString);
-        System.out.println("CHECK HEADER " + headerAsString);
         Matcher m = JSON_FIRST_BYTE.matcher(headerAsString);
         if (m.matches()) {
-            System.out.println("JSON!!!");
             returnValue = ".json";
         } else {
             m = XML_FIRST_BYTE.matcher(headerAsString);
@@ -264,7 +262,6 @@ public class FileUtil {
         }
         
         if (returnValue == null) {
-            System.out.println("NO VALID, USE TIKA");
             // Use tika library to estimate extension
             LOGGER.trace("Use tika library to estimate extension.");
             Tika tika = new Tika();
@@ -275,7 +272,6 @@ public class FileUtil {
             try {
                 estimatedMimeType = allTypes.forName(mimeType);
                 returnValue = estimatedMimeType.getExtension(); // .jpg
-                System.out.println("TIKA SAYS "+ returnValue);
                 LOGGER.trace("Mimetype: '{}', Extension: '{}'", mimeType, returnValue);
             } catch (MimeTypeException ex) {
                 LOGGER.error("Unknown mimetype '{}'", mimeType);
