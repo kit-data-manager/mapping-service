@@ -1,4 +1,4 @@
-[source,form-data,options="nowrap"]
+[source,options="nowrap"]
 ----
 
 ----

@@ -8,7 +8,7 @@ Host: localhost:8095
 Content-Disposition: form-data; name=record; filename=record.json
 Content-Type: application/json
 
-{"mappingId":"my_dc","mappingType":"GEMMA","title":"TITEL","description":"DESCRIPTION","acl":[{"id":null,"sid":"SELF","permission":"READ"},{"id":null,"sid":"someoneelse","permission":"ADMINISTRATE"}],"mappingDocumentUri":"http://localhost:8095/api/v1/mappingAdministration/my_dc","documentHash":"sha256:0b415cfd8c084ea65ec2c9200a85a95402184011d442e5ab343021660420127f"}
+{"mappingId":"my_dc","mappingType":"GEMMA","title":"TITEL","description":"DESCRIPTION","acl":[{"id":null,"sid":"SELF","permission":"READ"},{"id":null,"sid":"someoneelse","permission":"ADMINISTRATE"}],"mappingDocumentUri":"http://localhost:8095/api/v1/mappingAdministration/my_dc","documentHash":"sha256:de0cd19a4ffc603e8940e990cd2dc689e029d308224c71992c4cd099a588aa0b"}
 --6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
 Content-Disposition: form-data; name=document; filename=my_dc4gemma.mapping
 Content-Type: application/json

@@ -1,30 +1,26 @@
 [source,http,options="nowrap"]
 ----
 HTTP/1.1 200 OK
-Location: http://localhost:8095/api/v1/mappingAdministration/my_dc
 ETag: "104363025"
+Content-Length: 409
+Accept-Ranges: bytes
 Content-Type: application/json
-Content-Length: 557
 
 {
-  "mappingId" : "my_dc",
-  "mappingType" : "GEMMA",
-  "title" : "TITEL",
-  "description" : "DESCRIPTION",
-  "acl" : [ {
-    "id" : 27,
-    "sid" : "someoneelse",
-    "permission" : "ADMINISTRATE"
-  }, {
-    "id" : 26,
-    "sid" : "SELF",
-    "permission" : "READ"
-  }, {
-    "id" : 25,
-    "sid" : "anonymousUser",
-    "permission" : "ADMINISTRATE"
-  } ],
-  "mappingDocumentUri" : "http://localhost:8095/api/v1/mappingAdministration/my_dc",
-  "documentHash" : "sha256:0b415cfd8c084ea65ec2c9200a85a95402184011d442e5ab343021660420127f"
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "$id" : "http://example.com/product.schema.json",
+  "title" : "Simple Mapping",
+  "description" : "Data resource mapping from json",
+  "type" : "object",
+  "properties" : {
+    "Publisher" : {
+      "path" : "publisher",
+      "type" : "string"
+    },
+    "Publication Date" : {
+      "path" : "publicationDate",
+      "type" : "string"
+    }
+  }
 }
 ----
