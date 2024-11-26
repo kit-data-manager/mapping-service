@@ -311,9 +311,9 @@ public class MappingService {
             if (ex != null) {
                 errors[0] = ex.getCause();
             } else {
-                StringBuilder outputFileUri = new StringBuilder("/api/v1/mappingExecution/");
+                StringBuilder outputFileUri = new StringBuilder("/api/v1/mappingExecution/schedule/");
                 outputFileUri.append(jobId).append("/");
-                outputFileUri.append("output-file");
+                outputFileUri.append("download");
                 response.setOutputFileURI(outputFileUri.toString());
                 simpleResponses[0] = response;
             }
