@@ -20,6 +20,7 @@ import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.JobStatus;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.DuplicateMappingException;
+import edu.kit.datamanager.mappingservice.exception.JobNotFoundException;
 import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
@@ -56,6 +57,8 @@ import org.springframework.scheduling.annotation.Async;
  */
 @Service
 public class MappingService {
+
+    protected static final String JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND = "Job with supplied job-id not found!";
 
     /**
      * Repo holding all MappingRecords.
@@ -183,12 +186,9 @@ public class MappingService {
         }
 
         Optional<Path> returnValue;
-        Path srcFile = Paths.get(contentUrl);//FileUtil.downloadResource(contentUrl);
+        Path srcFile = Paths.get(contentUrl);
         MappingRecord mappingRecord;
 
-        //if(download.isPresent()){
-        // Path srcFile = download.get();
-        // Get mapping file
         LOGGER.trace("Searching for mapping with id {}.", mappingId);
         Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
         if (optionalMappingRecord.isPresent()) {
@@ -208,17 +208,26 @@ public class MappingService {
             LOGGER.error("Unable to find mapping with id {}.", mappingId);
             throw new MappingNotFoundException("Unable to find mapping with id " + mappingId + ".");
         }
-        /*} else{
-      String message = contentUrl != null ? "Error: Downloading content from '" + contentUrl + "'!" : "Error: No URL provided!";
-      throw new MappingException(message);
-    }*/
         return returnValue;
     }
 
+    /**
+     * Schedule an asynchronous job execution. The job will be scheduled and can
+     * be monitored. As soon as the job has finished successfully, the output
+     * can be downloaded or the job can be deleted.
+     *
+     * @param jobId The job's id.
+     * @param contentUrl The URL of the user upload.
+     * @param mappingId The id of the mapping to be used.
+     *
+     * @return Job status as completable future.
+     *
+     * @throws MappingPluginException if calling the plugin fails.
+     */
     @Async("asyncExecutor")
     public CompletableFuture<JobStatus> executeMappingAsync(String jobId, URI contentUrl, String mappingId) throws MappingPluginException {
         LOGGER.trace("Executing mapping of content {} using mapping with id {}.", contentUrl, mappingId);
-                CompletableFuture<JobStatus> task = new CompletableFuture<>();
+        CompletableFuture<JobStatus> task = new CompletableFuture<>();
 
         if (contentUrl == null || mappingId == null) {
             task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Either contentUrl or mappingId are not provided."));
@@ -253,13 +262,20 @@ public class MappingService {
         return task;
     }
 
-    protected static final String JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND = "Job with supplied job-id not found!";
-
-    public CompletableFuture<JobStatus> fetchJobElseThrowException(String jobId) throws Exception {
+    /**
+     * Fetch a job's status or fail if the job cannot be found.
+     *
+     * @param jobId The job's id.
+     *
+     * @return The job status as completable future.
+     *
+     * @throws JobNotFoundException If no job for the provided jobId exists.
+     */
+    public CompletableFuture<JobStatus> fetchJobElseThrowException(String jobId) throws JobNotFoundException {
         CompletableFuture<JobStatus> job = fetchJob(jobId);
         if (null == job) {
             LOGGER.error("Job-id {} not found.", jobId);
-            throw new Exception(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND);
+            throw new JobNotFoundException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND);
         }
         return job;
     }
@@ -271,6 +287,15 @@ public class MappingService {
         return completableFuture;
     }
 
+    /**
+     * Query a job's status.
+     *
+     * @param jobId The job's id.
+     *
+     * @return The Job status.
+     *
+     * @throws Throwable Any kind of error produced during job execution.
+     */
     public JobStatus getJobStatus(String jobId) throws Throwable {
         CompletableFuture<JobStatus> completableFuture = fetchJobElseThrowException(jobId);
 
@@ -299,6 +324,18 @@ public class MappingService {
         return simpleResponses[0];
     }
 
+    /**
+     * Get the job's output file.
+     *
+     * @param jobId The jobId.
+     *
+     * @return The local file.
+     *
+     * @throws JobNotFoundException If no output file for the provided jobId
+     * could be found.
+     * @throws JobProcessingException If the job has not finished, yet.
+     * @throws Throwable Any kind of error produced during job execution.
+     */
     public File getJobOutputFile(String jobId) throws Throwable {
         CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
 
@@ -308,7 +345,7 @@ public class MappingService {
                 return outputFile;
             }
 
-            throw new JobProcessingException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND, true);
+            throw new JobNotFoundException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND);
         }
 
         if (!completableFuture.isDone()) {
@@ -332,17 +369,27 @@ public class MappingService {
         return jobStatus[0].getJobOutput();
     }
 
-    public JobStatus deleteJobAndAssociatedData(String jobId) throws Exception {
+    /**
+     * Delete the job with the provided jobId and all associated data. If the
+     * job is no longer managed, only the data is removed. If the job is still
+     * managed and not running, the removal is scheduled. If the job is still
+     * running, an according status is returned.
+     *
+     * @param jobId The id of the job.
+     *
+     * @return The status of the job, either with status DELETED or RUNNING.
+     */
+    public JobStatus deleteJobAndAssociatedData(String jobId) {
         CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
 
         if (null == completableFuture) {
             File outputFile = getOutputFile(jobId);
             if (outputFile.exists()) {
                 outputFile.delete();
-                return JobStatus.status(jobId, JobStatus.STATUS.DELETED);
+            } else {
+                LOGGER.debug("No output file for job {} found. Returning.", jobId);
             }
-
-            throw new JobProcessingException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND, true);
+            return JobStatus.status(jobId, JobStatus.STATUS.DELETED);
         }
 
         if (!completableFuture.isDone()) {
@@ -371,6 +418,13 @@ public class MappingService {
         return JobStatus.status(jobId, JobStatus.STATUS.DELETED);
     }
 
+    /**
+     * Get the job's output file.
+     *
+     * @param jobId The jobId.
+     *
+     * @return File A local file.
+     */
     private File getOutputFile(String jobId) {
         return jobsOutputDirectory.resolve(jobId + ".out").toFile();
     }

@@ -280,11 +280,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.debug("No mapping with id {} found. Skipping deletion.", mappingId);
         }
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity updateMapping(
+    public ResponseEntity<MappingRecord> updateMapping(
             @PathVariable(value = "mappingId") String mappingId,
             @RequestPart(name = "record") final MultipartFile record,
             @RequestPart(name = "document", required = false) final MultipartFile document,
@@ -300,15 +300,9 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
             LOG.error("Unable to deserialize mapping record.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unable to deserialize provided mapping record.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        /*Should never be null due to entity constraints
-        if ((mappingRecord.getMappingId() == null) || (mappingRecord.getMappingType() == null)) {
-            String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
-            LOG.error(message + "Returning HTTP BAD_REQUEST.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-        }*/
         if ((!mappingRecord.getMappingId().equals(mappingId))) {
             LOG.trace("Mapping record id {} differs from adressed mapping id {}. Setting mapping record id to adressed id.", mappingRecord.getMappingId(), mappingId);
             mappingRecord.setMappingId(mappingId);
@@ -331,7 +325,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
                 mappingService.updateMapping(contentOfFile, mappingRecord);
             } catch (IOException ioe) {
                 LOG.error("Unable to create mapping for provided inputs.", ioe);
-                return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
+                return ResponseEntity.internalServerError().build();
             }
         } else {
             LOG.trace("No mapping document provided by user. Only persisting updated mapping record.");
@@ -350,11 +344,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity<List<PluginInformation>> getAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
-        LOG.trace("Performing getAllAvailableMappingTypes()");
+    public ResponseEntity<List<PluginInformation>> getAvailablePlugins(WebRequest wr, HttpServletResponse hsr) {
+        LOG.trace("Performing getAvailablePlugins()");
 
         List<PluginInformation> plugins = new ArrayList<>();
-        pluginManager.getListOfAvailableValidators().forEach((id) -> {
+        pluginManager.listPluginIds().forEach((id) -> {
             try {
                 plugins.add(new PluginInformation(id, pluginManager));
             } catch (MappingPluginException ex) {
@@ -367,7 +361,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity<String> reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
+    public ResponseEntity<String> reloadAvailablePlugins(WebRequest wr, HttpServletResponse hsr) {
         LOG.trace("Reloading available plugins.");
         pluginManager.reloadPlugins();
         LOG.trace("Plugins successfully reloaded.");

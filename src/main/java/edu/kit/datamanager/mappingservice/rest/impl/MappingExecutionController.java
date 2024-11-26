@@ -21,6 +21,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingExecutionException;
+import edu.kit.datamanager.mappingservice.exception.MappingJobException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.impl.JobManager;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
@@ -48,12 +49,11 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.apache.tomcat.util.file.Matcher;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 /**
@@ -170,7 +170,7 @@ public class MappingExecutionController implements IMappingExecutionController {
     }
 
     @Override
-    public ResponseEntity<JobStatus> mapDocumentAsync(MultipartFile document, String mappingID, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) throws Throwable {
+    public ResponseEntity<JobStatus> scheduleMapDocument(String mappingID, MultipartFile document, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) throws Throwable {
         LOG.trace("Performing mapDocument(File#{}, {})", document.getOriginalFilename(), mappingID);
         String jobId = UUID.randomUUID().toString();
 
@@ -224,16 +224,25 @@ public class MappingExecutionController implements IMappingExecutionController {
         }
     }
 
-    @GetMapping(path = "/status/{job-id}", produces = "application/json")
+    @Override
     public ResponseEntity<JobStatus> getJobStatus(@PathVariable(name = "job-id") String jobId) throws Throwable {
         LOG.debug("Received request to fetch status of job-id: {}", jobId);
+
+        if (!Matcher.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", jobId, false)) {
+            throw new MappingJobException("Invalid jobId provided.");
+        }
+
         JobStatus status = mappingService.getJobStatus(jobId);
         return ResponseEntity.ok(status);
     }
 
-    @GetMapping(path = "/{job-id}/output-file", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @Override
     public ResponseEntity<Resource> getJobOutputFile(@PathVariable(name = "job-id") String jobId) throws Throwable {
         LOG.debug("Received request to fetch output file of job-id: {}", jobId);
+
+        if (!Matcher.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", jobId, false)) {
+            throw new MappingJobException("Invalid jobId provided.");
+        }
 
         File outputFile = mappingService.getJobOutputFile(jobId);
         InputStreamResource resource = new InputStreamResource(new FileInputStream(outputFile));
@@ -244,10 +253,22 @@ public class MappingExecutionController implements IMappingExecutionController {
                 .body(resource);
     }
 
-    @DeleteMapping(path = "/{job-id}", produces = "application/json")
-    public ResponseEntity<JobStatus> deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable {
+    @Override
+    public ResponseEntity deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable {
         LOG.debug("Received request to delete job-id: {}", jobId);
+
+        if (!Matcher.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", jobId, false)) {
+            throw new MappingJobException("Invalid jobId provided.");
+        }
+        
         JobStatus status = mappingService.deleteJobAndAssociatedData(jobId);
-        return ResponseEntity.ok(status);
+        if (status.getStatus().equals(JobStatus.STATUS.DELETED)) {
+            LOG.debug("Job removal result: {}", status);
+        } else {
+            LOG.debug("Job could not be deleted as it is not finished, yet.");
+            throw new MappingJobException("Job not finished, yet.");
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }

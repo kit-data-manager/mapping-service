@@ -38,7 +38,7 @@ class PluginManagerTest {
     private ApplicationProperties applicationProperties;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setup() throws Exception {
         try {
             FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (IOException ex) {
@@ -63,8 +63,8 @@ class PluginManagerTest {
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
     void getListOfAvailableValidators() {
-        System.out.println(pluginManager.getListOfAvailableValidators());
-        assertEquals(2, pluginManager.getListOfAvailableValidators().size());
+        System.out.println(pluginManager.listPluginIds());
+        assertEquals(2, pluginManager.listPluginIds().size());
     }
 
     @Test

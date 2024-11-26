@@ -102,7 +102,7 @@ public class PluginManager {
      *
      * @return List of plugin ids
      */
-    public final List<String> getListOfAvailableValidators() {
+    public final List<String> listPluginIds() {
         Map<String, IMappingPlugin> map = getPlugins();
         List<String> result = new ArrayList<>();
         map.entrySet().forEach(entry -> {
