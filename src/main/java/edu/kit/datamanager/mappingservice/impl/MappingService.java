@@ -432,7 +432,12 @@ public class MappingService {
         if(!m.matches()){
             throw new MappingJobException("Invalid jobId provided.");
         }
-        return jobsOutputDirectory.resolve(jobId + ".out").toFile();
+        
+        Path outputPath = jobsOutputDirectory.resolve(jobId + ".out").normalize();
+        if (!outputPath.startsWith(jobsOutputDirectory)) {
+            throw new IllegalArgumentException("Invalid jobId provided.");
+        }
+        return outputPath.toFile();
     }
 
     /**
