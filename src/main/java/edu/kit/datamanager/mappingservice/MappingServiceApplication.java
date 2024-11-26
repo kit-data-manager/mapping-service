@@ -1,7 +1,12 @@
 package edu.kit.datamanager.mappingservice;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.MappingJobException;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
+import java.io.File;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +24,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @Configuration
 @EnableAsync
 public class MappingServiceApplication {
+
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
     @Bean
@@ -27,16 +33,15 @@ public class MappingServiceApplication {
     }
 
     @Bean
-    public PluginManager pluginManager(){
+    public PluginManager pluginManager() {
         return new PluginManager(applicationProperties());
     }
-    
+
     public static void main(String[] args) {
         SpringApplication.run(MappingServiceApplication.class, args);
 
         //pluginManager().getListOfAvailableValidators().forEach((value) -> LOG.info("Found validator: " + value));
         //PythonRunnerUtil.printPythonVersion();
-
         System.out.println("Mapping service is running! Access it at http://localhost:8095");
     }
 }

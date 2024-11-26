@@ -23,6 +23,7 @@ import edu.kit.datamanager.mappingservice.exception.DuplicateMappingException;
 import edu.kit.datamanager.mappingservice.exception.JobNotFoundException;
 import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.exception.MappingJobException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
@@ -38,7 +39,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,6 +50,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.scheduling.annotation.Async;
 
 /**
@@ -426,6 +428,10 @@ public class MappingService {
      * @return File A local file.
      */
     private File getOutputFile(String jobId) {
+        Matcher m = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$").matcher(jobId);
+        if(!m.matches()){
+            throw new MappingJobException("Invalid jobId provided.");
+        }
         return jobsOutputDirectory.resolve(jobId + ".out").toFile();
     }
 

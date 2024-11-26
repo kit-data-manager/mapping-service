@@ -228,10 +228,6 @@ public class MappingExecutionController implements IMappingExecutionController {
     public ResponseEntity<JobStatus> getJobStatus(@PathVariable(name = "job-id") String jobId) throws Throwable {
         LOG.debug("Received request to fetch status of job-id: {}", jobId);
 
-        if (!Matcher.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", jobId, false)) {
-            throw new MappingJobException("Invalid jobId provided.");
-        }
-
         JobStatus status = mappingService.getJobStatus(jobId);
         return ResponseEntity.ok(status);
     }
@@ -239,10 +235,6 @@ public class MappingExecutionController implements IMappingExecutionController {
     @Override
     public ResponseEntity<Resource> getJobOutputFile(@PathVariable(name = "job-id") String jobId) throws Throwable {
         LOG.debug("Received request to fetch output file of job-id: {}", jobId);
-
-        if (!Matcher.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", jobId, false)) {
-            throw new MappingJobException("Invalid jobId provided.");
-        }
 
         File outputFile = mappingService.getJobOutputFile(jobId);
         InputStreamResource resource = new InputStreamResource(new FileInputStream(outputFile));
@@ -257,10 +249,6 @@ public class MappingExecutionController implements IMappingExecutionController {
     public ResponseEntity deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable {
         LOG.debug("Received request to delete job-id: {}", jobId);
 
-        if (!Matcher.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", jobId, false)) {
-            throw new MappingJobException("Invalid jobId provided.");
-        }
-        
         JobStatus status = mappingService.deleteJobAndAssociatedData(jobId);
         if (status.getStatus().equals(JobStatus.STATUS.DELETED)) {
             LOG.debug("Job removal result: {}", status);
