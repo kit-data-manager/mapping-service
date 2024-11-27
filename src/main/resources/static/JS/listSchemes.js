@@ -65,7 +65,7 @@ function editMapping(id) {
 
 function downloadMapping(id) {
     const http = new XMLHttpRequest();
-    http.open("GET", apiUrl + id);
+    http.open("GET", apiUrl + id + "/document");
     http.send();
     http.onload = (e) => {
         const element = document.createElement('a');

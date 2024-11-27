@@ -78,7 +78,7 @@ public interface IMappingExecutionController {
     @RequestMapping(value = {"/schedule/"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity<JobStatus> scheduleMapDocument(
-            @Parameter(description = "The mappingID of the already defined mapping.", required = true) @RequestParam(value = "mappingIdcp") String mappingID,
+            @Parameter(description = "The mappingID of the already defined mapping.", required = true) @RequestParam(value = "mappingID") String mappingID,
             @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
             final HttpServletRequest request,
             final HttpServletResponse response,

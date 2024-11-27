@@ -84,7 +84,7 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned, if no record for the provided identifier was found."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, if the mapping document could not be read from the local file system.")})
 
-    @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/{mappingId}/document"}, method = {RequestMethod.GET}, produces = {"application/octet-stream"})
     @ResponseBody
     ResponseEntity getMappingDocumentById(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
