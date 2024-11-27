@@ -348,7 +348,7 @@ public class MappingAdministrationControllerTest {
         System.out.println("testGetMappingDocumentById");
         String expResult = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
         testCreateMapping();
-        String getMappingIdUrl = "/api/v1/mappingAdministration/" + MAPPING_ID;
+        String getMappingIdUrl = "/api/v1/mappingAdministration/" + MAPPING_ID + "/document";
         MvcResult res = this.mockMvc.perform(get(getMappingIdUrl)).andDo(print()).andExpect(status().isOk()).andReturn();
         String result = res.getResponse().getContentAsString();
         assertNotNull(result);
