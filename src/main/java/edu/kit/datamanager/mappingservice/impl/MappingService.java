@@ -249,13 +249,22 @@ public class MappingService {
             // execute mapping
             Path resultFile = getOutputFile(jobId).toPath();
             LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
-            MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
+            try {
+                MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
 
-            LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
-            returnValue = Optional.of(resultFile);
-            // remove downloaded file
-            FileUtil.removeFile(srcFile);
-            task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, returnValue.get().toFile()));
+                LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
+                returnValue = Optional.of(resultFile);
+
+                task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, returnValue.get().toFile()));
+            } catch (Throwable t) {
+                task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, t.getMessage()));
+            } finally {
+                // remove downloaded file
+                LOGGER.trace("Removing user upload at {}.", srcFile);
+                FileUtil.removeFile(srcFile);
+                LOGGER.trace("User upload successfully removed.");
+
+            }
         } else {
             LOGGER.error("Unable to find mapping with id {}.", mappingId);
             task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Unable to find mapping with id " + mappingId + "."));
@@ -429,10 +438,10 @@ public class MappingService {
      */
     private File getOutputFile(String jobId) {
         Matcher m = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$").matcher(jobId);
-        if(!m.matches()){
+        if (!m.matches()) {
             throw new MappingJobException("Invalid jobId provided.");
         }
-        
+
         Path outputPath = jobsOutputDirectory.resolve(jobId + ".out").normalize();
         if (!outputPath.startsWith(jobsOutputDirectory)) {
             throw new IllegalArgumentException("Invalid jobId provided.");

@@ -211,12 +211,15 @@ public class MappingExecutionController implements IMappingExecutionController {
                 return ResponseEntity.ok(JobStatus.status(jobId, JobStatus.STATUS.SUBMITTED));
             } catch (MappingPluginException e) {
                 LOG.error("Failed to execute mapping.", e);
-                return ResponseEntity.status(500).body(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Failed to execute mapping with id " + mappingID + " on provided input document."));
-            } finally {
                 LOG.trace("Removing user upload at {}.", inputFile);
                 FileUtil.removeFile(inputPath);
                 LOG.trace("User upload successfully removed.");
-            }
+                return ResponseEntity.status(500).body(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Failed to execute mapping with id " + mappingID + " on provided input document."));
+            } /*finally {
+                LOG.trace("Removing user upload at {}.", inputFile);
+                FileUtil.removeFile(inputPath);
+                LOG.trace("User upload successfully removed.");
+            }*/
         } else {
             String message = "Either mapping id or input document are missing. Unable to perform mapping.";
             LOG.error(message);
