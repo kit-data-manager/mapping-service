@@ -215,7 +215,8 @@ public class MappingExecutionController implements IMappingExecutionController {
                 FileUtil.removeFile(inputPath);
                 LOG.trace("User upload successfully removed.");
                 return ResponseEntity.status(500).body(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Failed to execute mapping with id " + mappingID + " on provided input document."));
-            } /*finally {
+            }
+            /*finally {
                 LOG.trace("Removing user upload at {}.", inputFile);
                 FileUtil.removeFile(inputPath);
                 LOG.trace("User upload successfully removed.");
@@ -240,11 +241,22 @@ public class MappingExecutionController implements IMappingExecutionController {
         LOG.debug("Received request to fetch output file of job-id: {}", jobId);
 
         File outputFile = mappingService.getJobOutputFile(jobId);
+
+        String mimeType = FileUtil.getMimeType(outputFile.toPath());
+        LOG.trace("Determining file extension for mapping result.");
+        String extension = FileUtil.getExtensionForMimeType(mimeType);
+
+        LOG.trace("Using mime type {} and extension {}.", mimeType, extension);
+
         InputStreamResource resource = new InputStreamResource(new FileInputStream(outputFile));
 
         return ResponseEntity.ok()
                 .contentLength(outputFile.length())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(MediaType.parseMediaType(mimeType))
+                .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;" + "filename=result" + extension)
                 .body(resource);
     }
 
