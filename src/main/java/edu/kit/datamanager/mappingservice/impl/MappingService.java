@@ -254,8 +254,11 @@ public class MappingService {
 
                 LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
                 returnValue = Optional.of(resultFile);
+                LOGGER.trace("Fixing file extension for output {}", returnValue.get());
+                Path outputPath = FileUtil.fixFileExtension(returnValue.get());
+                LOGGER.trace("Fixed output path: {}", outputPath);
 
-                task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, returnValue.get().toFile()));
+                task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, outputPath.toFile()));
             } catch (Throwable t) {
                 task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, t.getMessage()));
             } finally {
