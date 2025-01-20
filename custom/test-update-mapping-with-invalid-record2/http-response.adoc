@@ -2,9 +2,9 @@
 ----
 HTTP/1.1 200 OK
 ETag: "104363025"
-Content-Length: 418
+Content-Length: 434
 Accept-Ranges: bytes
-Content-Type: application/json
+Content-Type: application/octet-stream
 
 {
   "$schema" : "http://json-schema.org/draft-07/schema#",

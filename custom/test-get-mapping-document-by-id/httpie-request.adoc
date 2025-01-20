@@ -1,4 +1,4 @@
 [source,bash]
 ----
-$ http GET 'http://localhost:8095/api/v1/mappingAdministration/my_dc'
+$ http GET 'http://localhost:8095/api/v1/mappingAdministration/my_dc/document'
 ----
