@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### New Features
 ### Changed
 
+## [1.1.1] - date 2025-01-20
+### Fixed
+- Fixed broken Docker package
+
+## Changed
+* Update plugin org.asciidoctor.jvm.convert to v4.0.4 by @renovate in https://github.com/kit-data-manager/mapping-service/pull/150
+* Update dependency org.postgresql:postgresql to v42.7.5 by @renovate in https://github.com/kit-data-manager/mapping-service/pull/149
+* Update plugin net.researchgate.release to v3.1.0 by @renovate in https://github.com/kit-data-manager/mapping-service/pull/152
+* Update plugin org.owasp.dependencycheck to v12 by @renovate in https://github.com/kit-data-manager/mapping-service/pull/155
+* Update dependency org.json:json to v20250107 by @renovate in https://github.com/kit-data-manager/mapping-service/pull/154
+
 ## [1.1.0] - date 2025-01-20
 ### New Feature
 * Support of asynchronous mapping via /api/v1/mappingExecution/schedule/ (see API docs for more details)
@@ -131,7 +142,8 @@ and mapping of metadata documents delivered by RabbitMQ
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
-[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/kit-data-manager/mapping-service/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.5...v1.1.0
 [1.0.5]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.3...v1.0.4
