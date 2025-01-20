@@ -75,7 +75,7 @@ dependencies {
     implementation "org.javers:javers-spring-boot-starter-sql:${javersVersion}"
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.4'
-    implementation 'org.json:json:20240303'
+    implementation 'org.json:json:20250107'
     implementation 'com.github.jknack:handlebars:4.4.0'
     implementation 'com.google.guava:guava:33.4.0-jre'
     implementation 'commons-io:commons-io:2.18.0'
