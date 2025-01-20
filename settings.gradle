@@ -1,18 +1,18 @@
 plugins {
-    id "com.gradle.enterprise" version "3.18"
+    id "com.gradle.enterprise" version "3.19"
 }
 
-gradleEnterprise {
+//gradleEnterprise {
 //    buildScan {
 //        capture {
 //            buildLogging = false
 //            testLogging = false
 //        }
 //    }
-    buildScan {
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
-        termsOfServiceAgree = "no"
-    }
-}
+//    buildScan {
+//        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+//        termsOfServiceAgree = "no"
+//    }
+//}
 
 rootProject.name = 'mapping-service'

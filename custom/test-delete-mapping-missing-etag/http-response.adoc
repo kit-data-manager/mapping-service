@@ -1,0 +1,29 @@
+[source,http,options="nowrap"]
+----
+HTTP/1.1 200 OK
+ETag: "104363025"
+Content-Type: application/vnd.datamanager.mapping-record+json
+Content-Length: 560
+
+{
+  "mappingId" : "my_dc",
+  "mappingType" : "GEMMA",
+  "title" : "TITEL",
+  "description" : "DESCRIPTION",
+  "acl" : [ {
+    "id" : 40,
+    "sid" : "anonymousUser",
+    "permission" : "ADMINISTRATE"
+  }, {
+    "id" : 41,
+    "sid" : "SELF",
+    "permission" : "READ"
+  }, {
+    "id" : 42,
+    "sid" : "test2",
+    "permission" : "ADMINISTRATE"
+  } ],
+  "mappingDocumentUri" : "http://localhost:8095/api/v1/mappingAdministration/my_dc/document",
+  "documentHash" : "sha256:0b415cfd8c084ea65ec2c9200a85a95402184011d442e5ab343021660420127f"
+}
+----

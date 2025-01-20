@@ -1,0 +1,5 @@
+release {
+    tagTemplate         = 'v${version}'
+    versionPropertyFile = 'gradle.properties'
+    versionProperties   = ['version', 'mainversion']
+}

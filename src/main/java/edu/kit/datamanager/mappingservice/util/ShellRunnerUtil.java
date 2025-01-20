@@ -15,6 +15,7 @@
 
 package edu.kit.datamanager.mappingservice.util;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
@@ -24,6 +25,8 @@ import java.io.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Utility class for running shell scripts.

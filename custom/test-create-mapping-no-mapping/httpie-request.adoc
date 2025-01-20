@@ -1,0 +1,5 @@
+[source,bash]
+----
+$ http --multipart POST 'http://localhost:8095/api/v1/mappingAdministration/' \
+    'record'@'record.json'
+----

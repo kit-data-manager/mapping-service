@@ -33,9 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -57,7 +55,7 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "409", description = "CONFLICT is returned, if there is already a mapping for the provided mapping id."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, an unexpected exception occured while persisting the mapping.")})
 
-    @RequestMapping(path = "", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @RequestMapping(path = "/", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity<MappingRecord> createMapping(
             @Parameter(description = "JSON representation of the mapping record.", required = true) @RequestPart(name = "record") final MultipartFile record,
@@ -86,9 +84,9 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned, if no record for the provided identifier was found."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, if the mapping document could not be read from the local file system.")})
 
-    @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/{mappingId}/document"}, method = {RequestMethod.GET}, produces = {"application/octet-stream"})
     @ResponseBody
-    ResponseEntity<MappingRecord> getMappingDocumentById(
+    ResponseEntity getMappingDocumentById(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr);
@@ -98,7 +96,7 @@ public interface IMappingAdministrationController {
             + "records are returned.",
             responses = {
                 @ApiResponse(responseCode = "200", description = "OK and a list of records, which might be empty.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = MappingRecord.class))))})
-    @RequestMapping(value = {""}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/"}, method = {RequestMethod.GET})
     @PageableAsQueryParam
     @ResponseBody
     ResponseEntity<List<MappingRecord>> getMappings(
@@ -137,25 +135,25 @@ public interface IMappingAdministrationController {
     @Parameters({
         @Parameter(name = "If-Match", description = "ETag of the current mapping record. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})
     @ResponseBody
-    ResponseEntity<String> deleteMapping(
+    ResponseEntity deleteMapping(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr);
 
-    @Operation(summary = "Get all available mapping types.",
+    @Operation(summary = "Get all available plugins.",
             responses = {
-                @ApiResponse(responseCode = "200", description = "OK and a list of all mapping types will be returned, which might be empty.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PluginInformation.class))))})
+                @ApiResponse(responseCode = "200", description = "OK and a list of all plugins will be returned, which might be empty.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PluginInformation.class))))})
     @RequestMapping(value = {"/types"}, method = {RequestMethod.GET})
     @ResponseBody
-    ResponseEntity<List<PluginInformation>> getAllAvailableMappingTypes(
+    ResponseEntity<List<PluginInformation>> getAvailablePlugins(
             WebRequest wr,
             HttpServletResponse hsr);
 
-    @Operation(summary = "Reload all mapping types.", description = "Reloads all mapping types from the plugin directory and updates their dependencies if necessary.",
+    @Operation(summary = "Reload all mapping types.", description = "Reloads all plugins from the plugin directory and updates their dependencies if necessary.",
             responses = {
                 @ApiResponse(responseCode = "204", description = "NO_CONTENT is returned on a successful refresh.")})
     @RequestMapping(value = {"/reloadTypes"}, method = {RequestMethod.GET})
-    ResponseEntity<String> reloadAllAvailableMappingTypes(
+    ResponseEntity<String> reloadAvailablePlugins(
             WebRequest wr,
             HttpServletResponse hsr);
 }

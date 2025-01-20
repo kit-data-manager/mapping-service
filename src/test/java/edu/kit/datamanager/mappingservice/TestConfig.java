@@ -6,7 +6,6 @@ package edu.kit.datamanager.mappingservice;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +19,6 @@ import org.springframework.context.annotation.Configuration;
 public class TestConfig {
 
     @Bean
-    @ConfigurationProperties("repo")
     public ApplicationProperties applicationProperties() {
         return new ApplicationProperties();
     }

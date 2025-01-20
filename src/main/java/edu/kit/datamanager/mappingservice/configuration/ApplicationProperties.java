@@ -59,4 +59,11 @@ public class ApplicationProperties {
     @LocalFolderURL
     @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
+    
+    /**
+     * The absolute path where job data is stored.
+     */
+    @LocalFolderURL
+    @Value("${mapping-service.jobOutput}")
+    private URL jobOutputLocation;
 }

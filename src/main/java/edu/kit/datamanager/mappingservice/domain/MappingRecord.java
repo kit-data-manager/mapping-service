@@ -22,8 +22,8 @@ import lombok.*;
 import org.hibernate.Hibernate;
 import org.springframework.http.MediaType;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;

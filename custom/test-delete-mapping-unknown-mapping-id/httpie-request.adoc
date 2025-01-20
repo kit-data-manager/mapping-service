@@ -1,0 +1,5 @@
+[source,bash]
+----
+$ http DELETE 'http://localhost:8095/api/v1/mappingAdministration/unknownMappingId' \
+    'If-Match:"104363025"'
+----

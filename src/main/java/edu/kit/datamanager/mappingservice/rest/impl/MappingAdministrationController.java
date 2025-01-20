@@ -19,7 +19,6 @@ import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.domain.AclEntry;
-import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
@@ -34,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,9 +44,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -59,7 +56,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 /**
  * Controller for managing mapping files.
@@ -97,7 +93,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity createMapping(
+    public ResponseEntity<MappingRecord> createMapping(
             @RequestPart(name = "record") final MultipartFile record,
             @RequestPart(name = "document") final MultipartFile document,
             WebRequest wr,
@@ -112,7 +108,8 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
             LOG.error("Unable to deserialize mapping record.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unable to deserialize provided mapping record.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//.body("Unable to deserialize provided mapping record.");
         }
 
         LOG.trace("Obtaining caller principle for authorization purposes.");
@@ -148,7 +145,8 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             mappingRecord = mappingService.createMapping(contentOfFile, mappingRecord);
         } catch (IOException ioe) {
             LOG.error("Unable to create mapping for provided inputs.", ioe);
-            return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
+           //return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         LOG.trace("Mapping successfully persisted. Updating document URI.");
@@ -282,11 +280,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.debug("No mapping with id {} found. Skipping deletion.", mappingId);
         }
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity updateMapping(
+    public ResponseEntity<MappingRecord> updateMapping(
             @PathVariable(value = "mappingId") String mappingId,
             @RequestPart(name = "record") final MultipartFile record,
             @RequestPart(name = "document", required = false) final MultipartFile document,
@@ -302,15 +300,9 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
             LOG.error("Unable to deserialize mapping record.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unable to deserialize provided mapping record.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        /*Should never be null due to entity constraints
-        if ((mappingRecord.getMappingId() == null) || (mappingRecord.getMappingType() == null)) {
-            String message = "Mandatory attribute mappingId and/or mappingType not found in record. ";
-            LOG.error(message + "Returning HTTP BAD_REQUEST.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-        }*/
         if ((!mappingRecord.getMappingId().equals(mappingId))) {
             LOG.trace("Mapping record id {} differs from adressed mapping id {}. Setting mapping record id to adressed id.", mappingRecord.getMappingId(), mappingId);
             mappingRecord.setMappingId(mappingId);
@@ -333,7 +325,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
                 mappingService.updateMapping(contentOfFile, mappingRecord);
             } catch (IOException ioe) {
                 LOG.error("Unable to create mapping for provided inputs.", ioe);
-                return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
+                return ResponseEntity.internalServerError().build();
             }
         } else {
             LOG.trace("No mapping document provided by user. Only persisting updated mapping record.");
@@ -352,11 +344,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity<List<PluginInformation>> getAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
-        LOG.trace("Performing getAllAvailableMappingTypes()");
+    public ResponseEntity<List<PluginInformation>> getAvailablePlugins(WebRequest wr, HttpServletResponse hsr) {
+        LOG.trace("Performing getAvailablePlugins()");
 
         List<PluginInformation> plugins = new ArrayList<>();
-        pluginManager.getListOfAvailableValidators().forEach((id) -> {
+        pluginManager.listPluginIds().forEach((id) -> {
             try {
                 plugins.add(new PluginInformation(id, pluginManager));
             } catch (MappingPluginException ex) {
@@ -369,7 +361,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity<String> reloadAllAvailableMappingTypes(WebRequest wr, HttpServletResponse hsr) {
+    public ResponseEntity<String> reloadAvailablePlugins(WebRequest wr, HttpServletResponse hsr) {
         LOG.trace("Reloading available plugins.");
         pluginManager.reloadPlugins();
         LOG.trace("Plugins successfully reloaded.");

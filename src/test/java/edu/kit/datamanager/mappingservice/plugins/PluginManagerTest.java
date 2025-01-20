@@ -14,9 +14,14 @@
  */
 package edu.kit.datamanager.mappingservice.plugins;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.junit.jupiter.api.Test;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +33,19 @@ class PluginManagerTest {
 
     @Autowired
     private PluginManager pluginManager;
+
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
+    @BeforeEach
+    void setup() throws Exception {
+        try {
+            FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        pluginManager.reloadPlugins();
+    }
 
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
@@ -45,8 +63,8 @@ class PluginManagerTest {
     @Test
     @Disabled("Test must be revised as soon as plugin location is configurable")
     void getListOfAvailableValidators() {
-        System.out.println(pluginManager.getListOfAvailableValidators());
-        assertEquals(2, pluginManager.getListOfAvailableValidators().size());
+        System.out.println(pluginManager.listPluginIds());
+        assertEquals(2, pluginManager.listPluginIds().size());
     }
 
     @Test

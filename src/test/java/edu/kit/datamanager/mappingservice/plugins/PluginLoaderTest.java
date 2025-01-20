@@ -12,31 +12,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.MimeTypeUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class PluginLoaderTest {
+
+    @Autowired
+    private PluginManager pluginManager;
+
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        try {
+            FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        pluginManager.reloadPlugins();
+    }
 
     @Test
     void valid() {
         System.out.println("Test valid");
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(new File("./plugins"));
+            plugins = PluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (Exception e) {
             fail(e);
         }
-        for (var entry: plugins.entrySet()){
+        for (var entry : plugins.entrySet()) {
             System.out.println(entry.getValue().id());
         }
         try {
@@ -55,7 +79,7 @@ class PluginLoaderTest {
     }
 
     @Test
-    void invalidPath(){
+    void invalidPath() {
         Map<String, IMappingPlugin> plugins = null;
         try {
             PluginLoader.loadPlugins(new File("./invalid/test"));
@@ -74,7 +98,6 @@ class PluginLoaderTest {
 //            fail(e);
 //        }
 //    }
-
     @Test
     void nullInput() {
         Map<String, IMappingPlugin> plugins = null;
@@ -85,6 +108,7 @@ class PluginLoaderTest {
         } catch (MappingPluginException validationWarning) {
         }
     }
+
     @Test
     void emptyinput() {
         Map<String, IMappingPlugin> plugins = null;
