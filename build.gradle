@@ -1,10 +1,10 @@
 plugins {
     id 'org.springframework.boot' version '3.4.1'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.asciidoctor.jvm.convert' version '4.0.3'
+    id 'org.asciidoctor.jvm.convert' version '4.0.4'
     id 'io.freefair.maven-publish-java' version '8.11'
-    id "org.owasp.dependencycheck" version "11.1.1"
-    id 'net.researchgate.release' version '3.0.2'
+    id "org.owasp.dependencycheck" version "12.0.1"
+    id 'net.researchgate.release' version '3.1.0'
     id "com.gorylenko.gradle-git-properties" version "2.4.2"
     id 'io.freefair.lombok' version '8.11'
     id 'java'
@@ -75,7 +75,7 @@ dependencies {
     implementation "org.javers:javers-spring-boot-starter-sql:${javersVersion}"
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.4'
-    implementation 'org.json:json:20240303'
+    implementation 'org.json:json:20250107'
     implementation 'com.github.jknack:handlebars:4.4.0'
     implementation 'com.google.guava:guava:33.4.0-jre'
     implementation 'commons-io:commons-io:2.18.0'
@@ -102,7 +102,7 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     runtimeOnly 'com.h2database:h2:2.3.232'
-    runtimeOnly 'org.postgresql:postgresql:42.7.4'
+    runtimeOnly 'org.postgresql:postgresql:42.7.5'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.3'
