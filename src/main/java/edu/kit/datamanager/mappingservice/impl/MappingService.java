@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.impl;
 
+import edu.kit.datamanager.exceptions.BadArgumentException;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.JobStatus;
@@ -112,6 +113,13 @@ public class MappingService {
      */
     public MappingRecord createMapping(String content, MappingRecord mappingRecord) throws IOException {
         LOGGER.trace("Creating mapping with id {}.", mappingRecord.getMappingId());
+        // Check for valid mapping ID (should contain at least one non whitespace.
+        String mappingId = mappingRecord.getMappingId();
+        if ((mappingId == null) || (mappingId.isBlank())){
+          String message = String.format("MappingID shouldn't be empty or contain only whitespaces. You provide '%s'", mappingId);
+          LOGGER.error(message);
+          throw new BadArgumentException(message);
+        }
         Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdIn(Collections.singletonList(mappingRecord.getMappingId()));
         if (findMapping.iterator().hasNext()) {
             LOGGER.error("Unable to create mapping with id {}. Mapping id is alreadyy used.", mappingRecord.getMappingId());

@@ -53,23 +53,23 @@ public class LoggerOutputStream extends OutputStream {
 
     @Override
     public void write(@NotNull byte[] b, int off, int len) {
-        String record = new String(b, off, len);
-        if (!record.isEmpty() && !record.equals(" ")) {
+        String message = new String(b, off, len);
+        if (!message.isEmpty() && !message.equals(" ")) {
             switch (level) {
                 case TRACE:
-                    if (logger.isTraceEnabled()) logger.trace(record);
+                    logger.trace(message);
                     break;
                 case DEBUG:
-                    if (logger.isDebugEnabled()) logger.debug(record);
+                    logger.debug(message);
                     break;
                 case INFO:
-                    if (logger.isInfoEnabled()) logger.info(record);
+                    logger.info(message);
                     break;
                 case WARN:
-                    if (logger.isWarnEnabled()) logger.warn(record);
+                    logger.warn(message);
                     break;
                 case ERROR:
-                    if (logger.isErrorEnabled()) logger.error(record);
+                    logger.error(message);
                     break;
             }
         }

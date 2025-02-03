@@ -18,7 +18,6 @@ package edu.kit.datamanager.mappingservice.rest.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.entities.PERMISSION;
-import edu.kit.datamanager.mappingservice.MappingServiceApplication;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.AclEntry;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
@@ -26,7 +25,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -66,16 +64,11 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -172,6 +165,115 @@ public class MappingAdministrationControllerTest {
                 andExpect(redirectedUrlPattern("http://*:*/api/v1/mappingAdministration/*")).
                 andReturn();
 
+        //assertEquals(before+1, Files.list(mappingsDir).count());
+    }
+
+    /**
+     * Test of createMapping method, of class MappingAdministrationController.
+     */
+    @Test
+    public void testCreateMappingWithoutID() throws Exception {
+        System.out.println("createMapping");
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+
+        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+        MappingRecord record = new MappingRecord();
+        record.setMappingId(null);
+        record.setMappingType(MAPPING_TYPE);
+        record.setTitle(MAPPING_TITLE);
+        record.setDescription(MAPPING_DESCRIPTION);
+        Set<AclEntry> aclEntries = new HashSet<>();
+        aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+        aclEntries.add(new AclEntry("test2", PERMISSION.ADMINISTRATE));
+        record.setAcl(aclEntries);
+        ObjectMapper mapper = new ObjectMapper();
+
+        MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+
+        
+        //long before = Files.list(mappingsDir).count();
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        //assertEquals(before+1, Files.list(mappingsDir).count());
+    }
+
+    /**
+     * Test of createMapping method, of class MappingAdministrationController.
+     */
+    @Test
+    public void testCreateMappingWithWrongID() throws Exception {
+        System.out.println("createMapping");
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+
+        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+        MappingRecord record = new MappingRecord();
+        record.setMappingId("");
+        record.setMappingType(MAPPING_TYPE);
+        record.setTitle(MAPPING_TITLE);
+        record.setDescription(MAPPING_DESCRIPTION);
+        Set<AclEntry> aclEntries = new HashSet<>();
+        aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+        aclEntries.add(new AclEntry("test2", PERMISSION.ADMINISTRATE));
+        record.setAcl(aclEntries);
+        ObjectMapper mapper = new ObjectMapper();
+
+        MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+
+        
+        //long before = Files.list(mappingsDir).count();
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId(" ");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("\t");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("    ");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
         //assertEquals(before+1, Files.list(mappingsDir).count());
     }
 
