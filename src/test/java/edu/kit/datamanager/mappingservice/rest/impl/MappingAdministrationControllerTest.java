@@ -179,6 +179,115 @@ public class MappingAdministrationControllerTest {
      * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
+    public void testCreateMappingWithoutID() throws Exception {
+        System.out.println("createMapping");
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+
+        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+        MappingRecord record = new MappingRecord();
+        record.setMappingId(null);
+        record.setMappingType(MAPPING_TYPE);
+        record.setTitle(MAPPING_TITLE);
+        record.setDescription(MAPPING_DESCRIPTION);
+        Set<AclEntry> aclEntries = new HashSet<>();
+        aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+        aclEntries.add(new AclEntry("test2", PERMISSION.ADMINISTRATE));
+        record.setAcl(aclEntries);
+        ObjectMapper mapper = new ObjectMapper();
+
+        MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+
+        
+        //long before = Files.list(mappingsDir).count();
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        //assertEquals(before+1, Files.list(mappingsDir).count());
+    }
+
+    /**
+     * Test of createMapping method, of class MappingAdministrationController.
+     */
+    @Test
+    public void testCreateMappingWithWrongID() throws Exception {
+        System.out.println("createMapping");
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+
+        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+        MappingRecord record = new MappingRecord();
+        record.setMappingId("");
+        record.setMappingType(MAPPING_TYPE);
+        record.setTitle(MAPPING_TITLE);
+        record.setDescription(MAPPING_DESCRIPTION);
+        Set<AclEntry> aclEntries = new HashSet<>();
+        aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+        aclEntries.add(new AclEntry("test2", PERMISSION.ADMINISTRATE));
+        record.setAcl(aclEntries);
+        ObjectMapper mapper = new ObjectMapper();
+
+        MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+
+        
+        //long before = Files.list(mappingsDir).count();
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId(" ");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("\t");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("    ");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+        //assertEquals(before+1, Files.list(mappingsDir).count());
+    }
+
+    /**
+     * Test of createMapping method, of class MappingAdministrationController.
+     */
+    @Test
     public void testCreateMappingNoRecord() throws Exception {
         System.out.println("testCreateMappingNoRecord");
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
