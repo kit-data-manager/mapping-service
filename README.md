@@ -113,7 +113,7 @@ user@localhost:/home/user/mapping-service$
 Now you'll have to create an image containing the microservice. This can be done via a script.
 On default the created images will be tagged as follows:
 
-*'latest tag'-'actual date(yyyy-mm-dd)'* (e.g.: 1.2.0-2023-06-27)
+*'latest tag'-'actual date(yyyy-mm-dd)'* (e.g.: 1.1.0-2023-06-27)
 
 ```
 user@localhost:/home/user/mapping-service$ bash docker/buildDocker.sh
