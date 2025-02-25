@@ -61,12 +61,12 @@ public class IdentifyPlugin implements IMappingPlugin {
 
     @Override
     public MimeType[] inputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+        return new MimeType[]{MimeType.valueOf("image/*")};
     }
 
     @Override
     public MimeType[] outputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+        return new MimeType[]{MimeType.valueOf("application/*")};
     }
 
     @Override

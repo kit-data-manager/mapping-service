@@ -31,23 +31,23 @@ import org.springframework.util.MimeType;
  *
  * @author jejkal
  */
-public class TestPlugin implements IMappingPlugin {
+public class InOutPlugin implements IMappingPlugin {
 
-    static Logger LOG = LoggerFactory.getLogger(TestPlugin.class);
+    static Logger LOG = LoggerFactory.getLogger(InOutPlugin.class);
 
     @Override
     public String name() {
-        return "TestPlugin";
+        return "InOutPlugin";
     }
 
     @Override
     public String description() {
-        return "Simple plugin for testing.";
+        return "Simple plugin for testing just returning the input file.";
     }
 
     @Override
     public String version() {
-        return "1.0.0";
+        return "1.1.2";
     }
 
     @Override
@@ -57,12 +57,12 @@ public class TestPlugin implements IMappingPlugin {
 
     @Override
     public MimeType[] inputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+        return new MimeType[]{MimeType.valueOf("application/*")};
     }
 
     @Override
     public MimeType[] outputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+        return new MimeType[]{MimeType.valueOf("application/*")};
     }
 
     @Override
