@@ -194,7 +194,7 @@ public class MappingService {
         LOGGER.trace("Searching for mapping with id {}.", mappingId);
         Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
         if (optionalMappingRecord.isPresent()) {
-            LOGGER.trace("Mapping for id {} found. Creating temporary output file.");
+            LOGGER.trace("Mapping for id {} found. Creating temporary output file.", mappingId);
             mappingRecord = optionalMappingRecord.get();
             Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
             // execute mapping

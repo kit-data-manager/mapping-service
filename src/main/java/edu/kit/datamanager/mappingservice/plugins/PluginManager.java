@@ -118,8 +118,10 @@ public class PluginManager {
      * @param mappingFile Path to the mapping schema.
      * @param inputFile Path to the input file.
      * @param outputFile Path where the output is temporarily stored.
+     * 
      * @return MappingPluginState.SUCCESS if the plugin was executed
      * successfully.
+     * 
      * @throws MappingPluginException If there is an error with the plugin or
      * the input.
      */

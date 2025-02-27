@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
@@ -34,6 +33,7 @@ import java.util.Collections;
  */
 @Component
 public class PythonRunnerUtil {
+
     private static ApplicationProperties configuration;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
@@ -70,31 +70,36 @@ public class PythonRunnerUtil {
      * This method executes a python script with the given arguments.
      *
      * @param script path to the python script to be executed.
-     * @param args   arguments to be passed to the script.
+     * @param args arguments to be passed to the script.
      * @return State of the execution.
      * @throws MappingPluginException if an error occurs.
      */
     public static MappingPluginState runPythonScript(String script, String... args) throws MappingPluginException {
-        return runPythonScript(script, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), args);
+        return runPythonScript(script, new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.ERROR), args);
     }
 
     /**
-     * This method executes a python script with the given arguments and redirects the output and errors to the given streams.
+     * This method executes a python script with the given arguments and
+     * redirects the output and errors to the given streams.
      *
      * @param script path to the python script to be executed.
      * @param output OutputStream to redirect the output to.
-     * @param error  OutputStream to redirect the errors to.
-     * @param args   arguments to be passed to the script.
-     * @return State of the execution.
+     * @param error OutputStream to redirect the errors to.
+     * @param args arguments to be passed to the script.
+     *
+     * @return State of the execution if execution succeeds. Otherwise, a
+     * MappingPluginException is thrown.
+     *
      * @throws MappingPluginException if an error occurs.
      */
     public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
-        if (configuration == null || configuration.getPythonExecutable()== null) return MappingPluginState.UNKNOWN_ERROR;
+        if (configuration == null || configuration.getPythonExecutable() == null) {
+            return MappingPluginState.UNKNOWN_ERROR();
+        }
         ArrayList<String> command = new ArrayList<>();
         command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
         Collections.addAll(command, args);
-        ShellRunnerUtil.run(output, error, command.toArray(new String[0]));
-        return MappingPluginState.SUCCESS;
+        return ShellRunnerUtil.run(output, error, command.toArray(String[]::new));
     }
 }
