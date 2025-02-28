@@ -72,7 +72,7 @@ class PluginLoaderTest {
             assertEquals(MimeTypeUtils.APPLICATION_JSON, plugins.get("TEST_0.0.0").inputTypes()[0]);
             assertEquals(MimeTypeUtils.APPLICATION_JSON, plugins.get("TEST_0.0.0").outputTypes()[0]);
             plugins.get("TEST_0.0.0").setup();
-            assertEquals(MappingPluginState.SUCCESS, plugins.get("TEST_0.0.0").mapFile(new File("schema").toPath(), new File("input").toPath(), new File("output").toPath()));
+            assertEquals(MappingPluginState.SUCCESS().getState(), plugins.get("TEST_0.0.0").mapFile(new File("schema").toPath(), new File("input").toPath(), new File("output").toPath()).getState());
         } catch (Exception e) {
             fail(e);
         }

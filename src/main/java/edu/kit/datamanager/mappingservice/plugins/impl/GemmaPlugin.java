@@ -81,7 +81,7 @@ public class GemmaPlugin implements IMappingPlugin {
             return PythonRunnerUtil.runPythonScript(gemmaDir + "/mapping_single.py", mappingFile.toString(), inputFile.toString(), outputFile.toString());
         } else {
             LOGGER.error("Plugin '" + name() + "' " + version() + " not initialized. Returning EXECUTION_ERROR.");
-            return MappingPluginState.EXECUTION_ERROR;
+            return MappingPluginState.EXECUTION_ERROR();
         }
     }
 }

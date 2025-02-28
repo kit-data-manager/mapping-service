@@ -184,7 +184,7 @@ public class MappingService {
     public Optional<Path> executeMapping(URI contentUrl, String mappingId) throws MappingPluginException {
         LOGGER.trace("Executing mapping of content {} using mapping with id {}.", contentUrl, mappingId);
         if (contentUrl == null || mappingId == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Either contentUrl or mappingId are not provided.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Either contentUrl or mappingId are not provided.");
         }
 
         Optional<Path> returnValue;

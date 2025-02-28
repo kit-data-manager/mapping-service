@@ -1,0 +1,7 @@
+[source,http,options="nowrap"]
+----
+DELETE /api/v1/mappingAdministration/unknownMappingId HTTP/1.1
+If-Match: "104363025"
+Host: localhost:8095
+
+----

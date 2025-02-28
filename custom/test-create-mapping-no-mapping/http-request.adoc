@@ -1,0 +1,13 @@
+[source,http,options="nowrap"]
+----
+POST /api/v1/mappingAdministration/ HTTP/1.1
+Content-Type: multipart/form-data; boundary=6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
+Host: localhost:8095
+
+--6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
+Content-Disposition: form-data; name=record; filename=record.json
+Content-Type: application/json
+
+{"mappingId":"my_dc","mappingType":"GEMMA","title":"TITEL","description":"DESCRIPTION","acl":[{"id":null,"sid":"SELF","permission":"READ"},{"id":null,"sid":"test2","permission":"ADMINISTRATE"}],"mappingDocumentUri":null,"documentHash":null}
+--6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm--
+----

@@ -1,0 +1,24 @@
+[source,json,options="nowrap"]
+----
+{
+  "mappingId" : "my_dc",
+  "mappingType" : "GEMMA",
+  "title" : "TITEL",
+  "description" : "DESCRIPTION",
+  "acl" : [ {
+    "id" : 53,
+    "sid" : "test2",
+    "permission" : "ADMINISTRATE"
+  }, {
+    "id" : 52,
+    "sid" : "SELF",
+    "permission" : "READ"
+  }, {
+    "id" : 51,
+    "sid" : "anonymousUser",
+    "permission" : "ADMINISTRATE"
+  } ],
+  "mappingDocumentUri" : "http://localhost:8095/api/v1/mappingAdministration/my_dc/document",
+  "documentHash" : "sha256:de0cd19a4ffc603e8940e990cd2dc689e029d308224c71992c4cd099a588aa0b"
+}
+----

@@ -85,9 +85,9 @@ public class IdentifyPlugin implements IMappingPlugin {
             fout.close();
         } catch (IOException ex) {
             LOG.error("Failed to execute plugin.", ex);
-            return MappingPluginState.EXECUTION_ERROR;
+            return MappingPluginState.EXECUTION_ERROR();
         }
-        return MappingPluginState.SUCCESS;
+        return MappingPluginState.SUCCESS();
     }
 
 }

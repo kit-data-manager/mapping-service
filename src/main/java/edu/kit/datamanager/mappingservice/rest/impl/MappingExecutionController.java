@@ -113,7 +113,7 @@ public class MappingExecutionController implements IMappingExecutionController {
                 if (resultPath.isPresent()) {
                     LOG.trace("Mapping process finished. Output written to {}.", resultPath.toString());
                 } else {
-                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Mapping process finished, but no result was returned.");
+                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Mapping process finished, but no result was returned.");
                 }
             } catch (MappingPluginException e) {
                 LOG.error("Failed to execute mapping.", e);

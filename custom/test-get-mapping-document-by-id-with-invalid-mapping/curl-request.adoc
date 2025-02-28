@@ -1,0 +1,4 @@
+[source,bash]
+----
+$ curl 'http://localhost:8095/api/v1/mappingAdministration/invalidMappingId' -i -X GET
+----

@@ -15,12 +15,10 @@ public class MappingPluginState implements Serializable {
     public enum StateEnum {
         SUCCESS(HttpStatus.OK),
         NOT_FOUND(HttpStatus.NOT_FOUND),
-        TIMEOUT,
+        TIMEOUT(HttpStatus.GATEWAY_TIMEOUT),
         EXECUTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
-        INVALID_INPUT,
-        BAD_EXIT_CODE,
-        INCORRECT_MIME_TYPE,
-        INSUFFICIENT_PRIVILEGES(HttpStatus.INTERNAL_SERVER_ERROR),
+        INVALID_INPUT(HttpStatus.BAD_REQUEST),
+        BAD_EXIT_CODE(HttpStatus.INTERNAL_SERVER_ERROR),
         UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
         private final HttpStatus httpStatus;
@@ -73,14 +71,6 @@ public class MappingPluginState implements Serializable {
 
     public static MappingPluginState BAD_EXIT_CODE() {
         return new MappingPluginState(StateEnum.BAD_EXIT_CODE);
-    }
-
-    public static MappingPluginState INCORRECT_MIME_TYPE() {
-        return new MappingPluginState(StateEnum.INCORRECT_MIME_TYPE);
-    }
-
-    public static MappingPluginState INSUFFICIENT_PRIVILEGES() {
-        return new MappingPluginState(StateEnum.INSUFFICIENT_PRIVILEGES);
     }
 
     public static MappingPluginState UNKNOWN_ERROR() {

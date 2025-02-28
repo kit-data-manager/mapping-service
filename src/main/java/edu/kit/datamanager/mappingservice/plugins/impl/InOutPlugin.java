@@ -77,9 +77,9 @@ public class InOutPlugin implements IMappingPlugin {
             Files.copy(inputFile, outputFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException | MappingException ex) {
             LOG.error("Failed to execute plugin.", ex);
-            return MappingPluginState.EXECUTION_ERROR;
+            return MappingPluginState.EXECUTION_ERROR();
         }
-        return MappingPluginState.SUCCESS;
+        return MappingPluginState.SUCCESS();
     }
 
 }

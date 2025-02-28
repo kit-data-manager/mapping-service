@@ -34,7 +34,7 @@ public class MappingPluginException extends Exception {
      * @param state State of the plugin.
      */
     public MappingPluginException(MappingPluginState state) {
-        super(state.name());
+        super(state.getState().name());
         this.state = state;
     }
 

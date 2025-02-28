@@ -127,22 +127,22 @@ public class PluginManager {
      */
     public final MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         if (pluginId == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Plugin ID is null.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Plugin ID is null.");
         }
         if (mappingFile == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to mapping schema is null.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Path to mapping schema is null.");
         }
         if (inputFile == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to input file is null.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Path to input file is null.");
         }
         if (outputFile == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to output file is null.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Path to output file is null.");
         }
 
         if (plugins.containsKey(pluginId)) {
             LOG.trace("Plugin found. Performing mapFile({}, {}, {}).", mappingFile, inputFile, outputFile);
             return plugins.get(pluginId).mapFile(mappingFile, inputFile, outputFile);
         }
-        throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin '" + pluginId + "' not found!");
+        throw new MappingPluginException(MappingPluginState.NOT_FOUND(), "Plugin '" + pluginId + "' not found!");
     }
 }

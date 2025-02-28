@@ -97,21 +97,21 @@ public class ShellRunnerUtil {
      */
     public static MappingPluginState run(OutputStream output, OutputStream error, int timeOutInSeconds, String... command) throws MappingPluginException {
         if (output == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Output stream is null.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Output stream is null.");
         }
         if (error == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Error stream is null.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Error stream is null.");
         }
         if (timeOutInSeconds <= 0) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Timeout is null or negative.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Timeout is null or negative.");
         }
         if (command == null || command.length == 0) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "No command given.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "No command given.");
         }
 
         ExecutorService pool = Executors.newSingleThreadExecutor();
         int result;
-        MappingPluginState returnValue = MappingPluginState.SUCCESS;
+        MappingPluginState returnValue = MappingPluginState.SUCCESS();
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
@@ -141,21 +141,21 @@ public class ShellRunnerUtil {
             }
         } catch (IOException ioe) {
             LOGGER.error("Failed to run command or to access output/error streams.", ioe);
-            returnValue = MappingPluginState.EXECUTION_ERROR;
+            returnValue = MappingPluginState.EXECUTION_ERROR();
         } catch (TimeoutException te) {
             LOGGER.error("Command did not return in expected timeframe of " + TIMEOUT + " seconds", te);
-            returnValue = MappingPluginState.TIMEOUT;
+            returnValue = MappingPluginState.TIMEOUT();
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Command execution has been interrupted.", e);
-            returnValue = MappingPluginState.UNKNOWN_ERROR;
+            returnValue = MappingPluginState.UNKNOWN_ERROR();
         } catch (BadExitCodeException e) {
             LOGGER.error("Failed to execute command due to an unexpected exception.", e);
-            returnValue = MappingPluginState.UNKNOWN_ERROR;
+            returnValue = MappingPluginState.UNKNOWN_ERROR();
         } finally {
             pool.shutdown();
         }
         
-        if (returnValue != MappingPluginState.SUCCESS) {
+        if (returnValue != MappingPluginState.SUCCESS()) {
             throw new MappingPluginException(returnValue);
         }
         return returnValue;

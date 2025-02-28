@@ -1,0 +1,7 @@
+[source,http,options="nowrap"]
+----
+GET /api/v1/mappingAdministration/my_dc HTTP/1.1
+Accept: application/vnd.datamanager.mapping-record+json
+Host: localhost:8095
+
+----

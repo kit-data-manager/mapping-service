@@ -27,17 +27,17 @@ class ShellRunnerUtilTest {
     void runValid() {
         if (SystemUtils.IS_OS_WINDOWS) {
             try {
-                assertEquals(MappingPluginState.SUCCESS, ShellRunnerUtil.run("echo.bat", "test"));
-                assertEquals(MappingPluginState.SUCCESS, ShellRunnerUtil.run(5, "echo.bat", "test"));
-                assertEquals(MappingPluginState.SUCCESS, ShellRunnerUtil.run(System.out, System.err, "echo.bat", "test"));
+                assertEquals(MappingPluginState.SUCCESS(), ShellRunnerUtil.run("echo.bat", "test"));
+                assertEquals(MappingPluginState.SUCCESS(), ShellRunnerUtil.run(5, "echo.bat", "test"));
+                assertEquals(MappingPluginState.SUCCESS(), ShellRunnerUtil.run(System.out, System.err, "echo.bat", "test"));
             } catch (MappingPluginException e) {
                 fail(e);
             }
         } else {
             try {
-                assertEquals(MappingPluginState.SUCCESS, ShellRunnerUtil.run("echo", "test"));
-                assertEquals(MappingPluginState.SUCCESS, ShellRunnerUtil.run(5, "echo", "test"));
-                assertEquals(MappingPluginState.SUCCESS, ShellRunnerUtil.run(System.out, System.err, "echo", "test"));
+                assertEquals(MappingPluginState.SUCCESS(), ShellRunnerUtil.run("echo", "test"));
+                assertEquals(MappingPluginState.SUCCESS(), ShellRunnerUtil.run(5, "echo", "test"));
+                assertEquals(MappingPluginState.SUCCESS(), ShellRunnerUtil.run(System.out, System.err, "echo", "test"));
             } catch (MappingPluginException e) {
                 fail(e);
             }

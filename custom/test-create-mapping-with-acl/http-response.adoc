@@ -1,0 +1,29 @@
+[source,http,options="nowrap"]
+----
+HTTP/1.1 201 Created
+Location: http://localhost:8095/api/v1/mappingAdministration/my_dc
+Content-Type: application/json
+Content-Length: 546
+
+{
+  "mappingId" : "my_dc",
+  "mappingType" : "GEMMA",
+  "title" : "TITEL",
+  "description" : "DESCRIPTION",
+  "acl" : [ {
+    "id" : null,
+    "sid" : "anonymousUser",
+    "permission" : "ADMINISTRATE"
+  }, {
+    "id" : null,
+    "sid" : "SELF",
+    "permission" : "READ"
+  }, {
+    "id" : null,
+    "sid" : "test2",
+    "permission" : "ADMINISTRATE"
+  } ],
+  "mappingDocumentUri" : "http://localhost:8095/api/v1/mappingAdministration/my_dc/document",
+  "documentHash" : "sha256:de0cd19a4ffc603e8940e990cd2dc689e029d308224c71992c4cd099a588aa0b"
+}
+----
