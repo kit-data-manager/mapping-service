@@ -1,4 +1,0 @@
-[source,bash]
-----
-$ http GET 'http://localhost:8095/api/v1/mappingAdministration/invalidMappingId'
-----
