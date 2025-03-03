@@ -19,15 +19,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Invalid json format of data.
+ * Used for errors caused by user input.
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No mapping found for provided mappingId.")
-public class MappingNotFoundException extends RuntimeException {
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class MappingServiceUserException extends RuntimeException {
 
     /**
      * Default constructor.
      */
-    public MappingNotFoundException() {
+    public MappingServiceUserException() {
         super();
     }
 
@@ -35,9 +35,9 @@ public class MappingNotFoundException extends RuntimeException {
      * Constructor with given message and cause.
      *
      * @param message Message.
-     * @param cause Cause.
+     * @param cause   Cause.
      */
-    public MappingNotFoundException(String message, Throwable cause) {
+    public MappingServiceUserException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -46,7 +46,7 @@ public class MappingNotFoundException extends RuntimeException {
      *
      * @param message Message.
      */
-    public MappingNotFoundException(String message) {
+    public MappingServiceUserException(String message) {
         super(message);
     }
 
@@ -55,7 +55,7 @@ public class MappingNotFoundException extends RuntimeException {
      *
      * @param cause Cause.
      */
-    public MappingNotFoundException(Throwable cause) {
+    public MappingServiceUserException(Throwable cause) {
         super(cause);
     }
 }

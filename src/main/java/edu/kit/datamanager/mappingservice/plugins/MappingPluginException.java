@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
+
+import org.springdoc.core.fn.builders.apiresponse.Builder;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Exception thrown by mapping plugins.
@@ -26,7 +30,7 @@ public class MappingPluginException extends Exception {
     /**
      * State of the plugin.
      */
-    private MappingPluginState state;
+    private MappingPluginState mappingPluginState;
 
     /**
      * Default constructor.
@@ -35,7 +39,7 @@ public class MappingPluginException extends Exception {
      */
     public MappingPluginException(MappingPluginState state) {
         super(state.getState().name());
-        this.state = state;
+        this.mappingPluginState = state;
     }
 
     /**
@@ -46,7 +50,7 @@ public class MappingPluginException extends Exception {
      */
     public MappingPluginException(MappingPluginState state, String message) {
         super(message);
-        this.state = state;
+        this.mappingPluginState = state;
     }
 
     /**
@@ -58,7 +62,7 @@ public class MappingPluginException extends Exception {
      */
     public MappingPluginException(MappingPluginState state, String message, Throwable cause) {
         super(message, cause);
-        this.state = state;
+        this.mappingPluginState = state;
     }
 
     /**
@@ -66,8 +70,11 @@ public class MappingPluginException extends Exception {
      *
      * @return The state of the plugin.
      */
-    public MappingPluginState getState() {
-        return state;
+    public MappingPluginState getMappingPluginState() {
+        return mappingPluginState;
+    }
+
+    public void throwMe() throws ResponseStatusException {
+        throw new ResponseStatusException(this.mappingPluginState.getState().getHttpStatus(), "Cause: " + this.mappingPluginState.getDetails());
     }
 }
-

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Assertions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -56,23 +57,25 @@ class PluginLoaderTest {
         System.out.println("Test valid");
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+            plugins = PluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
         } catch (Exception e) {
             fail(e);
         }
-        for (var entry : plugins.entrySet()) {
-            System.out.println(entry.getValue().id());
-        }
+ 
         try {
-            assertEquals("TEST_0.0.0", plugins.get("TEST_0.0.0").id());
-            assertEquals("TEST", plugins.get("TEST_0.0.0").name());
-            assertEquals("Hello world! This is a non functional test plugin.", plugins.get("TEST_0.0.0").description());
-            assertEquals("0.0.0", plugins.get("TEST_0.0.0").version());
-            assertEquals("https://github.com/kit-data-manager/gemma", plugins.get("TEST_0.0.0").uri());
-            assertEquals(MimeTypeUtils.APPLICATION_JSON, plugins.get("TEST_0.0.0").inputTypes()[0]);
-            assertEquals(MimeTypeUtils.APPLICATION_JSON, plugins.get("TEST_0.0.0").outputTypes()[0]);
-            plugins.get("TEST_0.0.0").setup();
-            assertEquals(MappingPluginState.SUCCESS().getState(), plugins.get("TEST_0.0.0").mapFile(new File("schema").toPath(), new File("input").toPath(), new File("output").toPath()).getState());
+            assertEquals("InOutPlugin_1.1.2", plugins.get("InOutPlugin_1.1.2").id());
+            assertEquals("InOutPlugin", plugins.get("InOutPlugin_1.1.2").name());
+            assertEquals("Simple plugin for testing just returning the input file.", plugins.get("InOutPlugin_1.1.2").description());
+            assertEquals("1.1.2", plugins.get("InOutPlugin_1.1.2").version());
+            assertEquals("https://github.com/kit-data-manager/mapping-service", plugins.get("InOutPlugin_1.1.2").uri());
+            assertEquals("application/*", plugins.get("InOutPlugin_1.1.2").inputTypes()[0].toString());
+            assertEquals("application/*", plugins.get("InOutPlugin_1.1.2").outputTypes()[0].toString());
+            plugins.get("InOutPlugin_1.1.2").setup();
+            File inputFile = new File("/tmp/imputFile");
+            if (!inputFile.exists()) {
+                Assertions.assertTrue(inputFile.createNewFile());
+            }
+            assertEquals(MappingPluginState.SUCCESS().getState(), plugins.get("InOutPlugin_1.1.2").mapFile(new File("schema").toPath(), inputFile.toPath(), new File("output").toPath()).getState());
         } catch (Exception e) {
             fail(e);
         }
@@ -82,7 +85,7 @@ class PluginLoaderTest {
     void invalidPath() {
         Map<String, IMappingPlugin> plugins = null;
         try {
-            PluginLoader.loadPlugins(new File("./invalid/test"));
+            PluginLoader.loadPlugins(new File("./invalid/test"), applicationProperties.getPackagesToScan());
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
@@ -102,7 +105,7 @@ class PluginLoaderTest {
     void nullInput() {
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(null);
+            plugins = PluginLoader.loadPlugins(null, null);
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
@@ -113,7 +116,7 @@ class PluginLoaderTest {
     void emptyinput() {
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(new File(""));
+            plugins = PluginLoader.loadPlugins(new File(""), null);
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {

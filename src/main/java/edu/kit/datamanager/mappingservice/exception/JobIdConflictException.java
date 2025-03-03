@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Karlsruhe Institute of Technology.
+ * Copyright 2024 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Invalid json format of data.
+ *
+ * @author jejkal
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No mapping found for provided mappingId.")
-public class MappingNotFoundException extends RuntimeException {
+@ResponseStatus(value = HttpStatus.CONFLICT, reason = "Job Id already in use. Please try again later.")
+public class JobIdConflictException extends RuntimeException {
 
     /**
      * Default constructor.
      */
-    public MappingNotFoundException() {
+    public JobIdConflictException() {
         super();
     }
 
@@ -37,7 +38,7 @@ public class MappingNotFoundException extends RuntimeException {
      * @param message Message.
      * @param cause Cause.
      */
-    public MappingNotFoundException(String message, Throwable cause) {
+    public JobIdConflictException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -46,7 +47,7 @@ public class MappingNotFoundException extends RuntimeException {
      *
      * @param message Message.
      */
-    public MappingNotFoundException(String message) {
+    public JobIdConflictException(String message) {
         super(message);
     }
 
@@ -55,7 +56,7 @@ public class MappingNotFoundException extends RuntimeException {
      *
      * @param cause Cause.
      */
-    public MappingNotFoundException(Throwable cause) {
+    public JobIdConflictException(Throwable cause) {
         super(cause);
     }
 }

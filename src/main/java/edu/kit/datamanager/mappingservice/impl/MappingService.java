@@ -25,6 +25,8 @@ import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingJobException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceUserException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
@@ -87,7 +89,7 @@ public class MappingService {
      */
     private Path jobsOutputDirectory;
 
-    private ApplicationProperties applicationProperties;
+    private final ApplicationProperties applicationProperties;
 
     /**
      * Logger for this class.
@@ -147,7 +149,6 @@ public class MappingService {
         LOGGER.trace("Persisting mapping record.");
         mappingRepo.save(mappingRecord);
         LOGGER.trace("Mapping with id {} successfully updated.", mappingRecord.getMappingId());
-
     }
 
     /**
@@ -164,13 +165,13 @@ public class MappingService {
         }
         LOGGER.trace("Deleting mapping with id {}.", mappingRecord.getMappingId());
         mappingRecord = findMapping.get();
+        mappingRepo.delete(mappingRecord);
+        LOGGER.trace("Mapping with id {} deleted.", mappingRecord.getMappingId());
         try {
             deleteMappingFile(mappingRecord);
         } catch (IOException e) {
-            LOGGER.error("Failed to delete mapping file at " + mappingRecord.getMappingDocumentUri() + ". Please remove it manually.", e);
+            LOGGER.error(String.format("Failed to delete mapping file at %s. Please remove it manually.", mappingRecord.getMappingDocumentUri()), e);
         }
-        mappingRepo.delete(mappingRecord);
-        LOGGER.trace("Mapping with id {} deleted.", mappingRecord.getMappingId());
     }
 
     /**
@@ -194,21 +195,24 @@ public class MappingService {
         LOGGER.trace("Searching for mapping with id {}.", mappingId);
         Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
         if (optionalMappingRecord.isPresent()) {
-            LOGGER.trace("Mapping for id {} found. Creating temporary output file.", mappingId);
+            LOGGER.trace("Mapping for id {} found.", mappingId);
             mappingRecord = optionalMappingRecord.get();
             Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
             // execute mapping
             Path resultFile;
+            LOGGER.trace("Preparing temporary output file.");
             resultFile = FileUtil.createTempFile(mappingId + "_" + srcFile.hashCode(), ".result");
             LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
             MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
             LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
             returnValue = Optional.of(resultFile);
             // remove downloaded file
+            LOGGER.trace("Removing user upload.");
             FileUtil.removeFile(srcFile);
+            LOGGER.trace("User upload successfully removed.");
         } else {
-            LOGGER.error("Unable to find mapping with id {}.", mappingId);
-            throw new MappingNotFoundException("Unable to find mapping with id " + mappingId + ".");
+            LOGGER.error("Unable to find mapping for id {}.", mappingId);
+            throw new MappingNotFoundException(String.format("Unable to find mapping with id %s.", mappingId));
         }
         return returnValue;
     }
@@ -233,45 +237,45 @@ public class MappingService {
 
         if (contentUrl == null || mappingId == null) {
             task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Either contentUrl or mappingId are not provided."));
-        }
-
-        Optional<Path> returnValue;
-        Path srcFile = Paths.get(contentUrl);
-        MappingRecord mappingRecord;
-
-        // Get mapping file
-        LOGGER.trace("Searching for mapping with id {}.", mappingId);
-        Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
-        if (optionalMappingRecord.isPresent()) {
-            LOGGER.trace("Mapping for id {} found. Creating temporary output file.", mappingId);
-            mappingRecord = optionalMappingRecord.get();
-            Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
-            // execute mapping
-            Path resultFile = getOutputFile(jobId).toPath();
-            LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
-            try {
-                MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
-
-                LOGGER.trace("Mapping returned with result {}. Returning result file.", result);
-                returnValue = Optional.of(resultFile);
-                LOGGER.trace("Fixing file extension for output {}", returnValue.get());
-                Path outputPath = FileUtil.fixFileExtension(returnValue.get());
-                LOGGER.trace("Fixed output path: {}", outputPath);
-
-                task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, outputPath.toFile()));
-            } catch (Throwable t) {
-                task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, t.getMessage()));
-            } finally {
-                // remove downloaded file
-                LOGGER.trace("Removing user upload at {}.", srcFile);
-                FileUtil.removeFile(srcFile);
-                LOGGER.trace("User upload successfully removed.");
-
-            }
         } else {
-            LOGGER.error("Unable to find mapping with id {}.", mappingId);
-            task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Unable to find mapping with id " + mappingId + "."));
-            //throw new MappingNotFoundException("Unable to find mapping with id " + mappingId + ".");
+            Optional<Path> returnValue;
+            Path srcFile = Paths.get(contentUrl);
+            MappingRecord mappingRecord;
+
+            // Get mapping file
+            LOGGER.trace("Searching for mapping with id {}.", mappingId);
+            Optional<MappingRecord> optionalMappingRecord = mappingRepo.findByMappingId(mappingId);
+            if (optionalMappingRecord.isPresent()) {
+                LOGGER.trace("Mapping for id {} found. Creating temporary output file.", mappingId);
+                mappingRecord = optionalMappingRecord.get();
+                Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
+                // execute mapping
+                Path resultFile = getOutputFile(jobId).toPath();
+                LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
+                try {
+                    MappingPluginState result = pluginManager.mapFile(mappingRecord.getMappingType(), mappingFile, srcFile, resultFile);
+
+                    LOGGER.trace("Mapping returned with result state {}. Returning result file.", result.getState());
+                    returnValue = Optional.of(resultFile);
+                    LOGGER.trace("Fixing file extension for output {}", returnValue.get());
+                    Path outputPath = FileUtil.fixFileExtension(returnValue.get());
+                    LOGGER.trace("Fixed output path: {}", outputPath);
+
+                    task.complete(JobStatus.complete(jobId, JobStatus.STATUS.SUCCEEDED, outputPath.toFile()));
+                } catch (MappingPluginException t) {
+                    LOGGER.error("Asynchronous job execution failed with error.", t);
+                    task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, t.getMessage()));
+                } finally {
+                    // remove downloaded file
+                    LOGGER.trace("Removing user upload at {}.", srcFile);
+                    FileUtil.removeFile(srcFile);
+                    LOGGER.trace("User upload successfully removed.");
+                }
+            } else {
+                LOGGER.error("Unable to find mapping with id {}.", mappingId);
+                task.complete(JobStatus.error(jobId, JobStatus.STATUS.FAILED, "Unable to find mapping with id " + mappingId + "."));
+                //throw new MappingNotFoundException("Unable to find mapping with id " + mappingId + ".");
+            }
         }
         return task;
     }
@@ -288,7 +292,7 @@ public class MappingService {
     public CompletableFuture<JobStatus> fetchJobElseThrowException(String jobId) throws JobNotFoundException {
         CompletableFuture<JobStatus> job = fetchJob(jobId);
         if (null == job) {
-            LOGGER.error("Job-id {} not found.", jobId);
+            LOGGER.error("Job with id {} not found.", jobId);
             throw new JobNotFoundException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND);
         }
         return job;
@@ -323,15 +327,15 @@ public class MappingService {
             if (ex != null) {
                 errors[0] = ex.getCause();
             } else {
-                StringBuilder outputFileUri = new StringBuilder("/api/v1/mappingExecution/schedule/");
-                outputFileUri.append(jobId).append("/");
-                outputFileUri.append("download");
-                response.setOutputFileURI(outputFileUri.toString());
+                response.setOutputFileURI(String.format("/api/v1/mappingExecution/schedule/%s/download", jobId));
                 simpleResponses[0] = response;
             }
         });
 
         if (errors[0] != null) {
+            if (errors[0] instanceof MappingPluginException mappingPluginException) {
+                mappingPluginException.throwMe();
+            }
             throw errors[0];
         }
 
@@ -354,18 +358,21 @@ public class MappingService {
         CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
 
         if (null == completableFuture) {
+            //return output file in case it still exists (even after the job was removed from the queue)
             File outputFile = getOutputFile(jobId);
             if (outputFile.exists()) {
                 return outputFile;
             }
-
+            //nothing left, return error
             throw new JobNotFoundException(JOB_WITH_SUPPLIED_JOB_ID_NOT_FOUND);
         }
 
         if (!completableFuture.isDone()) {
+            LOGGER.trace("Job {} not finished, yet. Returning RUNNING state.", jobId);
             throw new JobProcessingException("Job is still in progress...", true);
         }
 
+        LOGGER.trace("Obtaining output from job status.");
         Throwable[] errors = new Throwable[1];
         JobStatus[] jobStatus = new JobStatus[1];
         completableFuture.whenComplete((response, ex) -> {
@@ -377,6 +384,9 @@ public class MappingService {
         });
 
         if (errors[0] != null) {
+            if (errors[0] instanceof MappingPluginException mappingPluginException) {
+                mappingPluginException.throwMe();
+            }
             throw errors[0];
         }
 
@@ -397,35 +407,38 @@ public class MappingService {
         CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
 
         if (null == completableFuture) {
+            //delete output file if file still exists (even after the job was removed from the queue)
             File outputFile = getOutputFile(jobId);
             if (outputFile.exists()) {
                 outputFile.delete();
             } else {
-                LOGGER.debug("No output file for job {} found. Returning.", jobId);
+                LOGGER.debug("No output file for job {} found.", jobId);
             }
             return JobStatus.status(jobId, JobStatus.STATUS.DELETED);
         }
 
         if (!completableFuture.isDone()) {
+            LOGGER.trace("Job {} not finished, yet. Returning RUNNING state.", jobId);
             return JobStatus.status(jobId, JobStatus.STATUS.RUNNING);
         }
 
+        LOGGER.trace("Cleaning up all job artifacts");
         completableFuture.whenComplete((response, ex) -> {
             if (ex != null) {
                 LOGGER.error("Job failed with exception.", ex);
             }
-
+            final File jobOutput;
             if (null != response && null != response.getJobOutput()) {
-                if (response.getJobOutput().exists()) {
-                    response.getJobOutput().delete();
-                }
+                jobOutput = response.getJobOutput();
             } else {
-                File outputFile = getOutputFile(jobId);
-                if (outputFile.exists()) {
-                    outputFile.delete();
-                }
+                jobOutput = getOutputFile(jobId);
             }
 
+            if (jobOutput.exists()) {
+                LOGGER.trace(" - Deleting job output");
+                jobOutput.delete();
+            }
+            LOGGER.trace("Removing job from queue.");
             jobManager.removeJob(jobId);
         });
 
@@ -442,12 +455,12 @@ public class MappingService {
     private File getOutputFile(String jobId) {
         Matcher m = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$").matcher(jobId);
         if (!m.matches()) {
-            throw new MappingJobException("Invalid jobId provided.");
+            throw new MappingJobException(String.format("Invalid jobId %s provided.", jobId));
         }
 
-        Path outputPath = jobsOutputDirectory.resolve(jobId + ".out").normalize();
+        Path outputPath = jobsOutputDirectory.resolve(String.format("%s.out", jobId)).normalize();
         if (!outputPath.startsWith(jobsOutputDirectory)) {
-            throw new IllegalArgumentException("Invalid jobId provided.");
+            throw new IllegalArgumentException(String.format("Invalid jobId %s provided.", jobId));
         }
         return outputPath.toFile();
     }
@@ -463,16 +476,15 @@ public class MappingService {
             try {
                 mappingsDirectory = Files.createDirectories(new File(applicationProperties.getMappingsLocation().getPath()).getAbsoluteFile().toPath());
             } catch (IOException e) {
-                throw new MappingException("Could not initialize directory '" + applicationProperties.getMappingsLocation() + "' for mapping.", e);
+                throw new MappingServiceException(String.format("Could not initialize mappings directory '%s' for mapping.", applicationProperties.getMappingsLocation()), e);
             }
             try {
                 jobsOutputDirectory = Files.createDirectories(new File(applicationProperties.getJobOutputLocation().getPath()).getAbsoluteFile().toPath());
             } catch (IOException e) {
-                throw new MappingException("Could not initialize directory '" + applicationProperties.getJobOutputLocation() + "' for job outputs.", e);
+                throw new MappingServiceException(String.format("Could not initialize job output directory '%s'.", applicationProperties.getJobOutputLocation()), e);
             }
-
         } else {
-            throw new MappingException("Could not initialize mapping directory due to missing location!");
+            throw new MappingServiceException("Cannot configure MappingService due to missing application.properties.");
         }
     }
 
@@ -504,14 +516,10 @@ public class MappingService {
             } catch (NoSuchAlgorithmException ex) {
                 String message = "Failed to initialize SHA256 MessageDigest.";
                 LOGGER.error(message, ex);
-                throw new MappingException(message, ex);
-            } catch (IllegalArgumentException iae) {
-                String message = "Error: Unkown mapping! (" + mapping.getMappingType() + ")";
-                LOGGER.error(message, iae);
-                throw new MappingException(message, iae);
+                throw new MappingServiceException(message, ex);
             }
         } else {
-            throw new MappingException("Error saving mapping file! (no content)");
+            throw new MappingServiceUserException("Failed to update mapping file. No content or mapping record provided.");
         }
     }
 

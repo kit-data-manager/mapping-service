@@ -45,7 +45,7 @@ repositories {
 ext {
     set('snippetsDir', file('build/generated-snippets'))
     applicationProperties = System.getProperty('applicationProperties', './src/test/resources/test-config/application-test.properties')
-    pythonExecutable = System.getProperty('pythonExecutable', 'file:///opt/homebrew/bin/python3')
+    pythonExecutable = System.getProperty('pythonExecutable', 'file:///C:/Python310/python.exe')
     userDir = System.getProperty('user.dir')
     set('springBootVersion', "3.2.1")
     set('springDocVersion', "2.8.5")

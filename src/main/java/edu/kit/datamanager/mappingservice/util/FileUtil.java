@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.api.Git;
@@ -41,6 +42,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 
 /**
  * Various utility methods for file handling.
@@ -259,7 +261,7 @@ public class FileUtil {
                 returnValue = ".xml";
             }
         }
-        
+
         if (returnValue == null) {
             // Use tika library to estimate extension
             LOGGER.trace("Use tika library to estimate extension.");
@@ -304,20 +306,26 @@ public class FileUtil {
         File target = new File(targetFolder);
         if (target.exists()) {
             try {
-                Git.open(target).pull().call();
-            } catch (IOException | JGitInternalException | GitAPIException e) {
-                LOGGER.error("Error pulling git repository at '" + target + "'!", e);
-                throw new MappingException("Error pulling git repository at '" + target + "'!", e);
+                try (Git g = Git.open(target)) {
+                    LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
+                    g.getRepository().close();
+                }
+            } catch (IOException e) {
+                String message = String.format("Folder '%s' already exists but contains not Git repository.", target);
+                LOGGER.error(message, e);
+                throw new MappingServiceException("Failed to prepare plugin. Plugin code destination already exists but is empty.");
             }
         } else {
             target.mkdirs();
 
             LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
             try {
-                Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+                try (Git res = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call()) {
+                    res.getRepository().close();
+                }
             } catch (JGitInternalException | GitAPIException e) {
                 LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
-                throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
+                throw new MappingServiceException("Failed to prepare plugin. Plugin code destination not accessible.");
             }
         }
         return target.toPath();

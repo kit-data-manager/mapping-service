@@ -230,7 +230,7 @@ class PluginInformationTest {
             new PluginInformation(null, pluginManager);
             fail("Expected exception");
         } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.NOT_FOUND(), e.getState());
+            assertEquals(MappingPluginState.NOT_FOUND(), e.getMappingPluginState());
         }
     }
 }

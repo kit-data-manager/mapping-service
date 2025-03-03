@@ -16,6 +16,7 @@ package edu.kit.datamanager.mappingservice.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
+import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +57,15 @@ public class PluginLoader {
      * Load plugins from a given directory.
      *
      * @param pluginDir Directory containing plugins.
+     * @param packagesToScan Packages to scan in addition for plugins.
+     *
      * @return Map of plugins.
+     *
      * @throws IOException If there is an error with the file system.
      * @throws MappingPluginException If there is an error with the plugin or
      * the input.
      */
-    public static Map<String, IMappingPlugin> loadPlugins(File pluginDir) throws IOException, MappingPluginException {
+    public static Map<String, IMappingPlugin> loadPlugins(File pluginDir, String[] packagesToScan) throws IOException, MappingPluginException {
         Map<String, IMappingPlugin> result = new HashMap<>();
         File[] pluginJars = new File[0];
         if (pluginDir == null || pluginDir.getAbsolutePath().isBlank()) {
@@ -76,23 +80,22 @@ public class PluginLoader {
             //  }
         }
 
-        if (pluginJars.length > 0) {
+        if (pluginJars != null && pluginJars.length > 0) {
             cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(pluginJars), Thread.currentThread().getContextClassLoader());
         } else {
             cl = Thread.currentThread().getContextClassLoader();
         }
 
-        List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(pluginJars, cl);
+        List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(pluginJars, packagesToScan, cl);
         List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
 
         for (IMappingPlugin i : IMappingPluginList) {
             try {
                 i.setup();
                 result.put(i.id(), i);
-            } catch (RuntimeException re) {
-                LOG.error("Caught RuntimeException while setting up plugin " + i.name() + ", version " + i.version() + ". Plugin will be ignored.", re);
+            } catch (PluginInitializationFailedException re) {
+                LOG.error("Failed to initialize plugin " + i.name() + ", version " + i.version() + ". Plugin will be ignored.", re);
             }
-
         }
 
         return result;
@@ -106,33 +109,39 @@ public class PluginLoader {
         return urls;
     }
 
-    private static List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, ClassLoader cl) throws IOException, MappingPluginException {
+    private static List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, String[] packagesToScan, ClassLoader cl) throws IOException, MappingPluginException {
         LOG.trace("Extracting classes from plugin JARs.");
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
-        for (File jar : jars) {
-            LOG.trace("Processing file {}.", jar.getAbsolutePath());
-            classes.addAll(PluginLoader.extractClassesFromJAR(jar, cl));
-        }
-
-        LOG.trace("Found {} plugin classes in jar files.", classes.size());
-
-        LOG.trace("Extracting classes from classpath.");
-        ImmutableSet<ClassPath.ClassInfo> clazzes = ClassPath.from(cl).getTopLevelClasses("edu.kit.datamanager.mappingservice.plugins.impl");
-        int pluginCnt = 0;
-        for (ClassPath.ClassInfo clazz : clazzes) {
-            try {
-                LOG.trace("Processing class {}.", clazz.getName());
-                Class<?> pl = (Class<IMappingPlugin>) clazz.load();
-
-                if (isPluggableClass(pl)) {
-                    classes.add((Class<IMappingPlugin>) pl);
-                    pluginCnt++;
-                }
-            } catch (ClassCastException ex) {
-                //failed to load, probably no implementation of IMappingPlugin
+        if (jars != null) {
+            for (File jar : jars) {
+                LOG.trace("Processing file {}.", jar.getAbsolutePath());
+                classes.addAll(PluginLoader.extractClassesFromJAR(jar, cl));
             }
         }
-        LOG.trace("Found {} plugin classes in classpath.", pluginCnt);
+        LOG.trace("Found {} plugin classes in jar files.", classes.size());
+
+        if (packagesToScan != null) {
+            LOG.trace("Extracting classes from classpath.");
+            int pluginCnt = 0;
+            for (String pkg : packagesToScan) {
+                LOG.trace(" - Scanning package {}", pkg);
+                ImmutableSet<ClassPath.ClassInfo> clazzes = ClassPath.from(cl).getTopLevelClasses(pkg);
+                for (ClassPath.ClassInfo clazz : clazzes) {
+                    try {
+                        LOG.trace("   - Processing class {}.", clazz.getName());
+                        Class<?> pl = clazz.load();
+
+                        if (isPluggableClass(pl)) {
+                            classes.add((Class<IMappingPlugin>) pl);
+                            pluginCnt++;
+                        }
+                    } catch (ClassCastException ex) {
+                        //failed to load, probably no implementation of IMappingPlugin
+                    }
+                }
+            }
+            LOG.trace("Found {} plugin classes in classpath.", pluginCnt);
+        }
 
         return classes;
     }

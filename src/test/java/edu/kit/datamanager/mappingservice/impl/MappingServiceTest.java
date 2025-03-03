@@ -21,6 +21,7 @@ import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -128,8 +129,8 @@ public class MappingServiceTest {
     public void testConstructorFailing() throws IOException, URISyntaxException {
         try {
             new MappingService(null);
-            fail();
-        } catch (MappingException ie) {
+            fail("Expected MappingServiceException");
+        } catch (MappingServiceException ie) {
             assertTrue(true);
         }
         //seems to be no problem under Windows and if run as root this is also no issue, so let's skip this test for the moment.

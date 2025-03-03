@@ -65,7 +65,7 @@ public class GemmaPlugin implements IMappingPlugin {
     public void setup() {
         LOGGER.info("Checking and installing dependencies for Gemma: gemma, xmltodict, wget");
         try {
-            PythonRunnerUtil.runPythonScript("-m", "pip", "install", "xmltodict", "wget");
+            //PythonRunnerUtil.runPythonScript("-m", "pip", "install", "xmltodict", "wget");
             PythonRunnerUtil.runPythonScript("-m", new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), "pip", "install", "xmltodict", "wget");
             gemmaDir = FileUtil.cloneGitRepository(GEMMA_REPOSITORY, GEMMA_BRANCH);
             initialized = true;
@@ -81,7 +81,9 @@ public class GemmaPlugin implements IMappingPlugin {
             return PythonRunnerUtil.runPythonScript(gemmaDir + "/mapping_single.py", mappingFile.toString(), inputFile.toString(), outputFile.toString());
         } else {
             LOGGER.error("Plugin '" + name() + "' " + version() + " not initialized. Returning EXECUTION_ERROR.");
-            return MappingPluginState.EXECUTION_ERROR();
+            MappingPluginState result = MappingPluginState.EXECUTION_ERROR();
+            result.setDetails("Plugin not initialized, probably due to missing dependencies or external plugin repository.");
+            return result;
         }
     }
 }

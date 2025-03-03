@@ -33,11 +33,11 @@ import java.util.Collections;
  */
 @Component
 public class PythonRunnerUtil {
-
+    
     private static ApplicationProperties configuration;
-
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
-
+    
     @Autowired
     public PythonRunnerUtil(ApplicationProperties configuration) {
         PythonRunnerUtil.configuration = configuration;
@@ -48,10 +48,9 @@ public class PythonRunnerUtil {
      */
     public static void printPythonVersion() {
         try {
-            LOGGER.info("Configured Python version:");
-            PythonRunnerUtil.runPythonScript("--version", new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.INFO));
+            PythonRunnerUtil.runPythonScript("--version", System.out, System.err);
         } catch (MappingPluginException e) {
-            e.printStackTrace();
+            LOGGER.error("Failed to obtain python version.", e);
         }
     }
 

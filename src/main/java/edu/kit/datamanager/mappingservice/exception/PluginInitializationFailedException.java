@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Karlsruhe Institute of Technology.
+ * Copyright 2025 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,16 @@
  */
 package edu.kit.datamanager.mappingservice.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 /**
- * Invalid json format of data.
+ *
+ * @author jejkal
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No mapping found for provided mappingId.")
-public class MappingNotFoundException extends RuntimeException {
+public class PluginInitializationFailedException extends RuntimeException {
 
     /**
      * Default constructor.
      */
-    public MappingNotFoundException() {
+    public PluginInitializationFailedException() {
         super();
     }
 
@@ -37,7 +34,7 @@ public class MappingNotFoundException extends RuntimeException {
      * @param message Message.
      * @param cause Cause.
      */
-    public MappingNotFoundException(String message, Throwable cause) {
+    public PluginInitializationFailedException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -46,7 +43,7 @@ public class MappingNotFoundException extends RuntimeException {
      *
      * @param message Message.
      */
-    public MappingNotFoundException(String message) {
+    public PluginInitializationFailedException(String message) {
         super(message);
     }
 
@@ -55,7 +52,7 @@ public class MappingNotFoundException extends RuntimeException {
      *
      * @param cause Cause.
      */
-    public MappingNotFoundException(Throwable cause) {
+    public PluginInitializationFailedException(Throwable cause) {
         super(cause);
     }
 }

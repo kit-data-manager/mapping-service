@@ -61,7 +61,7 @@ public class MappingExecutionControllerTest {
     private final static String TEMP_DIR_4_ALL = "/tmp/mapping-service/";
     private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
     private static final String MAPPING_ID = "my_dc";
-    private static final String MAPPING_TYPE = "TEST_0.0.0";
+    private static final String MAPPING_TYPE = "InOutPlugin_1.1.2";
     private static final String MAPPING_URL = "/api/v1/mappingExecution/" + MAPPING_ID;
     private static final String MAPPING_TITLE = "TITEL";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
@@ -155,7 +155,7 @@ public class MappingExecutionControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.multipart(MAPPING_URL).file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isOk()).
-                andExpect(header().string("content-disposition", "attachment;filename=result.txt")).andReturn();
+                andExpect(header().string("content-disposition", "attachment;filename=result.json")).andReturn();
     }
 
     @Test

@@ -73,13 +73,15 @@ public class InOutPlugin implements IMappingPlugin {
 
     @Override
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
+        MappingPluginState result = MappingPluginState.SUCCESS();
         try {
             Files.copy(inputFile, outputFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException | MappingException ex) {
             LOG.error("Failed to execute plugin.", ex);
-            return MappingPluginState.EXECUTION_ERROR();
+            result = MappingPluginState.EXECUTION_ERROR();
+            result.setDetails("Failed to copy input to output, probably due to an I/O error.");
         }
-        return MappingPluginState.SUCCESS();
+        return result;
     }
 
 }

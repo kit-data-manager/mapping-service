@@ -19,9 +19,16 @@ package edu.kit.datamanager.mappingservice.exception;
  * @author jejkal
  */
 public class BadExitCodeException extends Exception {
-    
-   
+
+    private int exitCode = 0;
+
     public BadExitCodeException(int exitCode) {
-        super(Integer.toString(exitCode));
+        super("Process exited with code " + exitCode);
+        this.exitCode = exitCode;
     }
+
+    public int getExitCode() {
+        return exitCode;
+    }
+
 }

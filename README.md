@@ -35,7 +35,7 @@ used at compile time externally, i.e.:
 
 ## How to start
 
-Before you can start the mapping-service, you  first have to create an `application.properties` file in the source folder. As an example you may use `config/application.default.properties`
+Before you can start the mapping-service, you  first have to create an `application.properties` file in the source folder. As an example you may use `settings/application.default.properties`
 and modify it according to your needs. Espacially the following properties (at the end of the file) are important:
 - `spring.datasource.url=jdbc:h2:file:/tmp/mapping-service/database`
 The path points to the location of the database in which your configured mappings are stored.

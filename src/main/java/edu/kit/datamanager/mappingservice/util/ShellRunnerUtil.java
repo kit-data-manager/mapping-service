@@ -110,7 +110,6 @@ public class ShellRunnerUtil {
         }
 
         ExecutorService pool = Executors.newSingleThreadExecutor();
-        int result;
         MappingPluginState returnValue = MappingPluginState.SUCCESS();
 
         try {
@@ -150,12 +149,13 @@ public class ShellRunnerUtil {
             returnValue = MappingPluginState.UNKNOWN_ERROR();
         } catch (BadExitCodeException e) {
             LOGGER.error("Failed to execute command due to an unexpected exception.", e);
-            returnValue = MappingPluginState.UNKNOWN_ERROR();
+            returnValue = MappingPluginState.BAD_EXIT_CODE();
+            returnValue.setDetails(e.getExitCode());
         } finally {
             pool.shutdown();
         }
-        
-        if (returnValue != MappingPluginState.SUCCESS()) {
+
+        if (returnValue.getState() != MappingPluginState.SUCCESS().getState()) {
             throw new MappingPluginException(returnValue);
         }
         return returnValue;

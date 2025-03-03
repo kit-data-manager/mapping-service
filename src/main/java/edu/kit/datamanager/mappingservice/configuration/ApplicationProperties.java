@@ -59,11 +59,19 @@ public class ApplicationProperties {
     @LocalFolderURL
     @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
-    
+
     /**
      * The absolute path where job data is stored.
      */
     @LocalFolderURL
     @Value("${mapping-service.jobOutput}")
     private URL jobOutputLocation;
+
+    
+     /**
+     * One or more packages to scan for plugin classes.
+     */
+    @Value("${mapping-service.packagesToScan:edu.kit.datamanager.mappingservice.plugins.impl}")
+    private String[] packagesToScan;
+
 }
