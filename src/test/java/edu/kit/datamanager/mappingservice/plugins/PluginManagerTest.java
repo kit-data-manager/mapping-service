@@ -73,7 +73,7 @@ class PluginManagerTest {
         try {
             pluginManager.mapFile(null, null, null, null);
         } catch (MappingServiceException e) {
-            assertEquals("Plugin ID is null.", e.getMessage());
+            assertEquals("PluginId is null.", e.getMessage());
         } catch (MappingPluginException ex) {
             fail("Expected MappingServiceException");
         }
@@ -81,7 +81,7 @@ class PluginManagerTest {
         try {
             pluginManager.mapFile("test", null, null, null);
         } catch (MappingServiceException e) {
-            assertEquals("Path to mapping schema is null.", e.getMessage());
+            assertEquals("Path to mapping file is null.", e.getMessage());
         } catch (MappingPluginException ex) {
             fail("Expected MappingServiceException");
         }

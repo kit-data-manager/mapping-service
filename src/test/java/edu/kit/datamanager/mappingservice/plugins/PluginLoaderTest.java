@@ -16,7 +16,6 @@ package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.MimeTypeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +37,14 @@ class PluginLoaderTest {
 
     @Autowired
     private PluginManager pluginManager;
+    
+    @Autowired
+    private PluginLoader pluginLoader;
 
     @Autowired
     private ApplicationProperties applicationProperties;
 
+    
     @BeforeEach
     void setUp() throws Exception {
         try {
@@ -57,7 +60,7 @@ class PluginLoaderTest {
         System.out.println("Test valid");
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
+            plugins = pluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
         } catch (Exception e) {
             fail(e);
         }
@@ -85,7 +88,7 @@ class PluginLoaderTest {
     void invalidPath() {
         Map<String, IMappingPlugin> plugins = null;
         try {
-            PluginLoader.loadPlugins(new File("./invalid/test"), applicationProperties.getPackagesToScan());
+            pluginLoader.loadPlugins(new File("./invalid/test"), applicationProperties.getPackagesToScan());
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
@@ -105,7 +108,7 @@ class PluginLoaderTest {
     void nullInput() {
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(null, null);
+            plugins = pluginLoader.loadPlugins(null, null);
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
@@ -116,7 +119,7 @@ class PluginLoaderTest {
     void emptyinput() {
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(new File(""), null);
+            plugins = pluginLoader.loadPlugins(new File(""), null);
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {

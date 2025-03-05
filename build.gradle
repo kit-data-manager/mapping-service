@@ -142,20 +142,10 @@ asciidoctor {
     dependsOn test
 }
 
-/*jar {
-    manifest {
-        attributes 'Main-Class': 'edu.kit.datamanager.mapping-service.MappingServiceApplication'
-    }
-    archiveBaseName = 'mapping-service'
-    // version is defined in file 'gradle.properties'
-    archiveVersion = System.getenv('version')
-    // disable plain jar file
-    enabled = false
-}*/
-
 bootJar {
     dependsOn asciidoctor
-    println 'Create bootable jar...'
+    dependsOn 'buildPluginJar'
+
      from ("${asciidoctor.outputDir}/html5") {
         into 'static/docs'
     }
@@ -164,8 +154,11 @@ bootJar {
     manifest {
         attributes 'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
     }
-   // exclude '**/plugins/impl/**'
+    exclude '**/plugins/impl/**'
 
+    from('build/libs/default-plugins-1.1.2-SNAPSHOT.jar') {
+        into('BOOT-INF/lib/plugins' )
+     }
     launchScript()
 }
 

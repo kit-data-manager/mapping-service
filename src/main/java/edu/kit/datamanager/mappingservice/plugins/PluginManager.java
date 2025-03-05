@@ -48,6 +48,8 @@ public class PluginManager {
      */
     private final ApplicationProperties applicationProperties;
 
+    private final PluginLoader pluginLoader;
+
     /**
      * Map of plugins.
      */
@@ -60,8 +62,9 @@ public class PluginManager {
      * instantiation time.
      */
     @Autowired
-    public PluginManager(ApplicationProperties applicationProperties) {
+    public PluginManager(ApplicationProperties applicationProperties, PluginLoader pluginLoader) {
         this.applicationProperties = applicationProperties;
+        this.pluginLoader = pluginLoader;
         reloadPlugins();
     }
 
@@ -69,7 +72,7 @@ public class PluginManager {
      * Unload all plugins and reload them from the configured plugin folder.
      */
     public final void unload() {
-        PluginLoader.unload();
+        pluginLoader.unload();
         plugins.clear();
     }
 
@@ -79,7 +82,7 @@ public class PluginManager {
     public final void reloadPlugins() {
         unload();
         try {
-            plugins = PluginLoader.loadPlugins(Paths.get(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
+            plugins = pluginLoader.loadPlugins(Paths.get(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
         } catch (URISyntaxException ex) {
             LOG.error("Mapping plugin location " + applicationProperties.getPluginLocation() + " cannot be converted to URI", ex);
         } catch (IOException ioe) {

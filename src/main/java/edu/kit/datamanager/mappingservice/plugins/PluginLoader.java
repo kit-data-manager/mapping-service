@@ -16,6 +16,7 @@ package edu.kit.datamanager.mappingservice.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +34,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ClassUtils;
 
 /**
  * Class for loading plugins.
  *
  * @author maximilianiKIT
  */
+@Component
 public class PluginLoader {
 
     /**
@@ -46,9 +58,19 @@ public class PluginLoader {
      */
     static Logger LOG = LoggerFactory.getLogger(PluginLoader.class);
 
-    static ClassLoader cl = null;
+    private ClassLoader cl = null;
 
-    public static void unload() {
+    private ApplicationProperties applicationProperties;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    public PluginLoader(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
+
+    public void unload() {
         cl = null;
         System.gc();
     }
@@ -65,7 +87,7 @@ public class PluginLoader {
      * @throws MappingPluginException If there is an error with the plugin or
      * the input.
      */
-    public static Map<String, IMappingPlugin> loadPlugins(File pluginDir, String[] packagesToScan) throws IOException, MappingPluginException {
+    public Map<String, IMappingPlugin> loadPlugins(File pluginDir, String[] packagesToScan) throws IOException, MappingPluginException {
         Map<String, IMappingPlugin> result = new HashMap<>();
         File[] pluginJars = new File[0];
         if (pluginDir == null || pluginDir.getAbsolutePath().isBlank()) {
@@ -81,13 +103,13 @@ public class PluginLoader {
         }
 
         if (pluginJars != null && pluginJars.length > 0) {
-            cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(pluginJars), Thread.currentThread().getContextClassLoader());
+            cl = new URLClassLoader(fileArrayToURLArray(pluginJars), Thread.currentThread().getContextClassLoader());
         } else {
             cl = Thread.currentThread().getContextClassLoader();
         }
 
-        List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(pluginJars, packagesToScan, cl);
-        List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
+        List<Class<IMappingPlugin>> plugClasses = extractClassesFromJARs(pluginJars, packagesToScan, cl);
+        List<IMappingPlugin> IMappingPluginList = createPluggableObjects(plugClasses);
 
         for (IMappingPlugin i : IMappingPluginList) {
             try {
@@ -101,7 +123,7 @@ public class PluginLoader {
         return result;
     }
 
-    private static URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
+    private URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
         URL[] urls = new URL[files.length];
         for (int i = 0; i < files.length; i++) {
             urls[i] = files[i].toURI().toURL();
@@ -109,13 +131,13 @@ public class PluginLoader {
         return urls;
     }
 
-    private static List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, String[] packagesToScan, ClassLoader cl) throws IOException, MappingPluginException {
+    private List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, String[] packagesToScan, ClassLoader cl) throws IOException, MappingPluginException {
         LOG.trace("Extracting classes from plugin JARs.");
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
         if (jars != null) {
             for (File jar : jars) {
                 LOG.trace("Processing file {}.", jar.getAbsolutePath());
-                classes.addAll(PluginLoader.extractClassesFromJAR(jar, cl));
+                classes.addAll(extractClassesFromJAR(jar, cl));
             }
         }
         LOG.trace("Found {} plugin classes in jar files.", classes.size());
@@ -123,9 +145,20 @@ public class PluginLoader {
         if (packagesToScan != null) {
             LOG.trace("Extracting classes from classpath.");
             int pluginCnt = 0;
+
+            findAllClasses("edu.kit.datamanager.mappingservice", cl);
+
             for (String pkg : packagesToScan) {
                 LOG.trace(" - Scanning package {}", pkg);
-                ImmutableSet<ClassPath.ClassInfo> clazzes = ClassPath.from(cl).getTopLevelClasses(pkg);
+
+                List<Class<?>> result = findAllClasses(pkg, cl);
+
+                for (Class<?> res : result) {
+                    classes.add((Class<IMappingPlugin>) res);
+                    pluginCnt++;
+                }
+
+                /*ImmutableSet<ClassPath.ClassInfo> clazzes = ClassPath.from(cl).getTopLevelClassesRecursive(pkg);
                 for (ClassPath.ClassInfo clazz : clazzes) {
                     try {
                         LOG.trace("   - Processing class {}.", clazz.getName());
@@ -138,7 +171,7 @@ public class PluginLoader {
                     } catch (ClassCastException ex) {
                         //failed to load, probably no implementation of IMappingPlugin
                     }
-                }
+                }*/
             }
             LOG.trace("Found {} plugin classes in classpath.", pluginCnt);
         }
@@ -146,7 +179,7 @@ public class PluginLoader {
         return classes;
     }
 
-    private static List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
+    private List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
         LOG.trace("Extracting plugin classes from file {}.", jar.getAbsolutePath());
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
         try (JarInputStream jaris = new JarInputStream(new FileInputStream(jar))) {
@@ -156,7 +189,7 @@ public class PluginLoader {
                     try {
                         Class<?> cls = cl.loadClass(ent.getName().substring(0, ent.getName().length() - 6).replace('/', '.'));
                         LOG.trace("Checking {}.", cls);
-                        if (PluginLoader.isPluggableClass(cls)) {
+                        if (isPluggableClass(cls)) {
                             LOG.trace("Plugin class found.");
                             classes.add((Class<IMappingPlugin>) cls);
                         }
@@ -170,22 +203,12 @@ public class PluginLoader {
         return classes;
     }
 
-    private static boolean isPluggableClass(Class<?> cls) {
-        /*for (Class<?> i : cls.getInterfaces()) {
-            LOG.trace("Checking {} against {}.", i, IMappingPlugin.class);
-            LOG.trace("ASSIGN {}", IMappingPlugin.class.isAssignableFrom(cls));
-            if (i.equals(IMappingPlugin.class)) {
-                LOG.trace("IMappingPlugin interface found.");
-                return true;
-            }
-        }
-        return false;*/
-
+    private boolean isPluggableClass(Class<?> cls) {
         //this should be much easier and faster
-        return IMappingPlugin.class.isAssignableFrom(cls);
+        return IMappingPlugin.class.isAssignableFrom(cls) && !cls.isInterface();
     }
 
-    private static List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggable) throws MappingPluginException {
+    private List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggable) throws MappingPluginException {
         LOG.trace("Instantiating plugins from list: {}", pluggable);
         List<IMappingPlugin> plugs = new ArrayList<>(pluggable.size());
         for (Class<IMappingPlugin> plug : pluggable) {
@@ -201,5 +224,49 @@ public class PluginLoader {
             }
         }
         return plugs;
+    }
+
+    protected List<Class<?>> findAllClasses(String packageName, ClassLoader loader) {
+        List<Class<?>> result = new ArrayList<>();
+        MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(
+                loader);
+        try {
+            Resource[] resources = scan(loader, packageName);
+            for (Resource resource : resources) {
+                Class<?> clazz = loadClass(loader, metadataReaderFactory, resource);
+                if (clazz != null && isPluggableClass(clazz)) {
+                    //System.out.println("CLASS " + clazz);
+                    result.add(clazz);
+                }
+            }
+        } catch (IOException ex) {
+            //throw new IllegalStateException(ex);
+            return result;
+        }
+        return result;
+    }
+
+    private Resource[] scan(ClassLoader loader, String packageName) throws IOException {
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
+                loader);
+        String pattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX
+                + ClassUtils.convertClassNameToResourcePath(packageName) + "/**/*.class";
+        Resource[] resources = resolver.getResources(pattern);
+        return resources;
+    }
+
+    private Class<?> loadClass(ClassLoader loader, MetadataReaderFactory readerFactory,
+            Resource resource) {
+        try {
+            MetadataReader reader = readerFactory.getMetadataReader(resource);
+            return ClassUtils.forName(reader.getClassMetadata().getClassName(), loader);
+        } catch (ClassNotFoundException ex) {
+            return null;
+        } catch (LinkageError ex) {
+            return null;
+        } catch (Throwable ex) {
+
+            return null;
+        }
     }
 }

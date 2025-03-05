@@ -1,8 +1,12 @@
 package edu.kit.datamanager.mappingservice;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.ClassPath;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.plugins.PluginLoader;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -29,11 +33,16 @@ public class MappingServiceApplication {
     }
 
     @Bean
-    public PluginManager pluginManager() {
-        return new PluginManager(applicationProperties());
+    public PluginLoader pluginLoader() {
+        return new PluginLoader(applicationProperties());
     }
 
-    public static void main(String[] args) {
+    @Bean
+    public PluginManager pluginManager() {
+        return new PluginManager(applicationProperties(), pluginLoader());
+    }
+
+    public static void main(String[] args) throws IOException {
         ConfigurableApplicationContext ctx = SpringApplication.run(MappingServiceApplication.class, args);
 
         PluginManager mgr = ctx.getBean(PluginManager.class);
