@@ -33,13 +33,13 @@ import java.util.Collections;
  */
 @Component
 public class PythonRunnerUtil {
-    
+
     private static ApplicationProperties configuration;
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
+
     
-    @Autowired
-    public PythonRunnerUtil(ApplicationProperties configuration) {
+    public void init(ApplicationProperties configuration) {
         PythonRunnerUtil.configuration = configuration;
     }
 
@@ -96,9 +96,12 @@ public class PythonRunnerUtil {
             return MappingPluginState.UNKNOWN_ERROR();
         }
         ArrayList<String> command = new ArrayList<>();
+        System.out.println("SET TPPY " + configuration.getPythonExecutable());
         command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
-        Collections.addAll(command, args);
+        if (args != null) {
+            Collections.addAll(command, args);
+        }
         return ShellRunnerUtil.run(output, error, command.toArray(String[]::new));
     }
 }
