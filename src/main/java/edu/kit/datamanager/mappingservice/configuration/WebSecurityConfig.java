@@ -18,6 +18,7 @@ package edu.kit.datamanager.mappingservice.configuration;
 import edu.kit.datamanager.security.filter.KeycloakTokenFilter;
 import edu.kit.datamanager.security.filter.NoAuthenticationFilter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +53,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class WebSecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
-    
+
     @Autowired
     private Optional<KeycloakTokenFilter> keycloaktokenFilterBean;
-    
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
     private static final String[] AUTH_WHITELIST_SWAGGER_UI = {
         // -- Swagger UI v2
         "/v2/api-docs",
@@ -68,11 +71,26 @@ public class WebSecurityConfig {
         // -- Swagger UI v3 (OpenAPI)
         "/v3/api-docs/**",
         "/swagger-ui/**"
-            // other public endpoints of your API may be appended to this array
+    // other public endpoints of your API may be appended to this array
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        List<AntPathRequestMatcher> securedEndpointMatchers;
+
+        if (applicationProperties.isAuthEnabled()) {
+            logger.trace("Authentication is ENABLED. Collecting secured endpoints.");
+            securedEndpointMatchers = Arrays.asList(
+                    new AntPathRequestMatcher("/api/v1/mappingAdministration/reloadTypes", "GET"),
+                    new AntPathRequestMatcher("/api/v1/mappingAdministration", "PUT"),
+                    new AntPathRequestMatcher("/api/v1/mappingAdministration", "POST")
+            );
+        } else {
+            logger.trace("Authentication is DISABLED. Not securing endpoints.");
+            securedEndpointMatchers = Arrays.asList();
+        }
+
         HttpSecurity httpSecurity = http.authorizeHttpRequests(
                 authorize -> authorize.
                         requestMatchers(HttpMethod.OPTIONS).permitAll().
@@ -80,11 +98,10 @@ public class WebSecurityConfig {
                                 InfoEndpoint.class,
                                 HealthEndpoint.class
                         )).permitAll().
-                        requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMIN", "ACTUATOR", "SERVICE_WRITE").
-                        //  requestMatchers(new AntPathRequestMatcher("/oaipmh")).permitAll().
+                        requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMINISTRATOR", "ACTUATOR", "SERVICE_WRITE").
                         requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll().
                         requestMatchers(new AntPathRequestMatcher("/error")).permitAll().
-                        //requestMatchers(new AntPathRequestMatcher("/api/v1/")).permitAll().
+                        requestMatchers(securedEndpointMatchers.toArray(AntPathRequestMatcher[]::new)).hasRole(applicationProperties.getMappingAdminRole()). //endpoint filters only active if auth is enabled
                         requestMatchers(AUTH_WHITELIST_SWAGGER_UI).permitAll().
                         anyRequest().authenticated()
         ).
@@ -95,10 +112,22 @@ public class WebSecurityConfig {
         logger.info("CSRF disabled!");
         httpSecurity = httpSecurity.csrf(csrf -> csrf.disable());
 
-        logger.info("Authentication is DISABLED. Adding 'NoAuthenticationFilter' to authentication chain.");
-        AuthenticationManager defaultAuthenticationManager = http.getSharedObject(AuthenticationManager.class);
-        httpSecurity = httpSecurity.addFilterAfter(new NoAuthenticationFilter("vkfvoswsohwrxgjaxipuiyyjgubggzdaqrcuupbugxtnalhiegkppdgjgwxsmvdb", defaultAuthenticationManager), BasicAuthenticationFilter.class);
-    
+        if (keycloaktokenFilterBean.isPresent()) {
+            logger.trace("Adding Keycloak filter to filter chain.");
+            httpSecurity.addFilterAfter(keycloaktokenFilterBean.get(), BasicAuthenticationFilter.class);
+        } else {
+            logger.trace("Keycloak not configured. Skip adding keycloak filter to filter chain.");
+        }
+
+        if (!applicationProperties.isAuthEnabled()) {
+            logger.info("Adding 'NoAuthenticationFilter' to filter chain.");
+            AuthenticationManager defaultAuthenticationManager = http.getSharedObject(AuthenticationManager.class);
+            httpSecurity = httpSecurity.addFilterAfter(new NoAuthenticationFilter("vkfvoswsohwrxgjaxipuiyyjgubggzdaqrcuupbugxtnalhiegkppdgjgwxsmvdb", defaultAuthenticationManager), BasicAuthenticationFilter.class);
+        } else {
+            logger.info("Skip adding NoAuthenticationFilter to filter chain.");
+        }
+
+        logger.trace("Turning off cache control.");
         httpSecurity.headers(headers -> headers.cacheControl(cache -> cache.disable()));
 
         return httpSecurity.build();
@@ -116,30 +145,14 @@ public class WebSecurityConfig {
         return firewall;
     }
 
-    /* @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilter() {
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.addExposedHeader("Content-Range");
-        config.addExposedHeader("ETag");
-
-        source.registerCorsConfiguration("/**", config);
-        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-        bean.setOrder(0);
-        return bean;
-    }*/
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+        config.addAllowedOriginPattern(applicationProperties.getAllowedOriginPattern());
+        config.setAllowedHeaders(Arrays.asList(applicationProperties.getAllowedHeaders()));
+        config.setAllowedMethods(Arrays.asList(applicationProperties.getAllowedMethods()));
+        config.setExposedHeaders(Arrays.asList(applicationProperties.getExposedHeaders()));
 
-        config.addAllowedOriginPattern("*");
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("*"));
-        config.setExposedHeaders(Arrays.asList("*"));
- 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration("/**", config);

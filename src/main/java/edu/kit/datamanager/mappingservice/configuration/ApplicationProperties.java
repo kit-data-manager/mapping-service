@@ -67,11 +67,32 @@ public class ApplicationProperties {
     @Value("${mapping-service.jobOutput}")
     private URL jobOutputLocation;
 
-    
-     /**
+    /**
      * One or more packages to scan for plugin classes.
      */
     @Value("${mapping-service.packagesToScan:edu.kit.datamanager.mappingservice.plugins.impl}")
     private String[] packagesToScan;
+
+    @Value("${mapping-service.executionTimeout:30}")
+    private int executionTimeout;
+
+    /**
+     * Auth and permission properties
+     */
+    @Value("${mapping-service.authEnabled:FALSE}")
+    private boolean authEnabled;
+    @Value("${mapping-service.mappingAdminRole:MAPPING_ADMIN}")
+    private String mappingAdminRole;
+     /**
+     * CORS and CSRF properties
+     */
+    @Value("${repo.security.allowedOriginPattern:*}")
+    private String allowedOriginPattern;
+    @Value("${repo.security.allowedMethods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")
+    private String[] allowedMethods;
+    @Value("${repo.security.exposedHeaders:Content-Range,ETag,Link}")
+    private String[] exposedHeaders;
+    @Value("${repo.security.allowedHeaders:*}")
+    private String[] allowedHeaders;
 
 }

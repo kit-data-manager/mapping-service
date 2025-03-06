@@ -14,8 +14,6 @@
  */
 package edu.kit.datamanager.mappingservice.plugins;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.ClassPath;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import org.slf4j.Logger;
@@ -94,12 +92,6 @@ public class PluginLoader {
             LOG.warn("Plugin folder {} is not defined. MappingService will only use plugins in classpath.", pluginDir);
         } else {
             pluginJars = pluginDir.listFiles(new JARFileFilter());
-
-            //removed check as plugins are now also accepted from classpath
-            /*if (plugJars == null || plugJars.length < 1) {
-                LOG.warn("Plugin folder " + plugDir + " is empty. Unable to load plugins.");
-            } else {*/
-            //  }
         }
 
         if (pluginJars != null && pluginJars.length > 0) {
@@ -157,21 +149,6 @@ public class PluginLoader {
                     classes.add((Class<IMappingPlugin>) res);
                     pluginCnt++;
                 }
-
-                /*ImmutableSet<ClassPath.ClassInfo> clazzes = ClassPath.from(cl).getTopLevelClassesRecursive(pkg);
-                for (ClassPath.ClassInfo clazz : clazzes) {
-                    try {
-                        LOG.trace("   - Processing class {}.", clazz.getName());
-                        Class<?> pl = clazz.load();
-
-                        if (isPluggableClass(pl)) {
-                            classes.add((Class<IMappingPlugin>) pl);
-                            pluginCnt++;
-                        }
-                    } catch (ClassCastException ex) {
-                        //failed to load, probably no implementation of IMappingPlugin
-                    }
-                }*/
             }
             LOG.trace("Found {} plugin classes in classpath.", pluginCnt);
         }
@@ -235,7 +212,6 @@ public class PluginLoader {
             for (Resource resource : resources) {
                 Class<?> clazz = loadClass(loader, metadataReaderFactory, resource);
                 if (clazz != null && isPluggableClass(clazz)) {
-                    //System.out.println("CLASS " + clazz);
                     result.add(clazz);
                 }
             }

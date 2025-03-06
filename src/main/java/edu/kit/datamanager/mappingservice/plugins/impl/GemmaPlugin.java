@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
+import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import edu.kit.datamanager.mappingservice.plugins.*;
 import edu.kit.datamanager.mappingservice.util.*;
 import org.slf4j.Logger;
@@ -65,19 +66,19 @@ public class GemmaPlugin implements IMappingPlugin {
     public void setup() {
         LOGGER.info("Checking and installing dependencies for Gemma: gemma, xmltodict, wget");
         try {
-            //PythonRunnerUtil.runPythonScript("-m", "pip", "install", "xmltodict", "wget");
             PythonRunnerUtil.runPythonScript("-m", new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), "pip", "install", "xmltodict", "wget");
             gemmaDir = FileUtil.cloneGitRepository(GEMMA_REPOSITORY, GEMMA_BRANCH);
             initialized = true;
         } catch (MappingPluginException e) {
-            LOGGER.error("Failed to setup plugin '" + name() + "' " + version() + ".", e);
+            throw new PluginInitializationFailedException("Failed to setup plugin '" + name() + "' " + version() + ".", e);
+
         }
     }
 
     @Override
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         if (initialized) {
-            LOGGER.trace("Run gemma on '{}' with mapping '{}' -> '{}'", inputFile, mappingFile, outputFile);
+            LOGGER.trace("Running plugin '{}' v{} on '{}' with mapping '{}' -> '{}'", name(), version(), inputFile, mappingFile, outputFile);
             return PythonRunnerUtil.runPythonScript(gemmaDir + "/mapping_single.py", mappingFile.toString(), inputFile.toString(), outputFile.toString());
         } else {
             LOGGER.error("Plugin '" + name() + "' " + version() + " not initialized. Returning EXECUTION_ERROR.");

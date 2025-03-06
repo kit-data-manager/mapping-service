@@ -19,7 +19,6 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
@@ -39,7 +38,7 @@ public class PythonRunnerUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
 
     
-    public void init(ApplicationProperties configuration) {
+    public static void init(ApplicationProperties configuration) {
         PythonRunnerUtil.configuration = configuration;
     }
 
@@ -93,10 +92,9 @@ public class PythonRunnerUtil {
      */
     public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
         if (configuration == null || configuration.getPythonExecutable() == null) {
-            return MappingPluginState.UNKNOWN_ERROR();
+            throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "No Python runtime configured.");
         }
         ArrayList<String> command = new ArrayList<>();
-        System.out.println("SET TPPY " + configuration.getPythonExecutable());
         command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
         if (args != null) {

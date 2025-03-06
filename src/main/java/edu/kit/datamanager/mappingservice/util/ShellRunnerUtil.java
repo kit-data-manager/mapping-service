@@ -14,6 +14,7 @@
  */
 package edu.kit.datamanager.mappingservice.util;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.BadExitCodeException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
@@ -32,15 +33,17 @@ import java.util.stream.Collectors;
  */
 public class ShellRunnerUtil {
 
-    /**
-     * Time in seconds when the script should throw a timeout exception.
-     */
-    public static final int TIMEOUT = 30;
+ 
+    private static ApplicationProperties configuration;
 
     /**
      * Logger for this class.
      */
     private final static Logger LOGGER = LoggerFactory.getLogger(ShellRunnerUtil.class);
+
+    public static void init(ApplicationProperties configuration) {
+        ShellRunnerUtil.configuration = configuration;
+    }
 
     /**
      * This method executes a shell command.
@@ -50,7 +53,7 @@ public class ShellRunnerUtil {
      * @throws MappingPluginException If an error occurs.
      */
     public static MappingPluginState run(String... command) throws MappingPluginException {
-        return run(TIMEOUT, command);
+        return run(configuration.getExecutionTimeout(), command);
     }
 
     /**
@@ -77,7 +80,7 @@ public class ShellRunnerUtil {
      * @throws MappingPluginException If an error occurs.
      */
     public static MappingPluginState run(OutputStream output, OutputStream error, String... command) throws MappingPluginException {
-        return run(output, error, TIMEOUT, command);
+        return run(output, error, configuration.getExecutionTimeout(), command);
     }
 
     /**
@@ -103,7 +106,7 @@ public class ShellRunnerUtil {
             throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Error stream is null.");
         }
         if (timeOutInSeconds <= 0) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Timeout is null or negative.");
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Execution timeout is leq 0.");
         }
         if (command == null || command.length == 0) {
             throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "No command given.");
@@ -133,7 +136,7 @@ public class ShellRunnerUtil {
             }
 
             if (!p.waitFor(timeOutInSeconds, TimeUnit.SECONDS)) {
-                throw new TimeoutException("Process did not return within " + TIMEOUT + " seconds.");
+                throw new TimeoutException("Process did not return within " + timeOutInSeconds + " seconds.");
             }
             if (p.exitValue() != 0) {
                 throw new BadExitCodeException(p.exitValue());
@@ -142,7 +145,7 @@ public class ShellRunnerUtil {
             LOGGER.error("Failed to run command or to access output/error streams.", ioe);
             returnValue = MappingPluginState.EXECUTION_ERROR();
         } catch (TimeoutException te) {
-            LOGGER.error("Command did not return in expected timeframe of " + TIMEOUT + " seconds", te);
+            LOGGER.error("Command did not return in expected timeframe of " + timeOutInSeconds + " seconds", te);
             returnValue = MappingPluginState.TIMEOUT();
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Command execution has been interrupted.", e);

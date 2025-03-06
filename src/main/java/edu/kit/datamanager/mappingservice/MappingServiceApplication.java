@@ -6,11 +6,16 @@ import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.PluginLoader;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
+import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
+import edu.kit.datamanager.security.filter.KeycloakJwtProperties;
+import edu.kit.datamanager.security.filter.KeycloakTokenFilter;
+import edu.kit.datamanager.security.filter.KeycloakTokenValidator;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +44,28 @@ public class MappingServiceApplication {
 
     @Bean
     public PluginManager pluginManager() {
+        PythonRunnerUtil.init(applicationProperties());
+        ShellRunnerUtil.init(applicationProperties());
         return new PluginManager(applicationProperties(), pluginLoader());
+    }
+
+    @Bean
+    public KeycloakJwtProperties keycloakProperties() {
+        return new KeycloakJwtProperties();
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+            value = "mapping-service.authEnabled",
+            havingValue = "true",
+            matchIfMissing = false)
+    public KeycloakTokenFilter keycloaktokenFilterBean() throws Exception {
+        return new KeycloakTokenFilter(KeycloakTokenValidator.builder()
+                .readTimeout(keycloakProperties().getReadTimeoutms())
+                .connectTimeout(keycloakProperties().getConnectTimeoutms())
+                .sizeLimit(keycloakProperties().getSizeLimit())
+                .jwtLocalSecret("vkfvoswsohwrxgjaxipuiyyjgubggzdaqrcuupbugxtnalhiegkppdgjgwxsmvdb")
+                .build(keycloakProperties().getJwkUrl(), keycloakProperties().getResource(), keycloakProperties().getJwtClaim()));
     }
 
     public static void main(String[] args) throws IOException {
