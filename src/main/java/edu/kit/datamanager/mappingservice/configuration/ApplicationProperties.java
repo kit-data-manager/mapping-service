@@ -42,7 +42,6 @@ public class ApplicationProperties {
     /**
      * The absolute path to the python interpreter.
      */
-    @ExecutableFileURL
     @Value("${mapping-service.pythonExecutable}")
     private URL pythonExecutable;
 
