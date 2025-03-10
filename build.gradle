@@ -1,12 +1,12 @@
 plugins {
-    id 'org.springframework.boot' version '3.4.2'
+    id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '4.0.4'
-    id 'io.freefair.maven-publish-java' version '8.12.1'
+    id 'io.freefair.maven-publish-java' version '8.12.2.1'
     id "org.owasp.dependencycheck" version "12.1.0"
     id 'net.researchgate.release' version '3.1.0'
-    id "com.gorylenko.gradle-git-properties" version "2.4.2"
-    id 'io.freefair.lombok' version '8.12.1'
+    id "com.gorylenko.gradle-git-properties" version "2.5.0"
+    id 'io.freefair.lombok' version '8.12.2.1'
     id 'java'
     id 'jacoco'
 }
@@ -94,10 +94,10 @@ dependencies {
     //testImplementation 'org.springframework:spring-test'
 
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.3'
-    testImplementation 'org.mockito:mockito-core:5.15.2'
+    testImplementation 'org.mockito:mockito-core:5.16.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
-    testImplementation 'net.bytebuddy:byte-buddy:1.17.1'
+    testImplementation 'net.bytebuddy:byte-buddy:1.17.2'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
