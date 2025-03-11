@@ -91,7 +91,7 @@ public class PythonRunnerUtil {
      * @throws MappingPluginException if an error occurs.
      */
     public static MappingPluginState runPythonScript(String script, OutputStream output, OutputStream error, String... args) throws MappingPluginException {
-        if (configuration == null || configuration.getPythonExecutable() == null) {
+        if (configuration == null || !configuration.isPythonAvailable()) {
             throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "No Python runtime configured.");
         }
         ArrayList<String> command = new ArrayList<>();
