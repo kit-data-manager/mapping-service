@@ -1,18 +1,15 @@
 package edu.kit.datamanager.mappingservice;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.exception.MappingJobException;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import java.io.File;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +24,13 @@ public class MappingServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
+    @Autowired
+    private final MeterRegistry meterRegistry;
+
+    MappingServiceApplication(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
     @Bean
     public ApplicationProperties applicationProperties() {
         return new ApplicationProperties();
@@ -34,7 +38,7 @@ public class MappingServiceApplication {
 
     @Bean
     public PluginManager pluginManager() {
-        return new PluginManager(applicationProperties());
+        return new PluginManager(applicationProperties(), meterRegistry);
     }
 
     public static void main(String[] args) {

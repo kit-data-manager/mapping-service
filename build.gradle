@@ -62,6 +62,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // monitoring
+    implementation 'io.micronaut.micrometer:micronaut-micrometer-registry-prometheus:5.8.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:3.3.4'
+
      // springdoc
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-common:${springDocVersion}"

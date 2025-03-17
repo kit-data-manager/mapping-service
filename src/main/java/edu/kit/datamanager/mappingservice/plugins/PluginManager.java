@@ -15,6 +15,8 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,9 +61,11 @@ public class PluginManager {
      * instantiation time.
      */
     @Autowired
-    public PluginManager(ApplicationProperties applicationProperties) {
+    public PluginManager(ApplicationProperties applicationProperties, MeterRegistry meterRegistry) {
         this.applicationProperties = applicationProperties;
         reloadPlugins();
+
+        Gauge.builder("plugins-total", () -> plugins.size()).register(meterRegistry);
     }
 
     /**

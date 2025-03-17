@@ -6,6 +6,8 @@ package edu.kit.datamanager.mappingservice;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan("edu.kit.datamanager.mappingservice")
 public class TestConfig {
+    @Autowired
+    private MeterRegistry meterRegistry;
 
     @Bean
     public ApplicationProperties applicationProperties() {
@@ -25,6 +29,6 @@ public class TestConfig {
 
     @Bean
     public PluginManager pluginManager() {
-        return new PluginManager(applicationProperties());
+        return new PluginManager(applicationProperties(), meterRegistry);
     }
 }

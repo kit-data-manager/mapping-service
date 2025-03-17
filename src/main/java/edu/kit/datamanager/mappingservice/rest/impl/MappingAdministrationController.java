@@ -27,6 +27,8 @@ import edu.kit.datamanager.mappingservice.rest.IMappingAdministrationController;
 import edu.kit.datamanager.mappingservice.rest.PluginInformation;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.core.util.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,10 +88,12 @@ public class MappingAdministrationController implements IMappingAdministrationCo
      */
     private final MappingService mappingService;
 
-    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, PluginManager pluginManager, MappingService mappingService) {
+    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, PluginManager pluginManager, MappingService mappingService, MeterRegistry meterRegistry) {
         this.mappingRecordDao = mappingRecordDao;
         this.mappingService = mappingService;
         this.pluginManager = pluginManager;
+
+        Gauge.builder("mapping-schemes-total", mappingRecordDao::count).register(meterRegistry);
     }
 
     @Override
