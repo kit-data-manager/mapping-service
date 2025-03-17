@@ -29,6 +29,7 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.io.FilenameUtils;
@@ -72,6 +73,7 @@ public class MappingExecutionController implements IMappingExecutionController {
     private final MappingService mappingService;
     protected JobManager jobManager;
     private final IMappingRecordDao mappingRecordDao;
+    private final MeterRegistry meterRegistry;
     private final DistributionSummary documentsInSizeMetric;
     private final DistributionSummary documentsOutSizeMetric;
 
@@ -79,7 +81,7 @@ public class MappingExecutionController implements IMappingExecutionController {
         this.mappingService = mappingService;
         this.mappingRecordDao = mappingRecordDao;
         this.jobManager = jobManager;
-
+        this.meterRegistry = meterRegistry;
         this.documentsInSizeMetric = DistributionSummary.builder("mapping.documents.input-size").baseUnit("bytes").register(meterRegistry);
         this.documentsOutSizeMetric = DistributionSummary.builder("mapping.documents.output-size").baseUnit("bytes").register(meterRegistry);
     }
@@ -166,8 +168,10 @@ public class MappingExecutionController implements IMappingExecutionController {
             LOG.error(message, ex);
             throw new MappingExecutionException(message);
         } finally {
+            Counter.builder("mappings.mapping_usage").tag("mappingID", mappingID).register(meterRegistry).increment();
             this.documentsInSizeMetric.record(document.getSize());
             this.documentsOutSizeMetric.record(result.toFile().length());
+
             LOG.trace("Result file successfully transferred to client. Removing file {} from disk.", result);
             try {
                 Files.delete(result);
