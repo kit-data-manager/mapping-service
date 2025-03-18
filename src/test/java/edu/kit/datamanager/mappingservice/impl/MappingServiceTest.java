@@ -75,7 +75,6 @@ import org.springframework.web.client.ResourceAccessException;
 @TestPropertySource(properties = {"metastore.indexer.mappingsLocation=file:///tmp/metastore2/mapping"})
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MappingServiceTest {
-
     @Autowired
     ApplicationProperties applicationProperties;
 
@@ -85,13 +84,10 @@ public class MappingServiceTest {
     @Autowired
     MappingService mappingService4Test;
 
+    @Autowired
+    MeterRegistry meterRegistry;
+
     private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
-
-    private final MeterRegistry meterRegistry;
-
-    MappingServiceTest(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
 
     @BeforeEach
     public void setUp() {
