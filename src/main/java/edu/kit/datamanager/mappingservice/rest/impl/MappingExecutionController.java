@@ -82,8 +82,8 @@ public class MappingExecutionController implements IMappingExecutionController {
         this.mappingRecordDao = mappingRecordDao;
         this.jobManager = jobManager;
         this.meterRegistry = meterRegistry;
-        this.documentsInSizeMetric = DistributionSummary.builder("mapping.documents.input-size").baseUnit("bytes").register(meterRegistry);
-        this.documentsOutSizeMetric = DistributionSummary.builder("mapping.documents.output-size").baseUnit("bytes").register(meterRegistry);
+        this.documentsInSizeMetric = DistributionSummary.builder("mapping_service.documents.input-size").baseUnit("bytes").register(meterRegistry);
+        this.documentsOutSizeMetric = DistributionSummary.builder("mapping_service.documents.output-size").baseUnit("bytes").register(meterRegistry);
     }
 
     @Override
@@ -168,7 +168,7 @@ public class MappingExecutionController implements IMappingExecutionController {
             LOG.error(message, ex);
             throw new MappingExecutionException(message);
         } finally {
-            Counter.builder("mappings.mapping_usage").tag("mappingID", mappingID).register(meterRegistry).increment();
+            Counter.builder("mapping_service.mapping_usage").tag("mappingID", mappingID).register(meterRegistry).increment();
             this.documentsInSizeMetric.record(document.getSize());
             this.documentsOutSizeMetric.record(result.toFile().length());
 

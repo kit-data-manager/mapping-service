@@ -201,7 +201,7 @@ public class MappingService {
             LOGGER.trace("Mapping for id {} found. Creating temporary output file.");
             mappingRecord = optionalMappingRecord.get();
 
-            Counter.builder("mappings.plugin_usage").tag("plugin", mappingRecord.getMappingType()).register(meterRegistry).increment();
+            Counter.builder("mapping_service.plugin_usage").tag("plugin", mappingRecord.getMappingType()).register(meterRegistry).increment();
 
             Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
             // execute mapping
