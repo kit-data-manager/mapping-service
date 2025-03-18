@@ -20,8 +20,8 @@ public class PreHandleInterceptor implements HandlerInterceptor {
 
     @Autowired
     PreHandleInterceptor(MeterRegistry meterRegistry) {
-        Gauge.builder("mapping_service.unique-users", uniqueUsers::size).register(meterRegistry);
-        counter = Counter.builder("mapping_service.requests-served").register(meterRegistry);
+        Gauge.builder("mapping_service.unique_users", uniqueUsers::size).register(meterRegistry);
+        counter = Counter.builder("mapping_service.requests_served").register(meterRegistry);
     }
 
     @Override

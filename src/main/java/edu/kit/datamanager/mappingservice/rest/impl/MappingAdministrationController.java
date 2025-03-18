@@ -93,7 +93,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         this.mappingService = mappingService;
         this.pluginManager = pluginManager;
 
-        Gauge.builder("mapping_service.schemes-total", mappingRecordDao::count).register(meterRegistry);
+        Gauge.builder("mapping_service.schemes_total", mappingRecordDao::count).register(meterRegistry);
     }
 
     @Override

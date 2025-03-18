@@ -82,8 +82,8 @@ public class MappingExecutionController implements IMappingExecutionController {
         this.mappingRecordDao = mappingRecordDao;
         this.jobManager = jobManager;
         this.meterRegistry = meterRegistry;
-        this.documentsInSizeMetric = DistributionSummary.builder("mapping_service.documents.input-size").baseUnit("bytes").register(meterRegistry);
-        this.documentsOutSizeMetric = DistributionSummary.builder("mapping_service.documents.output-size").baseUnit("bytes").register(meterRegistry);
+        this.documentsInSizeMetric = DistributionSummary.builder("mapping_service.documents.input_size").baseUnit("bytes").register(meterRegistry);
+        this.documentsOutSizeMetric = DistributionSummary.builder("mapping_service.documents.output_size").baseUnit("bytes").register(meterRegistry);
     }
 
     @Override

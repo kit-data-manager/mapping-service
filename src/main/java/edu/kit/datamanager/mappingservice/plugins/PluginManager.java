@@ -65,7 +65,7 @@ public class PluginManager {
         this.applicationProperties = applicationProperties;
         reloadPlugins();
 
-        Gauge.builder("mapping_service.plugins-total", () -> plugins.size()).register(meterRegistry);
+        Gauge.builder("mapping_service.plugins_total", () -> plugins.size()).register(meterRegistry);
     }
 
     /**
