@@ -29,6 +29,9 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +52,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.apache.tomcat.util.file.Matcher;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -70,11 +73,17 @@ public class MappingExecutionController implements IMappingExecutionController {
     private final MappingService mappingService;
     protected JobManager jobManager;
     private final IMappingRecordDao mappingRecordDao;
+    private final MeterRegistry meterRegistry;
+    private final DistributionSummary documentsInSizeMetric;
+    private final DistributionSummary documentsOutSizeMetric;
 
-    public MappingExecutionController(MappingService mappingService, IMappingRecordDao mappingRecordDao, JobManager jobManager) {
+    public MappingExecutionController(MappingService mappingService, IMappingRecordDao mappingRecordDao, JobManager jobManager, MeterRegistry meterRegistry) {
         this.mappingService = mappingService;
         this.mappingRecordDao = mappingRecordDao;
         this.jobManager = jobManager;
+        this.meterRegistry = meterRegistry;
+        this.documentsInSizeMetric = DistributionSummary.builder("mapping_service.documents.input_size").baseUnit("bytes").register(meterRegistry);
+        this.documentsOutSizeMetric = DistributionSummary.builder("mapping_service.documents.output_size").baseUnit("bytes").register(meterRegistry);
     }
 
     @Override
@@ -159,6 +168,10 @@ public class MappingExecutionController implements IMappingExecutionController {
             LOG.error(message, ex);
             throw new MappingExecutionException(message);
         } finally {
+            Counter.builder("mapping_service.mapping_usage").tag("mappingID", mappingID).register(meterRegistry).increment();
+            this.documentsInSizeMetric.record(document.getSize());
+            this.documentsOutSizeMetric.record(result.toFile().length());
+
             LOG.trace("Result file successfully transferred to client. Removing file {} from disk.", result);
             try {
                 Files.delete(result);

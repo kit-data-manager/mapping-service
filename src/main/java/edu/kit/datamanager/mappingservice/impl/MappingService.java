@@ -29,6 +29,8 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -88,6 +90,7 @@ public class MappingService {
     private Path jobsOutputDirectory;
 
     private ApplicationProperties applicationProperties;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Logger for this class.
@@ -95,8 +98,9 @@ public class MappingService {
     private final static Logger LOGGER = LoggerFactory.getLogger(MappingService.class);
 
     @Autowired
-    public MappingService(ApplicationProperties applicationProperties) {
+    public MappingService(ApplicationProperties applicationProperties, MeterRegistry meterRegistry) {
         this.applicationProperties = applicationProperties;
+        this.meterRegistry = meterRegistry;
         init(this.applicationProperties);
     }
 
@@ -196,6 +200,9 @@ public class MappingService {
         if (optionalMappingRecord.isPresent()) {
             LOGGER.trace("Mapping for id {} found. Creating temporary output file.");
             mappingRecord = optionalMappingRecord.get();
+
+            Counter.builder("mapping_service.plugin_usage").tag("plugin", mappingRecord.getMappingType()).register(meterRegistry).increment();
+
             Path mappingFile = Paths.get(mappingRecord.getMappingDocumentUri());
             // execute mapping
             Path resultFile;

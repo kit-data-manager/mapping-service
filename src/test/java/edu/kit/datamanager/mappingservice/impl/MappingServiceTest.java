@@ -22,6 +22,7 @@ import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,6 @@ import org.springframework.web.client.ResourceAccessException;
 @TestPropertySource(properties = {"metastore.indexer.mappingsLocation=file:///tmp/metastore2/mapping"})
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MappingServiceTest {
-
     @Autowired
     ApplicationProperties applicationProperties;
 
@@ -83,6 +83,9 @@ public class MappingServiceTest {
 
     @Autowired
     MappingService mappingService4Test;
+
+    @Autowired
+    MeterRegistry meterRegistry;
 
     private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
 
@@ -103,7 +106,7 @@ public class MappingServiceTest {
 
     @Test
     public void testConstructor() throws URISyntaxException {
-        new MappingService(applicationProperties);
+        new MappingService(applicationProperties, meterRegistry);
     }
 
     @Test
@@ -115,7 +118,7 @@ public class MappingServiceTest {
             ap.setMappingsLocation(relativePath);
             File file = new File(relativePath.getPath());
             assertFalse(file.exists());
-            new MappingService(ap);
+            new MappingService(ap, meterRegistry);
             assertTrue(file.exists());
             FileUtils.deleteDirectory(file);
             assertFalse(file.exists());
@@ -127,7 +130,7 @@ public class MappingServiceTest {
     @Test
     public void testConstructorFailing() throws IOException, URISyntaxException {
         try {
-            new MappingService(null);
+            new MappingService(null, meterRegistry);
             fail();
         } catch (MappingException ie) {
             assertTrue(true);
