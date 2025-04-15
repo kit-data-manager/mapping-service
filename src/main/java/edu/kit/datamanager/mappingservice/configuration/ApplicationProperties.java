@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.configuration;
 
 import edu.kit.datamanager.annotations.ExecutableFileURL;
 import edu.kit.datamanager.annotations.LocalFolderURL;
+import edu.kit.datamanager.validator.ExecutableFileValidator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,7 +83,7 @@ public class ApplicationProperties {
     private boolean authEnabled;
     @Value("${mapping-service.mappingAdminRole:MAPPING_ADMIN}")
     private String mappingAdminRole;
-     /**
+    /**
      * CORS and CSRF properties
      */
     @Value("${repo.security.allowedOriginPattern:*}")
@@ -93,5 +94,14 @@ public class ApplicationProperties {
     private String[] exposedHeaders;
     @Value("${repo.security.allowedHeaders:*}")
     private String[] allowedHeaders;
+
+    /**
+     * Check if configured python executable is valid and executable.
+     *
+     * @return TRUE if python executable is valid.
+     */
+    public boolean isPythonAvailable() {
+        return new ExecutableFileValidator().isValid(pythonExecutable, null);
+    }
 
 }

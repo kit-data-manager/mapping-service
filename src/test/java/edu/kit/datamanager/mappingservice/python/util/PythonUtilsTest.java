@@ -23,9 +23,7 @@ import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import org.apache.commons.lang3.Range;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.core.Is;
 import org.junit.Assume;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.Assert;
 
 /**
  *
@@ -51,6 +48,12 @@ public class PythonUtilsTest {
     @BeforeEach
     public void setUpClass() {
         PythonRunnerUtil.init(applicationProperties);
+    }
+
+    @Test
+    public void testPythonAvailable() {
+        Assume.assumeThat("Python not configured.", applicationProperties.isPythonAvailable(), CoreMatchers.is(true));
+        assertTrue(applicationProperties.isPythonAvailable());
     }
 
     /**
@@ -77,13 +80,12 @@ public class PythonUtilsTest {
      */
     @Test
     public void testRun_3args_withWrongClass() {
-        Assume.assumeThat("Python not configured.", Is.is(applicationProperties.getPythonExecutable() == null));
-
+        Assume.assumeThat("Python not configured.", applicationProperties.isPythonAvailable(), CoreMatchers.is(true));
         System.out.println("testRun_3args_withWrongClass");
         String scriptLocation = new File("src/test/resources/python/invalid.py").getAbsolutePath();
         String[] arguments = null;
         try {
-            MappingPluginState state = PythonRunnerUtil.runPythonScript(scriptLocation, arguments);
+            PythonRunnerUtil.runPythonScript(scriptLocation, arguments);
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.BAD_EXIT_CODE, e.getMappingPluginState().getState());
@@ -96,9 +98,7 @@ public class PythonUtilsTest {
      */
     @Test
     public void testRun_3args_withTimeout() {
-        System.out.println("ASSERT " + applicationProperties.getPythonExecutable());
-        Assume.assumeThat("Python not configured.", applicationProperties.getPythonExecutable(), CoreMatchers.notNullValue());
-        System.out.println("ASSERT TRUE!!!!");
+        Assume.assumeThat("Python not configured.", applicationProperties.isPythonAvailable(), CoreMatchers.is(true));
         System.out.println("testRun_3args_withTimeout");
         String scriptLocation = new File("src/test/resources/python/sleep.py").getAbsolutePath();
         String[] arguments = null;
