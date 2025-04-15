@@ -133,7 +133,7 @@ public class MappingServiceTest {
         try {
             new MappingService(null, meterRegistry);
             fail("Expected MappingServiceException");
-        } catch (MappingException ie) {
+        } catch (MappingServiceException ie) {
             assertTrue(true);
         }
         //seems to be no problem under Windows and if run as root this is also no issue, so let's skip this test for the moment.
