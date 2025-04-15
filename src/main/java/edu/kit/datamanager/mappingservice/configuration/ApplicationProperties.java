@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.configuration;
 
 import edu.kit.datamanager.annotations.ExecutableFileURL;
 import edu.kit.datamanager.annotations.LocalFolderURL;
+import edu.kit.datamanager.validator.ExecutableFileValidator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +43,6 @@ public class ApplicationProperties {
     /**
      * The absolute path to the python interpreter.
      */
-    @ExecutableFileURL
     @Value("${mapping-service.pythonExecutable}")
     private URL pythonExecutable;
 
@@ -59,11 +59,49 @@ public class ApplicationProperties {
     @LocalFolderURL
     @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
-    
+
     /**
      * The absolute path where job data is stored.
      */
     @LocalFolderURL
     @Value("${mapping-service.jobOutput}")
     private URL jobOutputLocation;
+
+    /**
+     * One or more packages to scan for plugin classes.
+     */
+    @Value("${mapping-service.packagesToScan:edu.kit.datamanager.mappingservice.plugins.impl}")
+    private String[] packagesToScan;
+
+    @Value("${mapping-service.executionTimeout:30}")
+    private int executionTimeout;
+
+    /**
+     * Auth and permission properties
+     */
+    @Value("${mapping-service.authEnabled:FALSE}")
+    private boolean authEnabled;
+    @Value("${mapping-service.mappingAdminRole:MAPPING_ADMIN}")
+    private String mappingAdminRole;
+    /**
+     * CORS and CSRF properties
+     */
+    @Value("${repo.security.allowedOriginPattern:*}")
+    private String allowedOriginPattern;
+    @Value("${repo.security.allowedMethods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")
+    private String[] allowedMethods;
+    @Value("${repo.security.exposedHeaders:Content-Range,ETag,Link}")
+    private String[] exposedHeaders;
+    @Value("${repo.security.allowedHeaders:*}")
+    private String[] allowedHeaders;
+
+    /**
+     * Check if configured python executable is valid and executable.
+     *
+     * @return TRUE if python executable is valid.
+     */
+    public boolean isPythonAvailable() {
+        return new ExecutableFileValidator().isValid(pythonExecutable, null);
+    }
+
 }

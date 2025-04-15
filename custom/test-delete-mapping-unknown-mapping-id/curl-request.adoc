@@ -1,5 +1,0 @@
-[source,bash]
-----
-$ curl 'http://localhost:8095/api/v1/mappingAdministration/unknownMappingId' -i -X DELETE \
-    -H 'If-Match: "104363025"'
-----

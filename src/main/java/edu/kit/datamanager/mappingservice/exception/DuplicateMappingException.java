@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Invalid json format of data.
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
+@ResponseStatus(value = HttpStatus.CONFLICT, reason = "Duplicate mapping id.")
 public class DuplicateMappingException extends RuntimeException {
 
     /**

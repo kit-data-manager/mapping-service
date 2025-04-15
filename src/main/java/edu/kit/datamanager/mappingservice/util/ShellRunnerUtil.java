@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.BadExitCodeException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
@@ -25,8 +25,6 @@ import java.io.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Utility class for running shell scripts.
@@ -35,15 +33,17 @@ import org.springframework.stereotype.Component;
  */
 public class ShellRunnerUtil {
 
-    /**
-     * Time in seconds when the script should throw a timeout exception.
-     */
-    public static final int TIMEOUT = 30;
+ 
+    private static ApplicationProperties configuration;
 
     /**
      * Logger for this class.
      */
     private final static Logger LOGGER = LoggerFactory.getLogger(ShellRunnerUtil.class);
+
+    public static void init(ApplicationProperties configuration) {
+        ShellRunnerUtil.configuration = configuration;
+    }
 
     /**
      * This method executes a shell command.
@@ -53,14 +53,15 @@ public class ShellRunnerUtil {
      * @throws MappingPluginException If an error occurs.
      */
     public static MappingPluginState run(String... command) throws MappingPluginException {
-        return run(TIMEOUT, command);
+        return run(configuration.getExecutionTimeout(), command);
     }
 
     /**
      * This method executes a shell command.
      *
-     * @param timeOutInSeconds Time in seconds when the script should throw a timeout exception.
-     * @param command          The command to execute without spaces.
+     * @param timeOutInSeconds Time in seconds when the script should throw a
+     * timeout exception.
+     * @param command The command to execute without spaces.
      * @return State of the execution.
      * @throws MappingPluginException If an error occurs.
      */
@@ -69,84 +70,102 @@ public class ShellRunnerUtil {
     }
 
     /**
-     * This method executes a shell command and writes the output and errors to the given streams.
+     * This method executes a shell command and writes the output and errors to
+     * the given streams.
      *
-     * @param output  OutputStream to redirect the output to.
-     * @param error   OutputStream to redirect the errors to.
+     * @param output OutputStream to redirect the output to.
+     * @param error OutputStream to redirect the errors to.
      * @param command The command to execute without spaces.
      * @return State of the execution.
      * @throws MappingPluginException If an error occurs.
      */
     public static MappingPluginState run(OutputStream output, OutputStream error, String... command) throws MappingPluginException {
-        return run(output, error, TIMEOUT, command);
+        return run(output, error, configuration.getExecutionTimeout(), command);
     }
 
-
     /**
-     * This method executes a shell command and writes the output and errors to the given streams.
+     * This method executes a shell command and writes the output and errors to
+     * the given streams.
      *
-     * @param output           OutputStream to redirect the output to.
-     * @param error            OutputStream to redirect the errors to.
-     * @param timeOutInSeconds Time in seconds when the script should throw a timeout exception.
-     * @param command          The command to execute without spaces.
-     * @return State of the execution.
+     * @param output OutputStream to redirect the output to.
+     * @param error OutputStream to redirect the errors to.
+     * @param timeOutInSeconds Time in seconds when the script should throw a
+     * timeout exception.
+     * @param command The command to execute without spaces.
+     *
+     * @return State of the execution only if execution was successful.
+     * Otherwise, MappingPluginException is thrown.
+     *
      * @throws MappingPluginException If an error occurs.
      */
     public static MappingPluginState run(OutputStream output, OutputStream error, int timeOutInSeconds, String... command) throws MappingPluginException {
-        if (output == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Output stream is null.");
-        if (error == null) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Error stream is null.");
-        if (timeOutInSeconds <= 0) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Timeout is null or negative.");
-        if (command == null || command.length == 0) throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "No command given.");
+        if (output == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Output stream is null.");
+        }
+        if (error == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Error stream is null.");
+        }
+        if (timeOutInSeconds <= 0) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Execution timeout is leq 0.");
+        }
+        if (command == null || command.length == 0) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "No command given.");
+        }
 
         ExecutorService pool = Executors.newSingleThreadExecutor();
-        int result;
-        MappingPluginState returnValue = MappingPluginState.SUCCESS;
+        MappingPluginState returnValue = MappingPluginState.SUCCESS();
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process p = pb.start();
 
+            //connect to process out/err streams
             Future<List<String>> errorFuture = pool.submit(new ShellRunnerUtil.ProcessReadTask(p.getErrorStream()));
             Future<List<String>> inputFuture = pool.submit(new ShellRunnerUtil.ProcessReadTask(p.getInputStream()));
 
+            //wait for max timeOutInSeconds for stream to close aka. process to finish
             List<String> stdErr = errorFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
             List<String> stdOut = inputFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
 
+            //print all out/err messages at once
             for (String line : stdOut) {
-                LOGGER.trace("[OUT] {}", line);
-                if (output != null) {
-                    output.write((line + "\n").getBytes());
-                }
+                output.write((line + "\n").getBytes());
             }
-
             for (String line : stdErr) {
-                LOGGER.trace("[ERR] {}", line);
-                if (error != null) {
-                    error.write((line + "\n").getBytes());
-                }
+                error.write((line + "\n").getBytes());
             }
 
-            result = p.waitFor();
-            if (result != 0) {
-                throw new ExecutionException(new Throwable());
+            if (!p.waitFor(timeOutInSeconds, TimeUnit.SECONDS)) {
+                throw new TimeoutException("Process did not return within " + timeOutInSeconds + " seconds.");
+            }
+            if (p.exitValue() != 0) {
+                throw new BadExitCodeException(p.exitValue());
             }
         } catch (IOException ioe) {
-            LOGGER.error("Failed to execute command.", ioe);
-            returnValue = MappingPluginState.EXECUTION_ERROR;
+            LOGGER.error("Failed to run command or to access output/error streams.", ioe);
+            returnValue = MappingPluginState.EXECUTION_ERROR();
         } catch (TimeoutException te) {
-            LOGGER.error("Command did not return in expected timeframe of " + TIMEOUT + " seconds", te);
-            returnValue = MappingPluginState.TIMEOUT;
+            LOGGER.error("Command did not return in expected timeframe of " + timeOutInSeconds + " seconds", te);
+            returnValue = MappingPluginState.TIMEOUT();
         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Failed to execute command due to an unknown exception.", e);
-            returnValue = MappingPluginState.UNKNOWN_ERROR;
+            LOGGER.error("Command execution has been interrupted.", e);
+            returnValue = MappingPluginState.UNKNOWN_ERROR();
+        } catch (BadExitCodeException e) {
+            LOGGER.error("Failed to execute command due to an unexpected exception.", e);
+            returnValue = MappingPluginState.BAD_EXIT_CODE();
+            returnValue.setDetails(e.getExitCode());
         } finally {
             pool.shutdown();
-            if (returnValue != MappingPluginState.SUCCESS) throw new MappingPluginException(returnValue);
+        }
+
+        if (returnValue.getState() != MappingPluginState.SUCCESS().getState()) {
+            throw new MappingPluginException(returnValue);
         }
         return returnValue;
     }
 
     private record ProcessReadTask(InputStream inputStream) implements Callable<List<String>> {
+
         @Override
         public List<String> call() {
             return new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.toList());

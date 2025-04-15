@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.rest.impl;
 
+import com.google.common.base.Strings;
 import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
@@ -57,7 +58,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 
 /**
  * Controller for managing mapping files.
@@ -113,7 +113,11 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         } catch (IOException ex) {
             LOG.error("Unable to deserialize mapping record.", ex);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-//.body("Unable to deserialize provided mapping record.");
+        }
+
+        if (Strings.isNullOrEmpty(mappingRecord.getMappingId()) || Strings.isNullOrEmpty(mappingRecord.getMappingType())) {
+            LOG.error("Invalid mapping record. Either mappingId or mappingType are null.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         LOG.trace("Obtaining caller principle for authorization purposes.");
@@ -149,8 +153,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             mappingRecord = mappingService.createMapping(contentOfFile, mappingRecord);
         } catch (IOException ioe) {
             LOG.error("Unable to create mapping for provided inputs.", ioe);
-           //return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         LOG.trace("Mapping successfully persisted. Updating document URI.");

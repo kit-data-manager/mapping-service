@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
+import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
@@ -61,33 +62,37 @@ public class IdentifyPlugin implements IMappingPlugin {
 
     @Override
     public MimeType[] inputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+        return new MimeType[]{MimeType.valueOf("image/*")};
     }
 
     @Override
     public MimeType[] outputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+        return new MimeType[]{MimeType.valueOf("application/*")};
     }
 
     @Override
     public void setup() {
         if (Paths.get("/usr/bin/identify").toFile().exists()) {
             initialized = true;
+        } else {
+            throw new PluginInitializationFailedException("Required executable /usr/bin/identify not found.");
         }
     }
 
     @Override
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
+        MappingPluginState result;
         try {
-            FileOutputStream fout = new FileOutputStream(outputFile.toFile());
-            ShellRunnerUtil.run(fout, fout, "/usr/bin/identify", "-verbose", inputFile.toAbsolutePath().toString());
-            fout.flush();
-            fout.close();
+            try (FileOutputStream fout = new FileOutputStream(outputFile.toFile())) {
+                result = ShellRunnerUtil.run(fout, fout, "/usr/bin/identify", "-verbose", inputFile.toAbsolutePath().toString());
+                fout.flush();
+            }
         } catch (IOException ex) {
             LOG.error("Failed to execute plugin.", ex);
-            return MappingPluginState.EXECUTION_ERROR;
+            result = MappingPluginState.EXECUTION_ERROR();
+            result.setDetails(ex.getMessage());
         }
-        return MappingPluginState.SUCCESS;
+        return result;
     }
 
 }

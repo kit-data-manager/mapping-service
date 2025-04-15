@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Invalid json format of data.
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No mapping found for provided mappingId.")
 public class MappingNotFoundException extends RuntimeException {
 
     /**
@@ -35,7 +35,7 @@ public class MappingNotFoundException extends RuntimeException {
      * Constructor with given message and cause.
      *
      * @param message Message.
-     * @param cause   Cause.
+     * @param cause Cause.
      */
     public MappingNotFoundException(String message, Throwable cause) {
         super(message, cause);

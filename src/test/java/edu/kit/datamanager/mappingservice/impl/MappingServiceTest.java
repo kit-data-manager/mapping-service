@@ -21,6 +21,7 @@ import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.io.FileUtils;
@@ -131,7 +132,7 @@ public class MappingServiceTest {
     public void testConstructorFailing() throws IOException, URISyntaxException {
         try {
             new MappingService(null, meterRegistry);
-            fail();
+            fail("Expected MappingServiceException");
         } catch (MappingException ie) {
             assertTrue(true);
         }

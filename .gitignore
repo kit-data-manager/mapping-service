@@ -241,3 +241,4 @@ gradle-app.setting
 lib/gemma
 !/plugins/gemma-plugin-0.1.0-SNAPSHOT-plain.jar
 !/plugins/empty-plugin-0.0.0-SNAPSHOT-plain.jar
+custom
