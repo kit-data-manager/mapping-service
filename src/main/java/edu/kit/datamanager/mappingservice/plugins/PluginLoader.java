@@ -14,6 +14,8 @@
  */
 package edu.kit.datamanager.mappingservice.plugins;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +32,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ClassUtils;
 
 /**
  * Class for loading plugins.
  *
  * @author maximilianiKIT
  */
+@Component
 public class PluginLoader {
 
     /**
@@ -43,9 +56,19 @@ public class PluginLoader {
      */
     static Logger LOG = LoggerFactory.getLogger(PluginLoader.class);
 
-    static ClassLoader cl = null;
+    private ClassLoader cl = null;
 
-    public static void unload() {
+    private ApplicationProperties applicationProperties;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    public PluginLoader(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
+
+    public void unload() {
         cl = null;
         System.gc();
     }
@@ -53,37 +76,47 @@ public class PluginLoader {
     /**
      * Load plugins from a given directory.
      *
-     * @param plugDir Directory containing plugins.
+     * @param pluginDir Directory containing plugins.
+     * @param packagesToScan Packages to scan in addition for plugins.
+     *
      * @return Map of plugins.
+     *
      * @throws IOException If there is an error with the file system.
      * @throws MappingPluginException If there is an error with the plugin or
      * the input.
      */
-    public static Map<String, IMappingPlugin> loadPlugins(File plugDir) throws IOException, MappingPluginException {
+    public Map<String, IMappingPlugin> loadPlugins(File pluginDir, String[] packagesToScan) throws IOException, MappingPluginException {
         Map<String, IMappingPlugin> result = new HashMap<>();
-        if (plugDir == null || plugDir.getAbsolutePath().isBlank()) {
-            LOG.warn("Plugin folder " + plugDir + " is null. Unable to load plugins.");
+        File[] pluginJars = new File[0];
+        if (pluginDir == null || pluginDir.getAbsolutePath().isBlank()) {
+            LOG.warn("Plugin folder {} is not defined. MappingService will only use plugins in classpath.", pluginDir);
         } else {
-            File[] plugJars = plugDir.listFiles(new JARFileFilter());
-            if (plugJars == null || plugJars.length < 1) {
-                LOG.warn("Plugin folder " + plugDir + " is empty. Unable to load plugins.");
-            } else {
-                cl = new URLClassLoader(PluginLoader.fileArrayToURLArray(plugJars), Thread.currentThread().getContextClassLoader());
+            pluginJars = pluginDir.listFiles(new JARFileFilter());
+        }
 
-                List<Class<IMappingPlugin>> plugClasses = PluginLoader.extractClassesFromJARs(plugJars, cl);
-                List<IMappingPlugin> IMappingPluginList = PluginLoader.createPluggableObjects(plugClasses);
+        if (pluginJars != null && pluginJars.length > 0) {
+            cl = new URLClassLoader(fileArrayToURLArray(pluginJars), Thread.currentThread().getContextClassLoader());
+        } else {
+            cl = Thread.currentThread().getContextClassLoader();
+        }
 
-                for (IMappingPlugin i : IMappingPluginList) {
-                    //TODO: Add error handling in case setup of one plugin fails
-                    i.setup();
-                    result.put(i.id(), i);
-                }
+        List<Class<IMappingPlugin>> plugClasses = extractClassesFromJARs(pluginJars, packagesToScan, cl);
+        List<IMappingPlugin> IMappingPluginList = createPluggableObjects(plugClasses);
+
+        for (IMappingPlugin i : IMappingPluginList) {
+            try {
+                i.setup();
+                LOG.trace(" - Adding new plugin {}, v{} to available list", i.name(), i.version());
+                result.put(i.id(), i);
+            } catch (PluginInitializationFailedException re) {
+                LOG.error("Failed to initialize plugin " + i.name() + ", version " + i.version() + ". Plugin will be ignored.", re);
             }
         }
+
         return result;
     }
 
-    private static URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
+    private URL[] fileArrayToURLArray(File[] files) throws MalformedURLException {
         URL[] urls = new URL[files.length];
         for (int i = 0; i < files.length; i++) {
             urls[i] = files[i].toURI().toURL();
@@ -91,17 +124,40 @@ public class PluginLoader {
         return urls;
     }
 
-    private static List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, ClassLoader cl) throws IOException, MappingPluginException {
+    private List<Class<IMappingPlugin>> extractClassesFromJARs(File[] jars, String[] packagesToScan, ClassLoader cl) throws IOException, MappingPluginException {
         LOG.trace("Extracting classes from plugin JARs.");
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
-        for (File jar : jars) {
-            LOG.trace("Processing file {}.", jar.getAbsolutePath());
-            classes.addAll(PluginLoader.extractClassesFromJAR(jar, cl));
+        if (jars != null) {
+            for (File jar : jars) {
+                LOG.trace("Processing file {}.", jar.getAbsolutePath());
+                classes.addAll(extractClassesFromJAR(jar, cl));
+            }
         }
+        LOG.trace("Found {} plugin classes in jar files.", classes.size());
+
+        if (packagesToScan != null) {
+            LOG.trace("Extracting classes from classpath.");
+            int pluginCnt = 0;
+
+            findAllClasses("edu.kit.datamanager.mappingservice", cl);
+
+            for (String pkg : packagesToScan) {
+                LOG.trace(" - Scanning package {}", pkg);
+
+                List<Class<?>> result = findAllClasses(pkg, cl);
+
+                for (Class<?> res : result) {
+                    classes.add((Class<IMappingPlugin>) res);
+                    pluginCnt++;
+                }
+            }
+            LOG.trace("Found {} plugin classes in classpath.", pluginCnt);
+        }
+
         return classes;
     }
 
-    private static List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
+    private List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
         LOG.trace("Extracting plugin classes from file {}.", jar.getAbsolutePath());
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
         try (JarInputStream jaris = new JarInputStream(new FileInputStream(jar))) {
@@ -111,13 +167,13 @@ public class PluginLoader {
                     try {
                         Class<?> cls = cl.loadClass(ent.getName().substring(0, ent.getName().length() - 6).replace('/', '.'));
                         LOG.trace("Checking {}.", cls);
-                        if (PluginLoader.isPluggableClass(cls)) {
+                        if (isPluggableClass(cls)) {
                             LOG.trace("Plugin class found.");
                             classes.add((Class<IMappingPlugin>) cls);
                         }
                     } catch (ClassNotFoundException | NoClassDefFoundError e) {
                         LOG.info("Can't load Class " + ent.getName());
-                        throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't load Class " + ent.getName(), e);
+                        throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't load Class " + ent.getName(), e);
                     }
                 }
             }
@@ -125,19 +181,12 @@ public class PluginLoader {
         return classes;
     }
 
-    private static boolean isPluggableClass(Class<?> cls) {
-        for (Class<?> i : cls.getInterfaces()) {
-            LOG.trace("Checking {} against {}.", i, IMappingPlugin.class);
-            LOG.trace("ASSIGN {}", IMappingPlugin.class.isAssignableFrom(cls));
-            if (i.equals(IMappingPlugin.class)) {
-                LOG.trace("IMappingPlugin interface found.");
-                return true;
-            }
-        }
-        return false;
+    private boolean isPluggableClass(Class<?> cls) {
+        //this should be much easier and faster
+        return IMappingPlugin.class.isAssignableFrom(cls) && !cls.isInterface();
     }
 
-    private static List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggable) throws MappingPluginException {
+    private List<IMappingPlugin> createPluggableObjects(List<Class<IMappingPlugin>> pluggable) throws MappingPluginException {
         LOG.trace("Instantiating plugins from list: {}", pluggable);
         List<IMappingPlugin> plugs = new ArrayList<>(pluggable.size());
         for (Class<IMappingPlugin> plug : pluggable) {
@@ -146,12 +195,55 @@ public class PluginLoader {
                 plugs.add(plug.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
                 LOG.info("Can't instantiate plugin: " + plug.getName());
-                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "Can't instantiate plugin: " + plug.getName(), e);
+                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't instantiate plugin: " + plug.getName(), e);
             } catch (IllegalAccessException e) {
                 LOG.info("IllegalAccess for plugin: " + plug.getName());
-                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "IllegalAccess for plugin: " + plug.getName(), e);
+                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "IllegalAccess for plugin: " + plug.getName(), e);
             }
         }
         return plugs;
+    }
+
+    protected List<Class<?>> findAllClasses(String packageName, ClassLoader loader) {
+        List<Class<?>> result = new ArrayList<>();
+        MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(
+                loader);
+        try {
+            Resource[] resources = scan(loader, packageName);
+            for (Resource resource : resources) {
+                Class<?> clazz = loadClass(loader, metadataReaderFactory, resource);
+                if (clazz != null && isPluggableClass(clazz)) {
+                    result.add(clazz);
+                }
+            }
+        } catch (IOException ex) {
+            //throw new IllegalStateException(ex);
+            return result;
+        }
+        return result;
+    }
+
+    private Resource[] scan(ClassLoader loader, String packageName) throws IOException {
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
+                loader);
+        String pattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX
+                + ClassUtils.convertClassNameToResourcePath(packageName) + "/**/*.class";
+        Resource[] resources = resolver.getResources(pattern);
+        return resources;
+    }
+
+    private Class<?> loadClass(ClassLoader loader, MetadataReaderFactory readerFactory,
+            Resource resource) {
+        try {
+            MetadataReader reader = readerFactory.getMetadataReader(resource);
+            return ClassUtils.forName(reader.getClassMetadata().getClassName(), loader);
+        } catch (ClassNotFoundException ex) {
+            return null;
+        } catch (LinkageError ex) {
+            return null;
+        } catch (Throwable ex) {
+
+            return null;
+        }
     }
 }

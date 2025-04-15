@@ -23,18 +23,18 @@ class MappingPluginExceptionTest {
 
     @Test
     void testConstructor() {
-        MappingPluginException ex = new MappingPluginException(MappingPluginState.UNKNOWN_ERROR);
-        assertEquals(MappingPluginState.UNKNOWN_ERROR, ex.getState());
-        assertEquals(MappingPluginState.UNKNOWN_ERROR.toString(), ex.getMessage());
+        MappingPluginException ex = new MappingPluginException(MappingPluginState.UNKNOWN_ERROR());
+        assertEquals(MappingPluginState.UNKNOWN_ERROR().getState(), ex.getMappingPluginState().getState());
+        assertEquals(MappingPluginState.UNKNOWN_ERROR().getState().toString(), ex.getMessage());
         assertNull(ex.getCause());
 
-        ex = new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "test");
-        assertEquals(MappingPluginState.UNKNOWN_ERROR, ex.getState());
+        ex = new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "test");
+        assertEquals(MappingPluginState.UNKNOWN_ERROR().getState(), ex.getMappingPluginState().getState());
         assertEquals("test", ex.getMessage());
         assertNull(ex.getCause());
 
-        ex = new MappingPluginException(MappingPluginState.UNKNOWN_ERROR, "test", new Exception());
-        assertEquals(MappingPluginState.UNKNOWN_ERROR, ex.getState());
+        ex = new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "test", new Exception());
+        assertEquals(MappingPluginState.UNKNOWN_ERROR().getState(), ex.getMappingPluginState().getState());
         assertEquals("test", ex.getMessage());
         assertNotNull(ex.getCause());
     }

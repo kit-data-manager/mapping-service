@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.util;
 
 import edu.kit.datamanager.clients.SimpleServiceClient;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.api.Git;
@@ -41,6 +42,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 
 /**
  * Various utility methods for file handling.
@@ -238,25 +240,44 @@ public class FileUtil {
     return ext;
   }
 
-  /**
-   * Guess the extension of the file from the first bytes using Apache Tika
-   *
-   * @param filename The name of the file to support mime type detection.
-   * @param fewKilobytesOfFile First few kilobytes of the file.
-   * @return Estimated extension. e.g. '.xml'
-   */
-  private static String guessFileExtension(String filename, byte[] fewKilobytesOfFile) {
-    String returnValue = null;
-    String headerAsString = new String(fewKilobytesOfFile, 0, Math.min(fewKilobytesOfFile.length, MAX_LENGTH_OF_HEADER));
-    LOGGER.trace("Guess type for '{}'", headerAsString);
-    Matcher m = JSON_FIRST_BYTE.matcher(headerAsString);
-    if (m.matches()) {
-      returnValue = ".json";
-    } else {
-      m = XML_FIRST_BYTE.matcher(headerAsString);
-      if (m.matches()) {
-        returnValue = ".xml";
-      }
+    /**
+     * Guess the extension of the file from the first bytes using Apache Tika
+     *
+     * @param filename The name of the file to support mime type detection.
+     * @param fewKilobytesOfFile First few kilobytes of the file.
+     * @return Estimated extension. e.g. '.xml'
+     */
+    private static String guessFileExtension(String filename, byte[] fewKilobytesOfFile) {
+        String returnValue = null;
+        String headerAsString = new String(fewKilobytesOfFile, 0, Math.min(fewKilobytesOfFile.length, MAX_LENGTH_OF_HEADER));
+        LOGGER.trace("Guess type for '{}'", headerAsString);
+        Matcher m = JSON_FIRST_BYTE.matcher(headerAsString);
+        if (m.matches()) {
+            returnValue = ".json";
+        } else {
+            m = XML_FIRST_BYTE.matcher(headerAsString);
+            if (m.matches()) {
+                returnValue = ".xml";
+            }
+        }
+
+        if (returnValue == null) {
+            // Use tika library to estimate extension
+            LOGGER.trace("Use tika library to estimate extension.");
+            Tika tika = new Tika();
+            String mimeType;
+            mimeType = tika.detect(fewKilobytesOfFile, filename);
+            MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+            MimeType estimatedMimeType;
+            try {
+                estimatedMimeType = allTypes.forName(mimeType);
+                returnValue = estimatedMimeType.getExtension(); // .jpg
+                LOGGER.trace("Mimetype: '{}', Extension: '{}'", mimeType, returnValue);
+            } catch (MimeTypeException ex) {
+                LOGGER.error("Unknown mimetype '{}'", mimeType);
+            }
+        }
+        return returnValue;
     }
 
     if (returnValue == null) {
@@ -278,46 +299,42 @@ public class FileUtil {
     return returnValue;
   }
 
-  /**
-   * This method clones a git repository into the 'lib' folder.
-   *
-   * @param repositoryUrl the url of the repository to clone
-   * @param branch the branch to clone
-   * @return the path to the cloned repository
-   */
-  public static Path cloneGitRepository(String repositoryUrl, String branch) {
-    String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
-    return cloneGitRepository(repositoryUrl, branch, target);
-  }
+    /**
+     * This method clones a git repository into the 'lib' folder. If the folder
+     * already exists, a pull is performed.
+     *
+     * @param repositoryUrl the url of the repository to clone
+     * @param branch the branch to clone
+     * @param targetFolder the target folder
+     * @return the path to the cloned repository
+     */
+    public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
+        File target = new File(targetFolder);
+        if (target.exists()) {
+            try {
+                try (Git g = Git.open(target)) {
+                    LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
+                    g.getRepository().close();
+                }
+            } catch (IOException e) {
+                String message = String.format("Folder '%s' already exists but contains not Git repository.", target);
+                LOGGER.error(message, e);
+                throw new MappingServiceException("Failed to prepare plugin. Plugin code destination already exists but is empty.");
+            }
+        } else {
+            target.mkdirs();
 
-  /**
-   * This method clones a git repository into the 'lib' folder. If the folder
-   * already exists, a pull is performed.
-   *
-   * @param repositoryUrl the url of the repository to clone
-   * @param branch the branch to clone
-   * @param targetFolder the target folder
-   * @return the path to the cloned repository
-   */
-  public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
-    File target = new File(targetFolder);
-    if (target.exists()) {
-      try {
-        Git.open(target).pull().call();
-      } catch (IOException | JGitInternalException | GitAPIException e) {
-        LOGGER.error("Error pulling git repository at '" + target + "'!", e);
-        throw new MappingException("Error pulling git repository at '" + target + "'!", e);
-      }
-    } else {
-      target.mkdirs();
-
-      LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
-      try {
-        Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
-      } catch (JGitInternalException | GitAPIException e) {
-        LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
-        throw new MappingException("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
-      }
+            LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+            try {
+                try (Git res = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call()) {
+                    res.getRepository().close();
+                }
+            } catch (JGitInternalException | GitAPIException e) {
+                LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
+                throw new MappingServiceException("Failed to prepare plugin. Plugin code destination not accessible.");
+            }
+        }
+        return target.toPath();
     }
     return target.toPath();
   }

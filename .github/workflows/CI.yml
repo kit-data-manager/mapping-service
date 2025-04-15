@@ -31,7 +31,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.13'
       - name: Get Python location
         run: python -c "import os, sys; print(sys.executable)"
       - name: Update pip
@@ -39,11 +39,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Prepare
-        run: mkdir -p /tmp/mapping-service/{schemas,plugins}
-      - name: Copy Plugins
-        run: cp plugins/* /tmp/mapping-service/plugins
-      - name: List Plugins
-        run: ls -la /tmp/mapping-service/plugins
+        run: mkdir -p /tmp/mapping-service/{schemas}
       - name: Clean
         run: ./gradlew clean
 #      - if: matrix.os == 'windows-latest'

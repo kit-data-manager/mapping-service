@@ -5,46 +5,88 @@ import org.springframework.http.HttpStatus;
 import java.io.Serializable;
 
 /**
- * State of a mapping plugin.
- * This class is used to store the state of a mapping plugin and return an HTTP status code.
+ * State of a mapping plugin. This class is used to store the state of a mapping
+ * plugin and return an HTTP status code.
  *
  * @author maximilianiKIT
  */
-public enum MappingPluginState implements Serializable {
-    SUCCESS(HttpStatus.OK),
-    NOT_FOUND(HttpStatus.NOT_FOUND),
-    TIMEOUT,
-    EXECUTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_INPUT,
-    INCORRECT_MIME_TYPE,
-    INSUFFICIENT_PRIVILEGES(HttpStatus.INTERNAL_SERVER_ERROR),
-    UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
+public class MappingPluginState implements Serializable {
 
-    private final HttpStatus httpStatus;
+    public enum StateEnum {
+        SUCCESS(HttpStatus.OK),
+        NOT_FOUND(HttpStatus.NOT_FOUND),
+        TIMEOUT(HttpStatus.GATEWAY_TIMEOUT),
+        EXECUTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
+        INVALID_INPUT(HttpStatus.BAD_REQUEST),
+        BAD_EXIT_CODE(HttpStatus.INTERNAL_SERVER_ERROR),
+        UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
-    /**
-     * This method returns the HTTP status code for the given state.
-     *
-     * @return The HTTP status code for the given state.
-     */
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
+        private final HttpStatus httpStatus;
+
+        StateEnum() {
+            this.httpStatus = HttpStatus.BAD_REQUEST;
+        }
+
+        StateEnum(HttpStatus status) {
+            this.httpStatus = status;
+        }
+
+        public HttpStatus getHttpStatus() {
+            return httpStatus;
+        }
+
+    };
+
+    private final StateEnum state;
+    private Object details;
 
     /**
      * Lets the state be created with an HTTP status code.
      *
-     * @param status The HTTP status code for the given state.
+     * @param state The state enum.
      */
-    MappingPluginState(HttpStatus status) {
-        this.httpStatus = status;
+    public MappingPluginState(StateEnum state) {
+        this.state = state;
     }
 
-    /**
-     * Default constructor.
-     * Sets the default HTTP status code on error to 400.
-     */
-    MappingPluginState() {
-        this.httpStatus = HttpStatus.BAD_REQUEST;
+    public static MappingPluginState SUCCESS() {
+        return new MappingPluginState(StateEnum.SUCCESS);
     }
+
+    public static MappingPluginState NOT_FOUND() {
+        return new MappingPluginState(StateEnum.NOT_FOUND);
+    }
+
+    public static MappingPluginState TIMEOUT() {
+        return new MappingPluginState(StateEnum.TIMEOUT);
+    }
+
+    public static MappingPluginState EXECUTION_ERROR() {
+        return new MappingPluginState(StateEnum.EXECUTION_ERROR);
+    }
+
+    public static MappingPluginState INVALID_INPUT() {
+        return new MappingPluginState(StateEnum.INVALID_INPUT);
+    }
+
+    public static MappingPluginState BAD_EXIT_CODE() {
+        return new MappingPluginState(StateEnum.BAD_EXIT_CODE);
+    }
+
+    public static MappingPluginState UNKNOWN_ERROR() {
+        return new MappingPluginState(StateEnum.UNKNOWN_ERROR);
+    }
+
+    public StateEnum getState() {
+        return state;
+    }
+
+    public void setDetails(Object details) {
+        this.details = details;
+    }
+
+    public Object getDetails() {
+        return details;
+    }
+
 }

@@ -1,8 +1,0 @@
-[source,bash]
-----
-$ curl 'http://localhost:8095/api/v1/mappingAdministration/unknownMaping' -i -X PUT \
-    -H 'Content-Type: multipart/form-data' \
-    -H 'If-Match: "104363025"' \
-    -F 'record=@record.json;type=application/json' \
-    -F 'document=@my_dc4gemma.mapping;type=application/json'
-----

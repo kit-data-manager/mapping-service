@@ -99,7 +99,7 @@ public class PluginInformation implements Serializable {
             Arrays.stream(p.outputTypes()).toList().forEach(mimeType -> outputTypesList.add(mimeType.toString()));
             this.outputTypes = outputTypesList.toArray(new String[0]);
         } else {
-            throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin with id " + id + " not found.");
+            throw new MappingPluginException(MappingPluginState.NOT_FOUND(), "Plugin with id " + id + " not found.");
         }
     }
 
