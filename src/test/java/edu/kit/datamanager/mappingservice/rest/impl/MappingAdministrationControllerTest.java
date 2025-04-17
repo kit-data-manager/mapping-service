@@ -74,6 +74,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 /**
  *
  */
@@ -91,17 +92,16 @@ public class MappingAdministrationControllerTest {
 
     private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
     private static final String MAPPING_ID = "my_dc";
-    private static final String MAPPING_TYPE = "GEMMA";
+    private static final String MAPPING_TYPE = "GEMMA_1.0.0";
     private static final String MAPPING_TITLE = "TITEL";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
 
-    
     @RegisterExtension
-    final RestDocumentationExtension restDocumentation = new RestDocumentationExtension ("custom");
-    
+    final RestDocumentationExtension restDocumentation = new RestDocumentationExtension("custom");
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -109,7 +109,7 @@ public class MappingAdministrationControllerTest {
     private IMappingRecordDao mappingRecordDao;
 
     @BeforeEach
-    public void setUp(RestDocumentationContextProvider  restDocumentation) {
+    public void setUp(RestDocumentationContextProvider restDocumentation) {
         mappingRecordDao.deleteAll();
         try {
             try (Stream<Path> walk = Files.walk(Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING)))) {
@@ -135,6 +135,111 @@ public class MappingAdministrationControllerTest {
      * Test of createMapping method, of class MappingAdministrationController.
      */
     @Test
+    public void testCreateMappingWithoutID() throws Exception {
+        System.out.println("createMapping");
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+
+        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+        MappingRecord record = new MappingRecord();
+        record.setMappingId(null);
+        record.setMappingType(MAPPING_TYPE);
+        record.setTitle(MAPPING_TITLE);
+        record.setDescription(MAPPING_DESCRIPTION);
+        Set<AclEntry> aclEntries = new HashSet<>();
+        aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+        aclEntries.add(new AclEntry("test2", PERMISSION.ADMINISTRATE));
+        record.setAcl(aclEntries);
+        ObjectMapper mapper = new ObjectMapper();
+
+        MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+
+        //long before = Files.list(mappingsDir).count();
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        //assertEquals(before+1, Files.list(mappingsDir).count());
+    }
+
+    /**
+     * Test of createMapping method, of class MappingAdministrationController.
+     */
+    @Test
+    public void testCreateMappingWithWrongID() throws Exception {
+        System.out.println("createMapping");
+        Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
+
+        String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple.mapping"), StandardCharsets.UTF_8);
+        MappingRecord record = new MappingRecord();
+        record.setMappingId("");
+        record.setMappingType(MAPPING_TYPE);
+        record.setTitle(MAPPING_TITLE);
+        record.setDescription(MAPPING_DESCRIPTION);
+        Set<AclEntry> aclEntries = new HashSet<>();
+        aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
+        aclEntries.add(new AclEntry("test2", PERMISSION.ADMINISTRATE));
+        record.setAcl(aclEntries);
+        ObjectMapper mapper = new ObjectMapper();
+
+        MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+        MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
+
+        //long before = Files.list(mappingsDir).count();
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId(" ");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("\t");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+
+        record.setMappingId("    ");
+
+        recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
+
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
+                file(recordFile).
+                file(mappingFile)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
+        //assertEquals(before+1, Files.list(mappingsDir).count());
+    }
+
+    /**
+     * Test of createMapping method, of class MappingAdministrationController.
+     */
+    @Test
     public void testCreateMapping() throws Exception {
         System.out.println("createMapping");
         Path mappingsDir = Paths.get(URI.create("file://" + TEMP_DIR_4_MAPPING));
@@ -154,9 +259,7 @@ public class MappingAdministrationControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-        
         //long before = Files.list(mappingsDir).count();
-        
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
                 file(mappingFile)).
@@ -292,7 +395,7 @@ public class MappingAdministrationControllerTest {
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
         MockMultipartFile mappingFile = new MockMultipartFile("document", "my_dc4gemma.mapping", "application/json", mappingContent.getBytes());
 
-      //  assertEquals(0, mappingsDir.list().length);
+        //  assertEquals(0, mappingsDir.list().length);
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/mappingAdministration/").
                 file(recordFile).
                 file(mappingFile)).andDo(print()).andExpect(status().isCreated()).andExpect(redirectedUrlPattern("http://*:*//api/v1/mappingAdministration/*")).andReturn();
@@ -431,9 +534,9 @@ public class MappingAdministrationControllerTest {
         aclEntries.add(new AclEntry("SELF", PERMISSION.READ));
         aclEntries.add(new AclEntry("someoneelse", PERMISSION.ADMINISTRATE));
         record.setAcl(aclEntries);
-        
+
         int before = mappingsDir.list().length;
-        
+
         String mappingContent = FileUtils.readFileToString(new File("src/test/resources/mapping/gemma/simple_v2.mapping"), StandardCharsets.UTF_8);
 
         MockMultipartFile recordFile = new MockMultipartFile("record", "record.json", "application/json", mapper.writeValueAsString(record).getBytes());
@@ -761,7 +864,7 @@ public class MappingAdministrationControllerTest {
 
         String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNoContent()).andReturn();
-      //  assertEquals(1, mappingsDir.list().length);
+        //  assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
         assertNotEquals(expectedFilename, mappingsDir.list()[0]);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isNotFound()).andReturn();
@@ -785,9 +888,9 @@ public class MappingAdministrationControllerTest {
 
         String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + "unknownMappingId";
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isNoContent()).andReturn();
-       // assertEquals(1, mappingsDir.list().length);
+        // assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("my_dc_GEMMA.mapping", expectedFilename);
+        assertEquals("my_dc_GEMMA_1.0.0.mapping", expectedFilename);
         assertEquals(1, mappingRecordDao.count());
     }
 
@@ -830,9 +933,9 @@ public class MappingAdministrationControllerTest {
 
         String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl)).andDo(print()).andExpect(status().isPreconditionRequired()).andReturn();
-       // assertEquals(1, mappingsDir.list().length);
+        // assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("my_dc_GEMMA.mapping", expectedFilename);
+        assertEquals("my_dc_GEMMA_1.0.0.mapping", expectedFilename);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingRecordDao.count());
     }
@@ -854,9 +957,9 @@ public class MappingAdministrationControllerTest {
 
         String deleteMappingIdUrl = "/api/v1/mappingAdministration/" + mappingId;
         result = this.mockMvc.perform(delete(deleteMappingIdUrl).header("If-Match", etag)).andDo(print()).andExpect(status().isPreconditionFailed()).andReturn();
-     //   assertEquals(1, mappingsDir.list().length);
+        //   assertEquals(1, mappingsDir.list().length);
         String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-        assertEquals("my_dc_GEMMA.mapping", expectedFilename);
+        assertEquals("my_dc_GEMMA_1.0.0.mapping", expectedFilename);
         result = this.mockMvc.perform(get(getMappingIdUrl).header("Accept", MappingRecord.MAPPING_RECORD_MEDIA_TYPE)).andDo(print()).andExpect(status().isOk()).andReturn();
         assertEquals(1, mappingRecordDao.count());
     }
