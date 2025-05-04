@@ -24,7 +24,7 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import java.nio.file.Path;
 
-public class GemmaPlugin implements IMappingPlugin {
+public class GemmaPlugin extends AbstractPythonMappingPlugin {
 
     private final Logger LOGGER = LoggerFactory.getLogger(GemmaPlugin.class);
     private static final String GEMMA_REPOSITORY = "https://github.com/kit-data-manager/gemma.git";
@@ -32,24 +32,13 @@ public class GemmaPlugin implements IMappingPlugin {
     private static Path gemmaDir;
     private boolean initialized = false;
 
-    @Override
-    public String name() {
-        return "GEMMA";
+    public GemmaPlugin() {
+        super("GEMMA", GEMMA_REPOSITORY);
     }
 
     @Override
     public String description() {
         return "GEMMA is a tool written in Python that allows to map from JSON and XML to JSON. Furthermore, it allows to map with a mapping schema.";
-    }
-
-    @Override
-    public String version() {
-        return "1.0.0";
-    }
-
-    @Override
-    public String uri() {
-        return "https://github.com/kit-data-manager/gemma";
     }
 
     @Override
@@ -63,19 +52,16 @@ public class GemmaPlugin implements IMappingPlugin {
     }
 
     @Override
-    public void setup() {
-        LOGGER.info("Checking and installing dependencies for Gemma: gemma, xmltodict, wget");
-        try {
-            PythonRunnerUtil.runPythonScript("-m", new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), new LoggerOutputStream(LOGGER, LoggerOutputStream.Level.DEBUG), "pip", "install", "xmltodict", "wget");
-            gemmaDir = FileUtil.cloneGitRepository(GEMMA_REPOSITORY, GEMMA_BRANCH);
-            initialized = true;
-        } catch (MappingPluginException e) {
-            throw new PluginInitializationFailedException("Failed to setup plugin '" + name() + "' " + version() + ".", e);
-
-        }
+    public String[] getCommandArray(Path workingDir, Path mappingFile, Path inputFile, Path outputFile) {
+        return new String[]{
+            workingDir + "/mapping_single.py",
+            mappingFile.toString(),
+            inputFile.toString(),
+            outputFile.toString()
+        };
     }
 
-    @Override
+  /*  @Override
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         if (initialized) {
             LOGGER.trace("Running plugin '{}' v{} on '{}' with mapping '{}' -> '{}'", name(), version(), inputFile, mappingFile, outputFile);
@@ -86,5 +72,5 @@ public class GemmaPlugin implements IMappingPlugin {
             result.setDetails("Plugin not initialized, probably due to missing dependencies or external plugin repository.");
             return result;
         }
-    }
+    }*/
 }

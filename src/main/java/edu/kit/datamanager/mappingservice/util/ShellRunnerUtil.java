@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
  */
 public class ShellRunnerUtil {
 
- 
     private static ApplicationProperties configuration;
 
     /**
@@ -119,21 +119,8 @@ public class ShellRunnerUtil {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process p = pb.start();
 
-            //connect to process out/err streams
-            Future<List<String>> errorFuture = pool.submit(new ShellRunnerUtil.ProcessReadTask(p.getErrorStream()));
-            Future<List<String>> inputFuture = pool.submit(new ShellRunnerUtil.ProcessReadTask(p.getInputStream()));
-
-            //wait for max timeOutInSeconds for stream to close aka. process to finish
-            List<String> stdErr = errorFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
-            List<String> stdOut = inputFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
-
-            //print all out/err messages at once
-            for (String line : stdOut) {
-                output.write((line + "\n").getBytes());
-            }
-            for (String line : stdErr) {
-                error.write((line + "\n").getBytes());
-            }
+            pipeStream(p.getInputStream(), new PrintStream(output));
+            pipeStream(p.getErrorStream(), new PrintStream(error));
 
             if (!p.waitFor(timeOutInSeconds, TimeUnit.SECONDS)) {
                 throw new TimeoutException("Process did not return within " + timeOutInSeconds + " seconds.");
@@ -147,7 +134,7 @@ public class ShellRunnerUtil {
         } catch (TimeoutException te) {
             LOGGER.error("Command did not return in expected timeframe of " + timeOutInSeconds + " seconds", te);
             returnValue = MappingPluginState.TIMEOUT();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
             LOGGER.error("Command execution has been interrupted.", e);
             returnValue = MappingPluginState.UNKNOWN_ERROR();
         } catch (BadExitCodeException e) {
@@ -164,11 +151,15 @@ public class ShellRunnerUtil {
         return returnValue;
     }
 
-    private record ProcessReadTask(InputStream inputStream) implements Callable<List<String>> {
-
-        @Override
-        public List<String> call() {
-            return new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.toList());
-        }
+    private static void pipeStream(final InputStream src, final OutputStream dest) {
+        new Thread(() -> {
+            Scanner sc = new Scanner(src);
+            try (PrintStream print = new PrintStream(dest)) {
+                while (sc.hasNextLine()) {
+                    print.println(sc.nextLine());
+                }
+                print.flush();
+            }
+        }).start();
     }
 }

@@ -97,6 +97,7 @@ public class PythonRunnerUtil {
         ArrayList<String> command = new ArrayList<>();
         command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
+        
         if (args != null) {
             Collections.addAll(command, args);
         }
