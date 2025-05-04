@@ -15,7 +15,6 @@
  */
 package edu.kit.datamanager.mappingservice.configuration;
 
-import edu.kit.datamanager.annotations.ExecutableFileURL;
 import edu.kit.datamanager.annotations.LocalFolderURL;
 import edu.kit.datamanager.validator.ExecutableFileValidator;
 import lombok.Data;
