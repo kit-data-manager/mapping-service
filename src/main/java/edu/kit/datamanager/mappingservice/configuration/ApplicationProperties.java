@@ -60,6 +60,14 @@ public class ApplicationProperties {
     private URL mappingsLocation;
 
     /**
+     * The absolute path where mapping plugin code is checked out into, i.e.,
+     * for Python-based plugins.
+     */
+    @LocalFolderURL
+    @Value("${mapping-service.codeLocation}")
+    private URL codeLocation;
+
+    /**
      * The absolute path where job data is stored.
      */
     @LocalFolderURL

@@ -42,7 +42,6 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 
 /**
  * Various utility methods for file handling.
@@ -282,20 +281,10 @@ public class FileUtil {
     }
 
     /**
-     * This method clones a git repository into the 'lib' folder.
-     *
-     * @param repositoryUrl the url of the repository to clone
-     * @param branch the branch to clone
-     * @return the path to the cloned repository
-     */
-    public static Path cloneGitRepository(String repositoryUrl, String branch) {
-        String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
-        return cloneGitRepository(repositoryUrl, branch, target);
-    }
-
-    /**
-     * This method clones a git repository into the 'lib' folder. If the folder
-     * already exists, a pull is performed.
+     * This method clones a git repository into the provided target folder. If
+     * the folder already exists, a pull is performed, otherwise it is created
+     * before. Typically, the target folder should be takes from property
+     * 'mapping-service.codeLocation' obtained from ApplicationProperties.
      *
      * @param repositoryUrl the url of the repository to clone
      * @param branch the branch to clone

@@ -15,9 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
-import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import edu.kit.datamanager.mappingservice.plugins.*;
-import edu.kit.datamanager.mappingservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.MimeType;
