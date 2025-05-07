@@ -40,16 +40,15 @@ import org.springframework.stereotype.Component;
  *
  * @author jejkal
  */
-@Component
 public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
 
     private final Logger LOGGER = LoggerFactory.getLogger(AbstractPythonMappingPlugin.class);
 
     /**
-     * Application properties autowired at instantiation time.
+     * Application properties autowired at instantiation time via
+     * setApplicationProperties.
      */
-    @Autowired
-    private final ApplicationProperties applicationProperties;
+    private ApplicationProperties applicationProperties;
     /**
      * The plugin name.
      */
@@ -128,6 +127,17 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         } catch (IOException e) {
             throw new PluginInitializationFailedException("Failed to instantiate plugin class.", e);
         }
+    }
+
+    /**
+     * Setter to autowire ApplicationProperties into all implementations of this
+     * abstract class.
+     *
+     * @param applicationProperties The applicationProperties bean.
+     */
+    @Autowired
+    public final void setApplicationProperties(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
     }
 
     /**

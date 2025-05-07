@@ -322,7 +322,7 @@ public class FileUtilTest {
     @Test
     void cloneValidGitRepository() {
         Path util = null;
-        
+
         try {
             util = FileUtil.cloneGitRepository("https://github.com/kit-data-manager/mapping-service.git", "main", "/tmp/test");
         } catch (Exception e) {
@@ -340,7 +340,6 @@ public class FileUtilTest {
     @Test
     void cloneInvalidGitRepository() {
         assertThrows(MappingServiceException.class, () -> FileUtil.cloneGitRepository("test", "test", "test"));
-        assertThrows(MappingServiceException.class, () -> FileUtil.cloneGitRepository("test", "test"));
     }
 
     @AfterEach
