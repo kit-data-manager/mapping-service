@@ -88,7 +88,7 @@ dependencies {
        	exclude group: "com.sun.xml.bind"
     }
     // apache
-    implementation "org.apache.tika:tika-core:2.9.3"
+    implementation "org.apache.tika:tika-core:3.1.0"
 
     testImplementation platform('org.junit:junit-bom')
     testImplementation 'org.junit.jupiter:junit-jupiter'

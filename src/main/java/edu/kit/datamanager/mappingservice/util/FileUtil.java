@@ -311,13 +311,17 @@ public class FileUtil {
             target.mkdirs();
 
             LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+            Git g = null;
             try {
-                try (Git res = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call()) {
-                    res.getRepository().close();
-                }
+                g = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+                LOGGER.trace("Repository successfully cloned to {}.", target);
             } catch (JGitInternalException | GitAPIException e) {
                 LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination not accessible.");
+            } finally {
+                if (g != null) {
+                    g.getRepository().close();
+                }
             }
         }
         return target.toPath();
