@@ -73,7 +73,7 @@ class PluginLoaderTest {
             assertEquals("https://github.com/kit-data-manager/mapping-service", plugins.get("InOutPlugin_1.1.2").uri());
             assertEquals("application/*", plugins.get("InOutPlugin_1.1.2").inputTypes()[0].toString());
             assertEquals("application/*", plugins.get("InOutPlugin_1.1.2").outputTypes()[0].toString());
-            plugins.get("InOutPlugin_1.1.2").setup();
+            plugins.get("InOutPlugin_1.1.2").setup(applicationProperties);
             File inputFile = new File("/tmp/imputFile");
             if (!inputFile.exists()) {
                 Assertions.assertTrue(inputFile.createNewFile());

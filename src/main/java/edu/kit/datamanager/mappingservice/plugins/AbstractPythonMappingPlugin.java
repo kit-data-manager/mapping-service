@@ -45,11 +45,6 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
     private final Logger LOGGER = LoggerFactory.getLogger(AbstractPythonMappingPlugin.class);
 
     /**
-     * Application properties autowired at instantiation time via
-     * setApplicationProperties.
-     */
-    private ApplicationProperties applicationProperties;
-    /**
      * The plugin name.
      */
     private String name;
@@ -130,17 +125,6 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
     }
 
     /**
-     * Setter to autowire ApplicationProperties into all implementations of this
-     * abstract class.
-     *
-     * @param applicationProperties The applicationProperties bean.
-     */
-    @Autowired
-    public final void setApplicationProperties(ApplicationProperties applicationProperties) {
-        this.applicationProperties = applicationProperties;
-    }
-
-    /**
      * Abstract method that is supposed to be implemented by each Python mapping
      * plugin to gather all information required for starting a Python process
      * executing the mapping script. The returned array must contain at least
@@ -198,7 +182,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
     }
 
     @Override
-    public void setup() {
+    public void setup(ApplicationProperties applicationProperties) {
         LOGGER.trace("Setting up mapping plugin {} {}", name(), version());
 
         //testing minimal Python version
@@ -211,16 +195,25 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         //checkout and install plugin
         try {
             LOGGER.info("Cloning git repository {}, tag {}", repositoryUrl, tag);
-            dir = FileUtil.cloneGitRepository(repositoryUrl, tag, Paths.get(applicationProperties.getCodeLocation().toURI()).toAbsolutePath().toString());
+            Path path = Paths.get(applicationProperties.getCodeLocation().toURI());
+            path = path.resolve(repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + version());
+            LOGGER.info("Target path: {}", path);
+            dir = FileUtil.cloneGitRepository(repositoryUrl, tag, path.toAbsolutePath().toString());
             // Install Python dependencies
             MappingPluginState venvState = PythonRunnerUtil.runPythonScript("-m", "venv", "--system-site-packages", dir + "/" + pluginVenv);
             if (MappingPluginState.SUCCESS().getState().equals(venvState.getState())) {
-                LOGGER.info("Venv for plugin installed successfully. Installing packages.");
-                MappingPluginState requirementsInstallState = ShellRunnerUtil.run(dir + "/" + venvInterpreter, "-m", "pip", "install", "-r", dir + "/" + "requirements.dist.txt");
-                if (MappingPluginState.SUCCESS().getState().equals(requirementsInstallState.getState())) {
-                    LOGGER.info("Requirements for plugin installed successfully. Setup complete.");
+                LOGGER.info("Venv for plugin installed successfully. Installing requirements.");
+
+                Path requirementsFile = Paths.get(dir + "/" + "requirements.dist.txt");
+                if (requirementsFile.toFile().exists()) {
+                    MappingPluginState requirementsInstallState = ShellRunnerUtil.run(dir + "/" + venvInterpreter, "-m", "pip", "install", "-r", dir + "/" + "requirements.dist.txt");
+                    if (MappingPluginState.SUCCESS().getState().equals(requirementsInstallState.getState())) {
+                        LOGGER.info("Requirements for plugin installed successfully. Setup complete.");
+                    } else {
+                        throw new PluginInitializationFailedException("Failed to install plugin requirements. Status: " + venvState.getState());
+                    }
                 } else {
-                    throw new PluginInitializationFailedException("Failed to install plugin requirements. Status: " + venvState.getState());
+                    LOGGER.info("No requirements file found. Skipping dependency installation.");
                 }
             } else {
                 throw new PluginInitializationFailedException("Venv installation has failed. Status: " + venvState.getState());
@@ -267,10 +260,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         try {
             LOGGER.trace("Checking for minimal Python version {}.", versionString);
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            List<String> command = new LinkedList<>();
-            command.add(dir + "/" + venvInterpreter);
-            command.addAll(Arrays.asList("--version"));
-            MappingPluginState state = ShellRunnerUtil.run(bout, System.err, command.toArray(String[]::new));
+            MappingPluginState state = PythonRunnerUtil.runPythonScript("--version", bout, System.err);
 
             if (!MappingPluginState.StateEnum.SUCCESS.equals(state.getState())) {
                 LOGGER.error("Failed to obtain Python version. python --version returned with status {}.", state.getState());

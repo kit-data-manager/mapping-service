@@ -100,12 +100,12 @@ public class PluginLoader {
             cl = Thread.currentThread().getContextClassLoader();
         }
 
-        List<Class<IMappingPlugin>> plugClasses = extractClassesFromJARs(pluginJars, packagesToScan, cl);
-        List<IMappingPlugin> IMappingPluginList = createPluggableObjects(plugClasses);
+        List<Class<IMappingPlugin>> pluginClasses = extractClassesFromJARs(pluginJars, packagesToScan, cl);
+        List<IMappingPlugin> IMappingPluginList = createPluggableObjects(pluginClasses);
 
         for (IMappingPlugin i : IMappingPluginList) {
             try {
-                i.setup();
+                i.setup(applicationProperties);
                 LOG.trace(" - Adding new plugin {}, v{} to available list", i.name(), i.version());
                 result.put(i.id(), i);
             } catch (PluginInitializationFailedException re) {
