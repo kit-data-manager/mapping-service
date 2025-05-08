@@ -92,7 +92,7 @@ public class MappingAdministrationControllerTest {
 
     private final static String TEMP_DIR_4_MAPPING = "/tmp/mapping-service/";
     private static final String MAPPING_ID = "my_dc";
-    private static final String MAPPING_TYPE = "GEMMA_master";
+    private static final String MAPPING_TYPE = "GEMMA_v1.0.0";
     private static final String MAPPING_TITLE = "TITEL";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
 
