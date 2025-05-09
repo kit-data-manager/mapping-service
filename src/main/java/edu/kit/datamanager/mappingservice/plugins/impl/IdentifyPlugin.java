@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
@@ -71,7 +72,7 @@ public class IdentifyPlugin implements IMappingPlugin {
     }
 
     @Override
-    public void setup() {
+    public void setup(ApplicationProperties applicationProperties) {
         if (Paths.get("/usr/bin/identify").toFile().exists()) {
             initialized = true;
         } else {

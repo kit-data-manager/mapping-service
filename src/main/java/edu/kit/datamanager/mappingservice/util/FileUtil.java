@@ -294,27 +294,34 @@ public class FileUtil {
     public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
         File target = new File(targetFolder);
         if (target.exists()) {
+            Git g = null;
             try {
-                try (Git g = Git.open(target)) {
-                    LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
-                    g.getRepository().close();
-                }
+                g = Git.open(target);
+                LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
             } catch (IOException e) {
                 String message = String.format("Folder '%s' already exists but contains not Git repository.", target);
                 LOGGER.error(message, e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination already exists but is empty.");
+            } finally {
+                if (g != null) {
+                    g.getRepository().close();
+                }
             }
         } else {
             target.mkdirs();
 
             LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+            Git g = null;
             try {
-                try (Git res = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call()) {
-                    res.getRepository().close();
-                }
+                g = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+                LOGGER.trace("Repository successfully cloned to {}.", target);
             } catch (JGitInternalException | GitAPIException e) {
                 LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination not accessible.");
+            } finally {
+                if (g != null) {
+                    g.getRepository().close();
+                }
             }
         }
         return target.toPath();

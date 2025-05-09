@@ -15,6 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
@@ -66,7 +67,7 @@ public class InOutPlugin implements IMappingPlugin {
     }
 
     @Override
-    public void setup() {
+    public void setup(ApplicationProperties applicationProperties) {
         //nothing to do here
         LOG.trace("Plugin {} {} successfully set up.", name(), version());
     }
