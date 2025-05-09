@@ -37,13 +37,12 @@ public class PythonRunnerUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonRunnerUtil.class);
 
-    
     public static void init(ApplicationProperties configuration) {
         PythonRunnerUtil.configuration = configuration;
     }
 
     /**
-     * This method prints the python version to Log.info.
+     * This method prints the python version to System.out.
      */
     public static void printPythonVersion() {
         try {
@@ -53,6 +52,7 @@ public class PythonRunnerUtil {
         }
     }
 
+    
     /**
      * This method executes an argument/option on the python interpreter.
      *
@@ -97,6 +97,7 @@ public class PythonRunnerUtil {
         ArrayList<String> command = new ArrayList<>();
         command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
+        
         if (args != null) {
             Collections.addAll(command, args);
         }
