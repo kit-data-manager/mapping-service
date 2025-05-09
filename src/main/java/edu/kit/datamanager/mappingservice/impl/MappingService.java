@@ -498,6 +498,11 @@ public class MappingService {
             } catch (IOException e) {
                 throw new MappingServiceException(String.format("Could not initialize job output directory '%s'.", applicationProperties.getJobOutputLocation()), e);
             }
+            try {
+                Files.createDirectories(new File(applicationProperties.getCodeLocation().getPath()).getAbsoluteFile().toPath());
+            } catch (IOException e) {
+                throw new MappingServiceException(String.format("Could not initialize code target directory '%s'.", applicationProperties.getCodeLocation()), e);
+            }
         } else {
             throw new MappingServiceException("Cannot configure MappingService due to missing application.properties.");
         }
