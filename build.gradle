@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.4.4'
+    id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '4.0.4'
     id 'io.freefair.maven-publish-java' version '8.13.1'
@@ -79,7 +79,7 @@ dependencies {
 
     implementation "org.javers:javers-spring-boot-starter-sql:${javersVersion}"
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
-    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation 'org.apache.commons:commons-collections4:4.5.0'
     implementation 'org.apache.maven:maven-artifact:3.9.9'
     implementation 'org.json:json:20250107'
     implementation 'com.github.jknack:handlebars:4.4.0'
