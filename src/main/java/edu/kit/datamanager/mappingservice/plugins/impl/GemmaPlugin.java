@@ -15,22 +15,14 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
-import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import edu.kit.datamanager.mappingservice.plugins.*;
-import edu.kit.datamanager.mappingservice.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import java.nio.file.Path;
 
 public class GemmaPlugin extends AbstractPythonMappingPlugin {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(GemmaPlugin.class);
     private static final String GEMMA_REPOSITORY = "https://github.com/kit-data-manager/gemma.git";
-    private static final String GEMMA_BRANCH = "master";
-    private static Path gemmaDir;
-    private boolean initialized = false;
 
     public GemmaPlugin() {
         super("GEMMA", GEMMA_REPOSITORY);
@@ -60,17 +52,4 @@ public class GemmaPlugin extends AbstractPythonMappingPlugin {
             outputFile.toString()
         };
     }
-
-  /*  @Override
-    public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
-        if (initialized) {
-            LOGGER.trace("Running plugin '{}' v{} on '{}' with mapping '{}' -> '{}'", name(), version(), inputFile, mappingFile, outputFile);
-            return PythonRunnerUtil.runPythonScript(gemmaDir + "/mapping_single.py", mappingFile.toString(), inputFile.toString(), outputFile.toString());
-        } else {
-            LOGGER.error("Plugin '" + name() + "' " + version() + " not initialized. Returning EXECUTION_ERROR.");
-            MappingPluginState result = MappingPluginState.EXECUTION_ERROR();
-            result.setDetails("Plugin not initialized, probably due to missing dependencies or external plugin repository.");
-            return result;
-        }
-    }*/
 }
