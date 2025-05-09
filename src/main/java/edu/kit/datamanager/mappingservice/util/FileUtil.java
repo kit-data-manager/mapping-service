@@ -42,7 +42,6 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 
 /**
  * Various utility methods for file handling.
@@ -282,20 +281,10 @@ public class FileUtil {
     }
 
     /**
-     * This method clones a git repository into the 'lib' folder.
-     *
-     * @param repositoryUrl the url of the repository to clone
-     * @param branch the branch to clone
-     * @return the path to the cloned repository
-     */
-    public static Path cloneGitRepository(String repositoryUrl, String branch) {
-        String target = "lib/" + repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + branch;
-        return cloneGitRepository(repositoryUrl, branch, target);
-    }
-
-    /**
-     * This method clones a git repository into the 'lib' folder. If the folder
-     * already exists, a pull is performed.
+     * This method clones a git repository into the provided target folder. If
+     * the folder already exists, a pull is performed, otherwise it is created
+     * before. Typically, the target folder should be takes from property
+     * 'mapping-service.codeLocation' obtained from ApplicationProperties.
      *
      * @param repositoryUrl the url of the repository to clone
      * @param branch the branch to clone
@@ -305,27 +294,34 @@ public class FileUtil {
     public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
         File target = new File(targetFolder);
         if (target.exists()) {
+            Git g = null;
             try {
-                try (Git g = Git.open(target)) {
-                    LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
-                    g.getRepository().close();
-                }
+                g = Git.open(target);
+                LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
             } catch (IOException e) {
                 String message = String.format("Folder '%s' already exists but contains not Git repository.", target);
                 LOGGER.error(message, e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination already exists but is empty.");
+            } finally {
+                if (g != null) {
+                    g.getRepository().close();
+                }
             }
         } else {
             target.mkdirs();
 
             LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
+            Git g = null;
             try {
-                try (Git res = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call()) {
-                    res.getRepository().close();
-                }
+                g = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+                LOGGER.trace("Repository successfully cloned to {}.", target);
             } catch (JGitInternalException | GitAPIException e) {
                 LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination not accessible.");
+            } finally {
+                if (g != null) {
+                    g.getRepository().close();
+                }
             }
         }
         return target.toPath();
