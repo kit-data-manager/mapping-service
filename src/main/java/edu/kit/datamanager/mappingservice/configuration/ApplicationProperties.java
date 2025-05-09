@@ -15,7 +15,6 @@
  */
 package edu.kit.datamanager.mappingservice.configuration;
 
-import edu.kit.datamanager.annotations.ExecutableFileURL;
 import edu.kit.datamanager.annotations.LocalFolderURL;
 import edu.kit.datamanager.validator.ExecutableFileValidator;
 import lombok.Data;
@@ -59,6 +58,14 @@ public class ApplicationProperties {
     @LocalFolderURL
     @Value("${mapping-service.mappingSchemasLocation}")
     private URL mappingsLocation;
+
+    /**
+     * The absolute path where mapping plugin code is checked out into, i.e.,
+     * for Python-based plugins.
+     */
+    @LocalFolderURL
+    @Value("${mapping-service.codeLocation}")
+    private URL codeLocation;
 
     /**
      * The absolute path where job data is stored.
