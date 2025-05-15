@@ -10,6 +10,10 @@ plugins {
     id 'java'
     id 'application'
     id 'jacoco'
+    // plugins for release and publishing to maven repo
+    id "signing"
+    id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
+    id 'maven-publish'
 }
 
 description = 'Generic mapping service supporting different mapping implementations.'
@@ -164,12 +168,17 @@ bootJar {
     manifest {
         attributes 'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
     }
-    exclude '**/plugins/impl/**'
+   //exclude '**/plugins/impl/**'
 
-    from('build/libs/default-plugins-1.1.2-SNAPSHOT.jar') {
-        into('BOOT-INF/lib/plugins' )
-     }
+   // from('build/libs/default-plugins-1.1.2-SNAPSHOT.jar') {
+   //     into('BOOT-INF/lib/plugins' )
+   //  }
     launchScript()
+}
+
+if (project.hasProperty('release')) {
+    println 'Using \'release\' profile for building ' + project.getName()
+    apply from: 'gradle/profile-deploy.gradle'
 }
 
 springBoot {    
@@ -185,11 +194,23 @@ release {
     tagTemplate = 'v${version}'
 }
 
+tasks.named("jar") {
+	enabled = false
+}
+
 task buildPluginJar(type: Jar) {
- description = 'Bundeling only plugin classes'
- archiveFileName.set("default-plugins-${version}.jar")
- from sourceSets.main.output
- include '**/plugins/impl/*.class'
+    description = 'Bundeling plugin core classes'
+    archiveFileName.set("plugin-core-${version}.jar")
+    from sourceSets.main.output
+    include '**/configuration/ApplicationProperties.class', 
+            '**/exception.BadExitCodeException.class', 
+            '**/plugins/AbstractPythonMappingPlugin.class', 
+            '**/plugins/IMappingPlugin.class', 
+            '**/plugins/MappingPluginException.class', 
+            '**/plugins/MappingPluginState.class', 
+            '**/util/PythonRunnerUtil.class', 
+            '**/util/ShellRunnerUtil.class'
+    includeEmptyDirs false
 }
 
 // task for printing project name.
