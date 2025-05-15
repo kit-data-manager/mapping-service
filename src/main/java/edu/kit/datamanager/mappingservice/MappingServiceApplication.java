@@ -3,8 +3,9 @@ package edu.kit.datamanager.mappingservice;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.plugins.PluginLoader;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
+import io.micrometer.core.instrument.MeterRegistry;
+import edu.kit.datamanager.mappingservice.plugins.PluginLoader;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import edu.kit.datamanager.security.filter.KeycloakJwtProperties;
@@ -13,6 +14,7 @@ import edu.kit.datamanager.security.filter.KeycloakTokenValidator;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,6 +34,13 @@ public class MappingServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(MappingServiceApplication.class);
 
+    @Autowired
+    private final MeterRegistry meterRegistry;
+
+    MappingServiceApplication(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
     @Bean
     public ApplicationProperties applicationProperties() {
         return new ApplicationProperties();
@@ -46,7 +55,7 @@ public class MappingServiceApplication {
     public PluginManager pluginManager() {
         PythonRunnerUtil.init(applicationProperties());
         ShellRunnerUtil.init(applicationProperties());
-        return new PluginManager(applicationProperties(), pluginLoader());
+        return new PluginManager(applicationProperties(), pluginLoader(), meterRegistry);
     }
 
     @Bean

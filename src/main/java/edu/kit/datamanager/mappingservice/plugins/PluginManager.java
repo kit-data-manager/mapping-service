@@ -15,6 +15,8 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +64,12 @@ public class PluginManager {
      * instantiation time.
      */
     @Autowired
-    public PluginManager(ApplicationProperties applicationProperties, PluginLoader pluginLoader) {
+    public PluginManager(ApplicationProperties applicationProperties, PluginLoader pluginLoader, MeterRegistry meterRegistry) {
         this.applicationProperties = applicationProperties;
         this.pluginLoader = pluginLoader;
         reloadPlugins();
+
+        Gauge.builder("mapping_service.plugins_total", () -> plugins.size()).register(meterRegistry);
     }
 
     /**

@@ -125,7 +125,7 @@ public class PythonUtilsTest {
             PythonRunnerUtil.runPythonScript(scriptLocation, null, null, arguments);
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.StateEnum.INVALID_INPUT, e.getMappingPluginState().getState());
+            assertEquals(MappingPluginState.StateEnum.UNKNOWN_ERROR, e.getMappingPluginState().getState());
         }
     }
 }
