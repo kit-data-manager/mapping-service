@@ -17,6 +17,7 @@
 
 // Main jar with only selected classes
 task selectedClassesJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
     archiveClassifier = ''
     from sourceSets.main.output
     include '**/configuration/ApplicationProperties.class', 
@@ -27,16 +28,28 @@ task selectedClassesJar(type: Jar) {
             '**/plugins/MappingPluginState.class', 
             '**/util/PythonRunnerUtil.class', 
             '**/util/ShellRunnerUtil.class'
+    includeEmptyDirs false
 }
 
-// Sources jar
-task sourcesJar(type: Jar) {
+// Sources jar with only selected classes
+task selectedSourcesJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
+    include '**/configuration/ApplicationProperties.java', 
+            '**/exception.BadExitCodeException.java', 
+            '**/plugins/AbstractPythonMappingPlugin.java', 
+            '**/plugins/IMappingPlugin.java', 
+            '**/plugins/MappingPluginException.java', 
+            '**/plugins/MappingPluginState.java', 
+            '**/util/PythonRunnerUtil.java', 
+            '**/util/ShellRunnerUtil.java'
+    includeEmptyDirs false
 }
 
 // Javadoc jar
 task javadocJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
     archiveClassifier = 'javadoc'
     from javadoc
 }
@@ -45,12 +58,12 @@ task javadocJar(type: Jar) {
 //for java plugin
 //see https://docs.gradle.org/current/userguide/java_plugin.html
 ////////////////////////////////////////////////////////////////////////////////
-java {
+//java {
     //package JavaDoc as part of publication
-    withJavadocJar()
+//    withJavadocJar()
     //package Sources as part of publication
-    withSourcesJar()
-}
+//    withSourcesJar()
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 //for plugin net.researchgate.release 
@@ -98,7 +111,7 @@ publishing {
         //by the signing plugin, e.g. sign publishing.publications.maven
          mavenJava(MavenPublication) {
             artifact selectedClassesJar
-            artifact sourcesJar
+            artifact selectedSourcesJar
             artifact javadocJar
 
             groupId = "edu.kit.datamanager"
