@@ -22,10 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * Utility class for running shell scripts.

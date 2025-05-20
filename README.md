@@ -48,17 +48,6 @@ and modify it according to your needs. Espacially the following properties (at t
 | mapping-service.packagesToScan | Packages scanned for mapping plugins in addition to plugins located in mapping-service.pluginLocation. Typically, this property has not the be changed. | edu.kit.datamanager.mappingservice.plugins.impl  |
 | mapping-service.executionTimeout | The timeout in seconds a plugin process, i.e., Python of Shell, may take before it is assumed to be stale. | 30 |
 
-## Creating Mapping Plugins
-
-There are some sample plugins available at 'edu.kit.datamanager.mappingservice.plugins.impl'. You may add your plugins to the same package and they will be available
-for your mapping-service instance (as long as you kept 'mapping-service.packagesToScan' unchanged). 
-
-Optionally, you may also develop plugins in an own repository.
-However, in order to do so you'll have to build the mapping-service once and you should provide 'build/libs/mapping-service-<VERSION>-plain.jar' at 
-as build time dependency to have the mapping plugin interface available. After building and packaging your plugin, you can copy the resulting jar file 
-to 'mapping-service.pluginLocation' to make the plugin available in your mapping-service instance.
-
-
 ## Starting the Mapping-Service
 
 The executable jar of the mapping-service is located at 'build/libs/mapping-service-<VERSION>.jar' You should copy it to some dedicated folder, 

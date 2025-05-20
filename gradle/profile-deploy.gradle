@@ -14,6 +14,57 @@
  * limitations under the License.
  */
 
+
+// Main jar with only selected classes
+task selectedClassesJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
+    archiveClassifier = ''
+    from sourceSets.main.output
+    include '**/configuration/ApplicationProperties.class', 
+            '**/exception.BadExitCodeException.class', 
+            '**/plugins/AbstractPythonMappingPlugin.class', 
+            '**/plugins/IMappingPlugin.class', 
+            '**/plugins/MappingPluginException.class', 
+            '**/plugins/MappingPluginState.class', 
+            '**/util/PythonRunnerUtil.class', 
+            '**/util/ShellRunnerUtil.class'
+    includeEmptyDirs false
+}
+
+// Sources jar with only selected classes
+task selectedSourcesJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    include '**/configuration/ApplicationProperties.java', 
+            '**/exception.BadExitCodeException.java', 
+            '**/plugins/AbstractPythonMappingPlugin.java', 
+            '**/plugins/IMappingPlugin.java', 
+            '**/plugins/MappingPluginException.java', 
+            '**/plugins/MappingPluginState.java', 
+            '**/util/PythonRunnerUtil.java', 
+            '**/util/ShellRunnerUtil.java'
+    includeEmptyDirs false
+}
+
+// Javadoc jar
+task javadocJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
+    archiveClassifier = 'javadoc'
+    from javadoc
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//for java plugin
+//see https://docs.gradle.org/current/userguide/java_plugin.html
+////////////////////////////////////////////////////////////////////////////////
+//java {
+    //package JavaDoc as part of publication
+//    withJavadocJar()
+    //package Sources as part of publication
+//    withSourcesJar()
+//}
+
 ////////////////////////////////////////////////////////////////////////////////
 //for plugin net.researchgate.release 
 //see https://github.com/researchgate/gradle-release
@@ -25,4 +76,98 @@ release {
     versionPropertyFile = 'gradle.properties'
     //set possible properties which may contain the version
     versionProperties = ['version', 'mainversion']
+    git {
+        //branch from where to release (default: main)
+        requireBranch.set('main')
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//for javadoc task
+//see https://docs.gradle.org/current/dsl/org.gradle.api.tasks.javadoc.Javadoc.html
+////////////////////////////////////////////////////////////////////////////////
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//for plugin io.github.gradle-nexus.publish-plugin
+//see https://github.com/gradle-nexus/publish-plugin
+////////////////////////////////////////////////////////////////////////////////
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+//for plugin maven-publish/io.github.gradle-nexus.publish-plugin
+//see https://docs.gradle.org/current/userguide/publishing_maven.html
+////////////////////////////////////////////////////////////////////////////////
+publishing {
+    publications {
+        //define publication identity, e.g. maven, which will be used
+        //by the signing plugin, e.g. sign publishing.publications.maven
+         mavenJava(MavenPublication) {
+            artifact selectedClassesJar
+            artifact selectedSourcesJar
+            artifact javadocJar
+
+            groupId = "edu.kit.datamanager"
+            artifactId = "mapping-plugin-core"
+            version = project.version
+
+            pom {
+                name = project['name']
+                description = project['description']
+                url = 'http://datamanager.kit.edu'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Jejkal'
+                        name = 'Thomas Jejkal'
+                        email = 'webmaster@datamanager.kit.edu'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com/kit-data-manager/service-base'
+                    developerConnection = 'scm:git:github.com/kit-data-manager/service-base'
+                    url = 'https://github.com/kit-data-manager/service-base'
+                }
+            }         
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+//for plugin signing
+//see https://docs.gradle.org/current/userguide/signing_plugin.html
+////////////////////////////////////////////////////////////////////////////////
+signing {
+    //make signing required unless for SNAPSHOT releases or if signing is explicitly skipped
+    required { !project.version.endsWith("-SNAPSHOT") && !project.hasProperty("skipSigning") }
+   
+    //look for property 'signingKey'
+    if (project.findProperty("signingKey")) {
+        //If required, read a sub-key specified by its ID in property signingKeyId
+        //def signingKeyId = findProperty("signingKeyId")
+        //read property 'signingKey'
+        def signingKey = findProperty("signingKey")
+        //read property 'signingPassword'
+        def signingPassword = findProperty("signingPassword")   
+        //Select to use in-memory ascii-armored keys
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        //Only if also using signingKeyId
+        //useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+
+        //Apply signing to publication identity 'publishing.publications.maven'
+        sign publishing.publications.maven
+    }else {
+        println 'WARNING: No property \'signingKey\' found. Artifact signing will be skipped.'
+    }
 }
