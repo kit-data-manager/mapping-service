@@ -1,9 +1,3 @@
 test {
     exclude '**/*'
 }
-
-release {
-    tagTemplate         = 'v${version}'
-    versionPropertyFile = 'gradle.properties'
-    versionProperties   = ['version', 'mainversion']
-}
