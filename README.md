@@ -22,11 +22,24 @@ Dependencies that are needed to build and are not being downloaded via gradle:
 
 `./gradlew build`
 
+The build can be further customized via different build profiles. Available profiles are: 
+
+* default - Default build including tests. Used by default.
+* minimal - Minimal build without tests for fast local builds
+* deploy - Full build including tests, packaging of mapping-plugin-core, and 
+           deployment to maven-central. This build profile is supposed to be 
+           used inside a CI environment, as it requires further configuration, 
+           i.e., credentials for deployment.
+
+The different build profiles can be activated via: 
+
+`./gradlew build -PbuildProfile=minimal`
+
 ### Python Location
 
-The mapping-service supports plugins running Python code. To provide basic testing for this feature, some tests require configured Python in order to be executed.
+The mapping-service supports plugins running Python code. To provide basic testing for this feature, some tests require configured Python in order to be executable.
 While at runtime, the Python executable is configured in application.properties, at build time the Python location may differ depending on the build environment.
-By default, '/usr/bin/python' is assumed as Python location. If you are using a different Python installation, e.g., under Windows or MacOS, you may either modify 
+By default, '/usr/bin/python3' is assumed as Python location. If you are using a different Python installation, e.g., under Windows or MacOS, you may either modify 
 'build.gradle' (look out for pythonExecutable) or you provide the Python executable as command line argument, e.g.,
 
 ```
@@ -43,10 +56,15 @@ and modify it according to your needs. Espacially the following properties (at t
 | spring.datasource.url | The path points to the location of the database in which your configured mappings are stored. For production use it is not recommended to use the pre-configured H2 database!    | jdbc:h2:file:/tmp/mapping-service/database   |
 | mapping-service.pythonExecutable | The path to your local Python executable. The default uses the pythonExecutable system property provided via -DpythonExecutable= or  file:///usr/bin/python3 if no such system property is provided. | ${pythonExecutable:'file:///usr/bin/python3'}  |
 | mapping-service.pluginLocation | The local folder from where plugins are loaded. The folder will be created on startup if it does not exist. | None  |
+| mapping-service.codeLocation | The local folder where plugins can checkout code from GitHub. For Python-based plugins, also the virtual env is created in this folder. The folder will be created on startup if it does not exist. | None  |
 | mapping-service.mappingSchemasLocation | The local folder where the mapping files are stored. The folder will be created on startup if it does not exist. | None  |
 | mapping-service.jobOutput | The local folder where asynchronous mapping execution job outputs are stored. The folder will be created on startup if it does not exist. | None  |
 | mapping-service.packagesToScan | Packages scanned for mapping plugins in addition to plugins located in mapping-service.pluginLocation. Typically, this property has not the be changed. | edu.kit.datamanager.mappingservice.plugins.impl  |
 | mapping-service.executionTimeout | The timeout in seconds a plugin process, i.e., Python of Shell, may take before it is assumed to be stale. | 30 |
+| mapping-service.authEnabled | Defines if authentication is enabled or not. If enabled, additional keycloak configuration is required. | false |
+| mapping-service.mappingAdminRole | Defines the user role which must be present to be able to administrate the mapping service, i.e., add or remove mappings. | MAPPING_ADMIN |
+| management.metrics.export.prometheus.enabled | Enables or disabled capturing of prometheus metrics. | true |
+| management.endpoint.metrics.enabled | Enables or disabled the metrics actuator endpoint. This is only needed, if metrics are captured at all. | true |
 
 ## Starting the Mapping-Service
 

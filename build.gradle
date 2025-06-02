@@ -34,12 +34,17 @@ configurations {
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
-if (System.getProperty('profile') == 'minimal') {
-    println 'Using minimal profile for building ' + project.getName()
+def buildPofile = project.findProperty("buildProfile") ?: "complete"
+
+if (buildPofile == "minimal") {
+    println 'Using minimal profile (no tests) for building ' + project.getName()
     apply from: 'gradle/profile-minimal.gradle'   
-} else {
-    println 'Using default profile executing all tests for building ' + project.getName()
-    apply from: 'gradle/profile-complete.gradle'
+} else if (buildPofile == "deploy") {
+    println 'Using release profile for building ' + project.getName()
+    apply from: 'gradle/profile-deploy.gradle'
+}else {
+    println 'Using default profile (all tests) for building ' + project.getName()
+    apply from: 'gradle/profile-default.gradle'
 }
 
 repositories {
@@ -68,7 +73,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     // monitoring
-    implementation 'io.micronaut.micrometer:micronaut-micrometer-registry-prometheus:5.8.0'
+    implementation 'io.micronaut.micrometer:micronaut-micrometer-registry-prometheus:5.10.2'
     implementation 'org.springframework.boot:spring-boot-starter-actuator:3.4.5'
 
      // springdoc
@@ -122,10 +127,12 @@ dependencies {
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.3'
 }
 
+//customization of java compile task
 tasks.withType(JavaCompile) {
     options.compilerArgs += ['-Xlint:unchecked']
 }
 
+//test configuration
 test {
     outputs.dir snippetsDir
     finalizedBy jacocoTestReport
@@ -138,24 +145,19 @@ test {
     testLogging.showStandardStreams = true
 }
 
+//jacoco configuration
 jacoco {
     toolVersion = "0.8.13"
 }
 
-jacocoTestReport{
-    dependsOn test
-    reports {
-        xml.required = true
-        html.required = true
-    }
-}
-
+//asciidoctor configuration, i.e., snippet dir
 asciidoctor {
     inputs.dir snippetsDir
     configurations 'asciidoctorExt'
     dependsOn test
 }
 
+//generation task of boot jar
 bootJar {
     dependsOn asciidoctor
     //dependsOn 'buildPluginJar'
@@ -168,50 +170,36 @@ bootJar {
     manifest {
         attributes 'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
     }
-   //exclude '**/plugins/impl/**'
-
-   // from('build/libs/default-plugins-1.1.2-SNAPSHOT.jar') {
-   //     into('BOOT-INF/lib/plugins' )
-   //  }
     launchScript()
 }
 
-if (project.hasProperty('release')) {
-    println 'Using \'release\' profile for building ' + project.getName()
-    apply from: 'gradle/profile-deploy.gradle'
-}
-
+//add build info into manifest
 springBoot {    
     buildInfo()
 }
 
+//properties made available for bootRun task execution
 bootRun {
     systemProperty "spring.config.location", "file:$projectDir/"
     systemProperty "pythonLocation", pythonExecutable
 }
 
+//define how a new version is tagged and where version information may come from
 release {
     tagTemplate = 'v${version}'
+    versionPropertyFile = 'gradle.properties'
+    versionProperties   = ['version', 'mainversion']
 }
 
+//Do not generate entire project jar
 tasks.named("jar") {
     enabled = false
 }
 
-//task buildPluginJar(type: Jar) {
-//  description = 'Bundeling plugin core classes'
-//    archiveFileName.set("plugin-core-${version}.jar")
-//    from sourceSets.main.output
-//   include '**/configuration/ApplicationProperties.class', 
-//            '**/exception.BadExitCodeException.class', 
-//            '**/plugins/AbstractPythonMappingPlugin.class', 
-//            '**/plugins/IMappingPlugin.class', 
-//            '**/plugins/MappingPluginException.class', 
-//            '**/plugins/MappingPluginState.class', 
-//            '**/util/PythonRunnerUtil.class', 
-//            '**/util/ShellRunnerUtil.class'
-//    includeEmptyDirs false
-//}
+// Disable generation of Gradle module metadata (.module file)
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
 
 // task for printing project name.
 // should be the last task inside file

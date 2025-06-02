@@ -15,7 +15,6 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
-import org.springframework.util.MimeType;
 
 import java.nio.file.Path;
 
@@ -64,14 +63,14 @@ public interface IMappingPlugin {
      *
      * @return The mime type of the input data.
      */
-    MimeType[] inputTypes();
+    String[] inputTypes();
 
     /**
      * The mime type of the output data.
      *
      * @return The mime type of the output data.
      */
-    MimeType[] outputTypes();
+    String[] outputTypes();
 
     /**
      * The id of the plugin which is used to identify the plugin. By default,
