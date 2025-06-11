@@ -121,7 +121,7 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     runtimeOnly 'com.h2database:h2:2.3.232'
-    runtimeOnly 'org.postgresql:postgresql:42.7.5'
+    runtimeOnly 'org.postgresql:postgresql:42.7.7'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.3'
