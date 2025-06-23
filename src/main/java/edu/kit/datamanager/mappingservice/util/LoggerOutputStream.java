@@ -18,7 +18,6 @@ package edu.kit.datamanager.mappingservice.util;
 import org.slf4j.Logger;
 
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -47,7 +46,7 @@ public class LoggerOutputStream extends OutputStream {
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(int b) {
         write(new byte[]{(byte) b}, 0, 1);
     }
 

@@ -311,8 +311,8 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         }
 
         if ((!mappingRecord.getMappingId().equals(mappingId))) {
-            LOG.trace("Mapping record id {} differs from adressed mapping id {}. Setting mapping record id to adressed id.", mappingRecord.getMappingId(), mappingId);
-            mappingRecord.setMappingId(mappingId);
+            LOG.error("Mapping record id {} differs from addressed mapping id {}.", mappingRecord.getMappingId(), mappingId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         LOG.trace("Reading mapping record with id {} from database.", mappingRecord.getMappingId());

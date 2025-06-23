@@ -88,11 +88,11 @@ public class PluginManager {
         try {
             plugins = pluginLoader.loadPlugins(Paths.get(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
         } catch (URISyntaxException ex) {
-            LOG.error("Mapping plugin location " + applicationProperties.getPluginLocation() + " cannot be converted to URI", ex);
+            LOG.error("Mapping plugin location {} cannot be converted to URI", applicationProperties.getPluginLocation(), ex);
         } catch (IOException ioe) {
-            LOG.error("Failed to open plugin libraries at plugin location " + applicationProperties.getPluginLocation() + ".", ioe);
+            LOG.error("Failed to open plugin libraries at plugin location {}.", applicationProperties.getPluginLocation(), ioe);
         } catch (MappingPluginException e) {
-            LOG.info("Unable to obtain plugin classes from libraries at plugin location " + applicationProperties.getPluginLocation() + ".", e);
+            LOG.info("Unable to obtain plugin classes from libraries at plugin location {}.", applicationProperties.getPluginLocation(), e);
         }
     }
 
@@ -113,9 +113,7 @@ public class PluginManager {
     public final List<String> listPluginIds() {
         Map<String, IMappingPlugin> map = getPlugins();
         List<String> result = new ArrayList<>();
-        map.entrySet().forEach(entry -> {
-            result.add(entry.getKey());
-        });
+        map.forEach((key, value) -> result.add(key));
         return result;
     }
 

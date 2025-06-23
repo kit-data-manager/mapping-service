@@ -34,6 +34,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -50,13 +52,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Autowired
-    private Optional<KeycloakTokenFilter> keycloaktokenFilterBean;
+    private Optional<KeycloakTokenFilter> keycloakTokenFilterBean;
     @Autowired
     private ApplicationProperties applicationProperties;
 
@@ -89,7 +91,7 @@ public class WebSecurityConfig {
             );
         } else {
             logger.trace("Authentication is DISABLED. Not securing endpoints.");
-            securedEndpointMatchers = Arrays.asList();
+            securedEndpointMatchers = List.of();
         }
 
         HttpSecurity httpSecurity = http.authorizeHttpRequests(
@@ -112,11 +114,11 @@ public class WebSecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         logger.info("CSRF disabled!");
-        httpSecurity = httpSecurity.csrf(csrf -> csrf.disable());
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
-        if (keycloaktokenFilterBean.isPresent()) {
+        if (keycloakTokenFilterBean.isPresent()) {
             logger.trace("Adding Keycloak filter to filter chain.");
-            httpSecurity.addFilterAfter(keycloaktokenFilterBean.get(), BasicAuthenticationFilter.class);
+            httpSecurity.addFilterAfter(keycloakTokenFilterBean.get(), BasicAuthenticationFilter.class);
         } else {
             logger.trace("Keycloak not configured. Skip adding keycloak filter to filter chain.");
         }
@@ -130,7 +132,7 @@ public class WebSecurityConfig {
         }
 
         logger.trace("Turning off cache control.");
-        httpSecurity.headers(headers -> headers.cacheControl(cache -> cache.disable()));
+        httpSecurity.headers(headers -> headers.cacheControl(HeadersConfigurer.CacheControlConfig::disable));
 
         return httpSecurity.build();
     }
