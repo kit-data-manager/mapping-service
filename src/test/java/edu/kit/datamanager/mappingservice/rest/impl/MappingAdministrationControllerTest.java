@@ -570,7 +570,7 @@ public class MappingAdministrationControllerTest {
         String putMappingIdUrl = "/api/v1/mappingAdministration/" + "unknownMapping";
         this.mockMvc.perform(MockMvcRequestBuilders.multipart(putMappingIdUrl).
                 file(recordFile).
-                file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isNotFound()).andReturn();
+                file(mappingFile).header("If-Match", etag).with(putMultipart())).andDo(print()).andExpect(status().isBadRequest()).andReturn();
     }
 
     /**

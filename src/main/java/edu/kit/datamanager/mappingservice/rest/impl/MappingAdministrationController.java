@@ -107,7 +107,6 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
         MappingRecord mappingRecord;
         try {
-            LOG.trace("Deserializing mapping record.");
             mappingRecord = Json.mapper().readValue(record.getInputStream(), MappingRecord.class);
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
@@ -302,7 +301,6 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
         MappingRecord mappingRecord;
         try {
-            LOG.trace("Deserializing mapping record.");
             mappingRecord = Json.mapper().readValue(record.getInputStream(), MappingRecord.class);
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
@@ -310,7 +308,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        if ((!mappingRecord.getMappingId().equals(mappingId))) {
+        if ((!mappingId.equals(mappingRecord.getMappingId()))) {
             LOG.error("Mapping record id {} differs from addressed mapping id {}.", mappingRecord.getMappingId(), mappingId);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
