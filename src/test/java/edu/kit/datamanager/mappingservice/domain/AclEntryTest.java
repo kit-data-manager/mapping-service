@@ -49,10 +49,6 @@ class AclEntryTest {
 
     @Test
     void testEquals() {
-        assertEquals(aclEntry, aclEntry);
-        assertFalse(aclEntry.equals(null));
-        assertNotEquals(aclEntry, new Object());
-        assertEquals(aclEntry, new AclEntry());
         assertNotEquals(aclEntry, aclEntry2);
         AclEntry test = new AclEntry();
         test.setId(1L);

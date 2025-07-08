@@ -15,15 +15,15 @@ Depending on which plugin type you plan to implement, there is a slight differen
 
 ## Implement Java-only plugins
 
-Before you start implementing, you should setup a new Java project, e.g., using Gradle or Maven. If you are finished, add the following dependency to your project:
+Before you start implementing, you should set up a new Java project, e.g., using Gradle or Maven. If you are finished, add the following dependency to your project:
 
 Gradle:
-```
+```groovy
     implementation 'edu.kit.datamanager:mapping-plugin-core:1.1.2'     
 ```
 
 Maven:
-```
+```xml
     <dependency>
         <groupId>edu.kit.datamanager</groupId>
         <artifactId>mapping-plugin-core</artifactId>
