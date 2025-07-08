@@ -92,7 +92,7 @@ public class FileUtil {
 
     /**
      * Downloads or copy the file behind the given URI and returns its path on
-     * local disc. You should delete or move to another location afterwards.
+     * local disc. You should delete or move to another location afterward.
      *
      * @param resourceURL the given URI
      * @return the path to the created file.
@@ -120,7 +120,7 @@ public class FileUtil {
                 }
             }
         } catch (Throwable tw) {
-            LOGGER.error("Error reading URI '" + resourceURL + "'", tw);
+            LOGGER.error("Error reading URI '{}'", resourceURL, tw);
             throw new MappingException("Error downloading resource from '" + resourceURL + "'!", tw);
         }
         downloadedFile = fixFileExtension(downloadedFile);
@@ -138,7 +138,7 @@ public class FileUtil {
         Path returnFile = pathToFile;
         Path renamedFile = pathToFile;
         LOGGER.trace("fixFileExtension({})", pathToFile);
-        FileInputStream fin = null;
+        FileInputStream fin;
         try {
             if ((pathToFile != null) && (pathToFile.toFile().exists())) {
                 fin = new FileInputStream(pathToFile.toFile());
@@ -205,12 +205,12 @@ public class FileUtil {
     public static String getMimeType(Path file) {
         Tika tika = new Tika();
         String mimeType = DEFAULT_MIME_TYPE;
-        LOGGER.trace("Performing mime type detection for file {}.", file.toString());
+        LOGGER.trace("Performing mime type detection for file {}.", file);
         try {
             mimeType = tika.detect(file);
-            LOGGER.trace("Detected mime type {} for file {}.", mimeType, file.toString());
+            LOGGER.trace("Detected mime type {} for file {}.", mimeType, file);
         } catch (IOException e) {
-            LOGGER.warn("Failed to detect media type for file " + file.toString() + ". Returning application/octet-stream.", e);
+            LOGGER.warn("Failed to detect media type for file {}. Returning application/octet-stream.", file, e);
         }
         return mimeType;
     }
@@ -308,7 +308,9 @@ public class FileUtil {
                 }
             }
         } else {
-            target.mkdirs();
+            if(!target.mkdirs()){
+                LOGGER.warn("Failed to create target directory {}. Assuming it already exists.", target);
+            }
 
             LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
             Git g = null;
@@ -316,7 +318,7 @@ public class FileUtil {
                 g = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
                 LOGGER.trace("Repository successfully cloned to {}.", target);
             } catch (JGitInternalException | GitAPIException e) {
-                LOGGER.error("Error cloning git repository '" + repositoryUrl + "' to '" + target + "'!", e);
+                LOGGER.error("Error cloning git repository '{}' to '{}'!", repositoryUrl, target, e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination not accessible.");
             } finally {
                 if (g != null) {

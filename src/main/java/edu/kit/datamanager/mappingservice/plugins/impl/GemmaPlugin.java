@@ -16,8 +16,6 @@
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
 import edu.kit.datamanager.mappingservice.plugins.*;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
 import java.nio.file.Path;
 
 public class GemmaPlugin extends AbstractPythonMappingPlugin {
@@ -34,13 +32,13 @@ public class GemmaPlugin extends AbstractPythonMappingPlugin {
     }
 
     @Override
-    public MimeType[] inputTypes() {
-        return new MimeType[]{MimeTypeUtils.APPLICATION_JSON, MimeTypeUtils.APPLICATION_XML};
+    public String[] inputTypes() {
+        return new String[]{"application/json", "application/xml"};
     }
 
     @Override
-    public MimeType[] outputTypes() {
-        return new MimeType[]{MimeTypeUtils.APPLICATION_JSON};
+    public String[] outputTypes() {
+        return new String[]{"application/json"};
     }
 
     @Override
