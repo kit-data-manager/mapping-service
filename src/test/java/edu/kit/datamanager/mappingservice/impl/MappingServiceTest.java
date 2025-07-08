@@ -48,15 +48,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
-import org.junit.Ignore;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Disabled;
 import org.springframework.web.client.ResourceAccessException;
 
@@ -66,14 +65,13 @@ import org.springframework.web.client.ResourceAccessException;
 //RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestExecutionListeners(listeners = {ServletTestExecutionListener.class,
-    DependencyInjectionTestExecutionListener.class,
-    DirtiesContextTestExecutionListener.class,
-    TransactionalTestExecutionListener.class,
-    WithSecurityContextTestExecutionListener.class})
+        DependencyInjectionTestExecutionListener.class,
+        DirtiesContextTestExecutionListener.class,
+        TransactionalTestExecutionListener.class,
+        WithSecurityContextTestExecutionListener.class})
 @ActiveProfiles("test")
 //@TestPropertySource(properties = {"server.port=41300"})
 @TestPropertySource(properties = {"spring.datasource.url=jdbc:h2:mem:db_doc;DB_CLOSE_DELAY=-1"})
-@TestPropertySource(properties = {"metastore.indexer.mappingsLocation=file:///tmp/metastore2/mapping"})
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MappingServiceTest {
     @Autowired
@@ -98,21 +96,21 @@ public class MappingServiceTest {
                         .map(Path::toFile)
                         .forEach(File::delete);
             }
-            Paths.get(TEMP_DIR_4_MAPPING).toFile().mkdir();
+            Paths.get(TEMP_DIR_4_MAPPING).toFile().mkdirs();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            fail("IOException occurred while creating temp directory.", ex);
         }
         mappingRepo.deleteAll();
     }
 
     @Test
-    public void testConstructor() throws URISyntaxException {
+    public void testConstructor() {
         new MappingService(applicationProperties, meterRegistry);
     }
 
     @Test
     @Disabled(value = "Deprecated URL constructor")
-    public void testConstructorRelativePath() throws IOException, URISyntaxException {
+    public void testConstructorRelativePath() throws IOException {
         try {
             URL relativePath = new URL("file:tmp/relativePath");
             ApplicationProperties ap = new ApplicationProperties();
@@ -129,143 +127,15 @@ public class MappingServiceTest {
     }
 
     @Test
-    public void testConstructorFailing() throws IOException, URISyntaxException {
+    public void testConstructorFailing() {
         try {
             new MappingService(null, meterRegistry);
             fail("Expected MappingServiceException");
         } catch (MappingServiceException ie) {
             assertTrue(true);
         }
-        //seems to be no problem under Windows and if run as root this is also no issue, so let's skip this test for the moment.
-//        try {
-//            ApplicationProperties ap = new ApplicationProperties();
-//            ap.setMappingsLocation(new URL("file:///forbidden"));
-//            new MappingService(ap);
-//            fail();
-//        } catch (MappingException ie) {
-//            assertTrue(true);
-//        }
     }
 
-//    /**
-//     * Test of createMapping method, of class MappingService.
-//     */
-//    @Test
-//    public void testCreateMapping() {
-//        System.out.println("createMapping");
-//        String content = "content";
-//        String mappingId = "mappingId";
-//        String mappingType = "GEMMA_unknown";
-//        String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-//        MappingRecord mappingRecord = new MappingRecord();
-//        mappingRecord.setMappingId(mappingId);
-//        mappingRecord.setMappingType(mappingType);
-//
-////    MappingService instance = new MappingService(applicationProperties);
-//        URL mappingsLocation = applicationProperties.getMappingsLocation();
-//        File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
-//        assertEquals(0, Objects.requireNonNull(mappingsDir.list()).length);
-//        try {
-//            mappingService4Test.createMapping(content, mappingRecord);
-//            assertEquals(1, mappingsDir.list().length);
-//            assertEquals(expectedFilename, mappingsDir.list()[0]);
-//            File mappingFile = Paths.get(mappingsDir.getAbsolutePath(), expectedFilename).toFile();
-//            assertEquals(content, FileUtils.readFileToString(mappingFile, StandardCharsets.UTF_8));
-//        } catch (IOException | MappingException ie) {
-//            fail();
-//        }
-//    }
-//    /**
-//     * Test of createMapping method, of class MappingService.
-//     */
-//    @Test
-//    public void testCreateMappingTwice() {
-//        System.out.println("createMapping");
-//        String content = "content";
-//        String newContent = "newContent";
-//        String mappingId = "mappingId";
-//        String mappingType = "GEMMA_unknown";
-//        MappingRecord mappingRecord = new MappingRecord();
-//        mappingRecord.setMappingId(mappingId);
-//        mappingRecord.setMappingType(mappingType);
-//
-////    MappingService instance = new MappingService(applicationProperties);
-//        URL mappingsLocation = applicationProperties.getMappingsLocation();
-//        File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
-//        System.out.println(mappingsLocation.getPath());
-//        for (String i : mappingsDir.list()) System.out.println(i);
-//        assertEquals(0, mappingsDir.list().length);
-//        try {
-//            mappingService4Test.createMapping(content, mappingRecord);
-//            mappingService4Test.createMapping(newContent, mappingRecord);
-//            fail();
-//        } catch (IOException | MappingException ie) {
-//            assertTrue(true);
-//            assertTrue(ie.getMessage().contains("already exists"));
-//            assertTrue(ie.getMessage().contains(mappingType));
-//        }
-//    }
-//    /**
-//     * Test of createMapping method, of class MappingService.
-//     */
-//    @Test
-//    public void testCreateMappingWithWrongMapping() {
-//        System.out.println("createMapping");
-//        String content = "content";
-//        String mappingId = "mappingId";
-//        String mappingType = "aTotallyUnknownMapping";
-//        MappingRecord mappingRecord = new MappingRecord();
-//        mappingRecord.setMappingId(mappingId);
-//        mappingRecord.setMappingType(mappingType);
-//
-////    MappingService instance = new MappingService(applicationProperties);
-//        URL mappingsLocation = applicationProperties.getMappingsLocation();
-//        File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
-//        assertEquals(0, mappingsDir.list().length);
-//        try {
-//            mappingService4Test.createMapping(content, mappingRecord);
-//            fail();
-//        } catch (IOException | MappingException ie) {
-//            assertTrue(true);
-//            assertTrue(ie.getMessage().contains("Unkown mapping"));
-//            assertTrue(ie.getMessage().contains(mappingType));
-//        }
-//    }
-//    @Test
-//    public void testUpdateMapping() {
-//        System.out.println("updateMapping");
-//        String content = "content";
-//        String newContent = "new content";
-//        String mappingId = "mappingId";
-//        String mappingType = "GEMMA_unknown";
-//        String expectedFilename = mappingId + "_" + mappingType + ".mapping";
-//        MappingRecord mappingRecord = new MappingRecord();
-//        mappingRecord.setMappingId(mappingId);
-//        mappingRecord.setMappingType(mappingType);
-//
-////    MappingService instance = new MappingService(applicationProperties);
-//        URL mappingsLocation = applicationProperties.getMappingsLocation();
-//        File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
-//        assertEquals(0, mappingsDir.list().length);
-//        try {
-//            mappingService4Test.createMapping(content, mappingRecord);
-//            assertEquals(1, mappingsDir.list().length);
-//            assertEquals(expectedFilename, mappingsDir.list()[0]);
-//            File mappingFile = Paths.get(mappingsDir.getAbsolutePath(), expectedFilename).toFile();
-//            assertEquals(content, FileUtils.readFileToString(mappingFile, StandardCharsets.UTF_8));
-//            mappingService4Test.updateMapping(newContent, mappingRecord);
-//            assertEquals(2, mappingsDir.list().length);
-//            for (String file : mappingsDir.list()) {
-//                assertTrue(file.contains(expectedFilename));
-//            }
-//            assertTrue(mappingFile.exists());
-//            assertEquals(newContent, FileUtils.readFileToString(mappingFile, StandardCharsets.UTF_8));
-//
-//        } catch (IOException | MappingException ie) {
-//            assertTrue(true);
-//            assertTrue(ie.getMessage().contains("missing mapping file"));
-//        }
-//    }
     /**
      * Test of updateMapping method, of class MappingService.
      */
@@ -279,15 +149,10 @@ public class MappingServiceTest {
         mappingRecord.setMappingId(mappingId);
         mappingRecord.setMappingType(mappingType);
 
-//    MappingService instance = new MappingService(applicationProperties);
-        URL mappingsLocation = applicationProperties.getMappingsLocation();
-
-//        assertEquals(0, mappingsDir.list().length);
         try {
-            File mappingsDir = Paths.get(mappingsLocation.toURI()).toFile();
             mappingService4Test.updateMapping(content, mappingRecord);
             fail();
-        } catch (IOException | MappingNotFoundException | URISyntaxException ie) {
+        } catch (IOException | MappingNotFoundException ie) {
             assertTrue(true);
             assertTrue(ie.getMessage().contains("Mapping"));
             assertTrue(ie.getMessage().contains("doesn't exist"));
@@ -307,7 +172,8 @@ public class MappingServiceTest {
 //        assertEquals(1, mappingRepo.count());
 //        MappingRecord mappingRecord = mappingRepo.findAll().get(0);
 //
-////    MappingService instance = new MappingService(applicationProperties);
+
+    /// /    MappingService instance = new MappingService(applicationProperties);
 //        URL mappingsLocation = applicationProperties.getMappingsLocation();
 //        File mappingsDir = Paths.get(mappingsLocation.getPath()).toFile();
 //        assertEquals(1, mappingsDir.list().length);
@@ -338,31 +204,10 @@ public class MappingServiceTest {
         mappingRecord.setMappingId(mappingId);
         mappingRecord.setMappingType(mappingType);
 
-//    MappingService instance = new MappingService(applicationProperties);
-        URL mappingsLocation = applicationProperties.getMappingsLocation();
-//        assertEquals(0, mappingsDir.list().length);
         try {
-            File mappingsDir = Paths.get(mappingsLocation.toURI()).toFile();
             mappingService4Test.deleteMapping(mappingRecord);
-        } catch (MappingException | URISyntaxException ie) {
+        } catch (MappingException ie) {
             fail("deleteMapping() should never fail.");
-        }
-    }
-
-    /**
-     * Test of executeMapping method, of class MappingService.
-     */
-    @Test
-    @Ignore("Test not realistic as ")
-    public void testExecuteMappingWithoutAnyParameter() {
-        System.out.println("testExecuteMappingWithoutAnyParameter");
-        URI contentUrl = null;
-        String mappingId = "";
-        try {
-            Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId);
-            fail("Exception expected!");
-        } catch (MappingException | MappingPluginException ie) {
-            assertTrue(ie.getMessage().contains("Either contentUrl"));
         }
     }
 
@@ -372,10 +217,10 @@ public class MappingServiceTest {
     @Test
     public void testExecuteMappingWithWrongMappingId() {
         System.out.println("testExecuteMappingWithWrongMappingId");
-        URI contentUrl = null;
+        URI contentUrl;
         String mappingId = "unknownMapping";
         try {
-            Optional<Path> result = mappingService4Test.executeMapping(contentUrl, mappingId);
+            mappingService4Test.executeMapping(null, mappingId);
             fail("Exception expected!");
         } catch (MappingException | MappingPluginException ie) {
             assertTrue(ie.getMessage().contains("Either contentUrl"));
@@ -383,17 +228,10 @@ public class MappingServiceTest {
         File srcFile = new File("src/test/resources/examples/gemma/simple.json");
         contentUrl = srcFile.toURI();
         try {
-            String expectedResult = FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
-
-            Optional<Path> resultPath = null;
-            try {
-                resultPath = mappingService4Test.executeMapping(contentUrl, mappingId);
-                fail("MappingNotFoundException expected.");
-            } catch (MappingPluginException | MappingNotFoundException e) {
-                //exception received
-            }
-        } catch (IOException ex) {
-            fail("Got IOException while reading source file from " + srcFile);
+            mappingService4Test.executeMapping(contentUrl, mappingId);
+            fail("MappingNotFoundException expected.");
+        } catch (MappingPluginException | MappingNotFoundException e) {
+            //exception received
         }
     }
 
@@ -407,7 +245,7 @@ public class MappingServiceTest {
         String contentUrl = "file:///unknown/location/of/content";
         try {
             URI url = new URI(contentUrl);
-            Optional<Path> result = mappingService4Test.executeMapping(url, mappingId);
+            mappingService4Test.executeMapping(url, mappingId);
             fail("Expected MappingNotFoundException");
         } catch (MappingNotFoundException e) {
             //got expected exception
@@ -421,16 +259,13 @@ public class MappingServiceTest {
     }
 
     @Test
-    public void testExecuteMappingWithoutExistingMapping() throws IOException {
+    public void testExecuteMappingWithoutExistingMapping() {
         System.out.println("executeMapping");
         File srcFile = new File("src/test/resources/examples/gemma/simple.json");
         URI contentUrl = srcFile.toURI();
         String mappingId = "GEMMA_unknown";
-        String expectedResult = FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
-
-        Optional<Path> resultPath = null;
         try {
-            resultPath = mappingService4Test.executeMapping(contentUrl, mappingId);
+            mappingService4Test.executeMapping(contentUrl, mappingId);
             fail("Expected MappingNotFoundException");
         } catch (MappingNotFoundException e) {
             //received proper exception
@@ -438,64 +273,4 @@ public class MappingServiceTest {
             fail("Got MappingPluginException, expected MappingNotFoundException");
         }
     }
-
-//    /**
-//     * Test of executeMapping method, of class MappingService.
-//     */
-//    @Test
-//    public void testExecuteMapping() throws IOException {
-//        System.out.println("executeMapping");
-//        MappingRecord mappingRecord = new MappingRecord();
-//        String mappingId = "myMappingId";
-//        String mappingType = "GEMMA_unknown";
-//        String mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsolutePath();
-//        mappingRecord.setMappingId(mappingId);
-//        mappingRecord.setMappingDocumentUri(mappingFile);
-//        mappingRecord.setMappingType(mappingType);
-//        mappingRepo.save(mappingRecord);
-//        File srcFile = new File("src/test/resources/examples/gemma/simple.json");
-//        assertTrue(srcFile.exists());
-//        URI contentUrl = srcFile.toURI();
-//        String expectedResult = FileUtils.readFileToString(new File("src/test/resources/result/gemma/simple.elastic.json"), StandardCharsets.UTF_8);
-//        Optional<Path> resultPath = null;
-//        try {
-//            resultPath = mappingService4Test.executeMapping(contentUrl, mappingId);
-//        } catch (MappingPluginException e) {
-//            throw new RuntimeException(e);
-//        }
-//        assertTrue(resultPath.isPresent());
-//        assertTrue(resultPath.get().toFile().exists());
-//        String result = FileUtils.readFileToString(resultPath.get().toFile(), StandardCharsets.UTF_8);
-//        assertEquals(expectedResult, result);
-//        assertTrue(resultPath.get().toFile().delete());
-//    }
-//    @Test
-//    public void testExecuteMappingWithoutgivenMapping() throws IOException {
-//        System.out.println("executeMapping");
-//        MappingRecord mappingRecord = new MappingRecord();
-//        String mappingId = "myMappingId";
-//        String mappingType = "GEMMA_unknown";
-//        String mappingFile = new File("src/test/resources/mapping/gemma/simple.mapping").getAbsolutePath();
-//        mappingRecord.setMappingId(mappingId);
-//        mappingRecord.setMappingDocumentUri(mappingFile);
-//        mappingRecord.setMappingType(mappingType);
-//        mappingRepo.save(mappingRecord);
-//        mappingRecord.setMappingType("unknownMapping");
-//        mappingRepo.save(mappingRecord);
-//        File srcFile = new File("src/test/resources/examples/gemma/simple.json");
-//        URI contentUrl = srcFile.toURI();
-//        String expectedResult = FileUtils.readFileToString(new File("src/test/resources/result/gemma/simple.elastic.json"), StandardCharsets.UTF_8);
-//        List<Path> resultPath = null;
-//        try {
-//            resultPath = Collections.singletonList(mappingService4Test.executeMapping(contentUrl, mappingId).get());
-//        } catch (MappingPluginException e) {
-//            throw new RuntimeException(e);
-//        }
-//        assertFalse(resultPath.isEmpty());
-//        assertEquals(1, resultPath.size());
-//        assertTrue(resultPath.get(0).toFile().exists());
-//        String result = FileUtils.readFileToString(resultPath.get(0).toFile(), StandardCharsets.UTF_8);
-//        assertEquals(expectedResult, result);
-//        assertTrue(resultPath.get(0).toFile().delete());
-//    }
 }

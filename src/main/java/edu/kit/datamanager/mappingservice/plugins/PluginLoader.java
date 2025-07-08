@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -58,10 +57,7 @@ public class PluginLoader {
 
     private ClassLoader cl = null;
 
-    private ApplicationProperties applicationProperties;
-
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationProperties applicationProperties;
 
     @Autowired
     public PluginLoader(ApplicationProperties applicationProperties) {
@@ -109,7 +105,7 @@ public class PluginLoader {
                 LOG.trace(" - Adding new plugin {}, v{} to available list", i.name(), i.version());
                 result.put(i.id(), i);
             } catch (PluginInitializationFailedException re) {
-                LOG.error("Failed to initialize plugin " + i.name() + ", version " + i.version() + ". Plugin will be ignored.", re);
+                LOG.error("Failed to initialize plugin {}, version {}. Plugin will be ignored.", i.name(), i.version(), re);
             }
         }
 
@@ -160,20 +156,20 @@ public class PluginLoader {
     private List<Class<IMappingPlugin>> extractClassesFromJAR(File jar, ClassLoader cl) throws IOException, MappingPluginException {
         LOG.trace("Extracting plugin classes from file {}.", jar.getAbsolutePath());
         List<Class<IMappingPlugin>> classes = new ArrayList<>();
-        try (JarInputStream jaris = new JarInputStream(new FileInputStream(jar))) {
-            JarEntry ent;
-            while ((ent = jaris.getNextJarEntry()) != null) {
-                if (ent.getName().toLowerCase().endsWith(".class")) {
+        try (JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jar))) {
+            JarEntry entry;
+            while ((entry = jarInputStream.getNextJarEntry()) != null) {
+                if (entry.getName().toLowerCase().endsWith(".class")) {
                     try {
-                        Class<?> cls = cl.loadClass(ent.getName().substring(0, ent.getName().length() - 6).replace('/', '.'));
+                        Class<?> cls = cl.loadClass(entry.getName().substring(0, entry.getName().length() - 6).replace('/', '.'));
                         LOG.trace("Checking {}.", cls);
                         if (isPluggableClass(cls)) {
                             LOG.trace("Plugin class found.");
                             classes.add((Class<IMappingPlugin>) cls);
                         }
                     } catch (ClassNotFoundException | NoClassDefFoundError e) {
-                        LOG.info("Can't load Class " + ent.getName());
-                        throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't load Class " + ent.getName(), e);
+                        LOG.info("Can't load Class {}", entry.getName());
+                        throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't load Class " + entry.getName(), e);
                     }
                 }
             }
@@ -194,10 +190,10 @@ public class PluginLoader {
             try {
                 plugs.add(plug.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-                LOG.info("Can't instantiate plugin: " + plug.getName());
+                LOG.info("Can't instantiate plugin: {}", plug.getName());
                 throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't instantiate plugin: " + plug.getName(), e);
             } catch (IllegalAccessException e) {
-                LOG.info("IllegalAccess for plugin: " + plug.getName());
+                LOG.info("IllegalAccess for plugin: {}", plug.getName());
                 throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "IllegalAccess for plugin: " + plug.getName(), e);
             }
         }
@@ -228,8 +224,7 @@ public class PluginLoader {
                 loader);
         String pattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX
                 + ClassUtils.convertClassNameToResourcePath(packageName) + "/**/*.class";
-        Resource[] resources = resolver.getResources(pattern);
-        return resources;
+        return resolver.getResources(pattern);
     }
 
     private Class<?> loadClass(ClassLoader loader, MetadataReaderFactory readerFactory,
@@ -237,12 +232,7 @@ public class PluginLoader {
         try {
             MetadataReader reader = readerFactory.getMetadataReader(resource);
             return ClassUtils.forName(reader.getClassMetadata().getClassName(), loader);
-        } catch (ClassNotFoundException ex) {
-            return null;
-        } catch (LinkageError ex) {
-            return null;
         } catch (Throwable ex) {
-
             return null;
         }
     }
