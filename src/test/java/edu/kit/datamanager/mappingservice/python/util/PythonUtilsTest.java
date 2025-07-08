@@ -66,9 +66,8 @@ public class PythonUtilsTest {
         props.setPythonExecutable(null);
         PythonRunnerUtil.init(props);
         String scriptLocation = "";
-        String[] arguments = null;
         try {
-            MappingPluginState result = PythonRunnerUtil.runPythonScript(scriptLocation, arguments);
+            PythonRunnerUtil.runPythonScript(scriptLocation, (String[])null);
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.UNKNOWN_ERROR, e.getMappingPluginState().getState());
@@ -83,9 +82,8 @@ public class PythonUtilsTest {
         Assume.assumeThat("Python not configured.", applicationProperties.isPythonAvailable(), CoreMatchers.is(true));
         System.out.println("testRun_3args_withWrongClass");
         String scriptLocation = new File("src/test/resources/python/invalid.py").getAbsolutePath();
-        String[] arguments = null;
         try {
-            PythonRunnerUtil.runPythonScript(scriptLocation, arguments);
+            PythonRunnerUtil.runPythonScript(scriptLocation, (String[])null);
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.BAD_EXIT_CODE, e.getMappingPluginState().getState());
@@ -101,12 +99,11 @@ public class PythonUtilsTest {
         Assume.assumeThat("Python not configured.", applicationProperties.isPythonAvailable(), CoreMatchers.is(true));
         System.out.println("testRun_3args_withTimeout");
         String scriptLocation = new File("src/test/resources/python/sleep.py").getAbsolutePath();
-        String[] arguments = null;
         ApplicationProperties props = new ApplicationProperties();
         props.setExecutionTimeout(1);
         ShellRunnerUtil.init(props);
         try {
-            PythonRunnerUtil.runPythonScript(scriptLocation, arguments);
+            PythonRunnerUtil.runPythonScript(scriptLocation, (String[])null);
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.TIMEOUT, e.getMappingPluginState().getState());
         }
@@ -120,9 +117,8 @@ public class PythonUtilsTest {
     public void testRun_3args_withNoOutputStreams() {
         System.out.println("testRun_3args_withTimeout");
         String scriptLocation = new File("src/test/resources/python/printOutput.py").getAbsolutePath();
-        String[] arguments = null;
         try {
-            PythonRunnerUtil.runPythonScript(scriptLocation, null, null, arguments);
+            PythonRunnerUtil.runPythonScript(scriptLocation, null, null, (String[])null);
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.INVALID_INPUT, e.getMappingPluginState().getState());

@@ -1,5 +1,7 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
@@ -10,8 +12,10 @@ import java.io.Serializable;
  *
  * @author maximilianiKIT
  */
+@Getter
 public class MappingPluginState implements Serializable {
 
+    @Getter
     public enum StateEnum {
         SUCCESS(HttpStatus.OK),
         NOT_FOUND(HttpStatus.NOT_FOUND),
@@ -23,21 +27,13 @@ public class MappingPluginState implements Serializable {
 
         private final HttpStatus httpStatus;
 
-        StateEnum() {
-            this.httpStatus = HttpStatus.BAD_REQUEST;
-        }
-
         StateEnum(HttpStatus status) {
             this.httpStatus = status;
         }
-
-        public HttpStatus getHttpStatus() {
-            return httpStatus;
-        }
-
     };
 
     private final StateEnum state;
+    @Setter
     private Object details;
 
     /**
@@ -76,17 +72,4 @@ public class MappingPluginState implements Serializable {
     public static MappingPluginState UNKNOWN_ERROR() {
         return new MappingPluginState(StateEnum.UNKNOWN_ERROR);
     }
-
-    public StateEnum getState() {
-        return state;
-    }
-
-    public void setDetails(Object details) {
-        this.details = details;
-    }
-
-    public Object getDetails() {
-        return details;
-    }
-
 }
