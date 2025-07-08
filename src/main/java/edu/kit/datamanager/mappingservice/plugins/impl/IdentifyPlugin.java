@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.MimeType;
 
 /**
  * Simple mapping service plugin calling image magick 'identify' to obtain image
@@ -38,8 +37,6 @@ import org.springframework.util.MimeType;
 public class IdentifyPlugin implements IMappingPlugin {
 
     static Logger LOG = LoggerFactory.getLogger(IdentifyPlugin.class);
-
-    private boolean initialized = false;
 
     @Override
     public String name() {
@@ -62,20 +59,18 @@ public class IdentifyPlugin implements IMappingPlugin {
     }
 
     @Override
-    public MimeType[] inputTypes() {
-        return new MimeType[]{MimeType.valueOf("image/*")};
+    public String[] inputTypes() {
+        return new String[]{"image/*"};
     }
 
     @Override
-    public MimeType[] outputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/*")};
+    public String[] outputTypes() {
+        return new String[]{"application/*"};
     }
 
     @Override
     public void setup(ApplicationProperties applicationProperties) {
-        if (Paths.get("/usr/bin/identify").toFile().exists()) {
-            initialized = true;
-        } else {
+        if (!Paths.get("/usr/bin/identify").toFile().exists()) {
             throw new PluginInitializationFailedException("Required executable /usr/bin/identify not found.");
         }
     }
@@ -84,9 +79,9 @@ public class IdentifyPlugin implements IMappingPlugin {
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         MappingPluginState result;
         try {
-            try (FileOutputStream fout = new FileOutputStream(outputFile.toFile())) {
-                result = ShellRunnerUtil.run(fout, fout, "/usr/bin/identify", "-verbose", inputFile.toAbsolutePath().toString());
-                fout.flush();
+            try (FileOutputStream out = new FileOutputStream(outputFile.toFile())) {
+                result = ShellRunnerUtil.run(out, out, "/usr/bin/identify", "-verbose", inputFile.toAbsolutePath().toString());
+                out.flush();
             }
         } catch (IOException ex) {
             LOG.error("Failed to execute plugin.", ex);
