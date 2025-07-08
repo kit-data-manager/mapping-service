@@ -15,9 +15,7 @@
  */
 package edu.kit.datamanager.mappingservice.plugins;
 
-import org.springdoc.core.fn.builders.apiresponse.Builder;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Getter;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -25,12 +23,13 @@ import org.springframework.web.server.ResponseStatusException;
  *
  * @author maximilianiKIT
  */
+@Getter
 public class MappingPluginException extends Exception {
 
     /**
      * State of the plugin.
      */
-    private MappingPluginState mappingPluginState;
+    private final MappingPluginState mappingPluginState;
 
     /**
      * Default constructor.
@@ -63,15 +62,6 @@ public class MappingPluginException extends Exception {
     public MappingPluginException(MappingPluginState state, String message, Throwable cause) {
         super(message, cause);
         this.mappingPluginState = state;
-    }
-
-    /**
-     * This method returns the state of the plugin.
-     *
-     * @return The state of the plugin.
-     */
-    public MappingPluginState getMappingPluginState() {
-        return mappingPluginState;
     }
 
     public void throwMe() throws ResponseStatusException {

@@ -92,7 +92,7 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
 
     @GetMapping(path = "/schedule/{job-id}/status", produces = "application/json")
-    public ResponseEntity<JobStatus> getJobStatus(
+    ResponseEntity<JobStatus> getJobStatus(
             @Parameter(description = "The jobId to query for.", required = true) @PathVariable(name = "job-id") String jobId) throws Throwable;
 
     @Operation(summary = "Get a mapping job's output file. The output file is available as soon as the job has finished. If this is the case, the job status "
@@ -104,7 +104,7 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or is not a valid UUID."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
     @GetMapping(path = "/schedule/{job-id}/download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<Resource> getJobOutputFile(@PathVariable(name = "job-id") String jobId) throws Throwable;
+    ResponseEntity<Resource> getJobOutputFile(@PathVariable(name = "job-id") String jobId) throws Throwable;
 
     @Operation(summary = "Delete a mapping job's output file.",
             description = "This endpoint allows to remove the result of an asynchronous job execution from the server.",
@@ -114,5 +114,5 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing, is not a valid UUID, or if the job has not finished, yet."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
     @DeleteMapping(path = "/schedule/{job-id}")
-    public ResponseEntity deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable;
+    ResponseEntity<Void> deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable;
 }

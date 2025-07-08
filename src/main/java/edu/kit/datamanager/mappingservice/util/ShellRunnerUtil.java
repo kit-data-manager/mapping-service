@@ -130,7 +130,7 @@ public class ShellRunnerUtil {
             LOGGER.error("Failed to run command or to access output/error streams.", ioe);
             returnValue = MappingPluginState.EXECUTION_ERROR();
         } catch (TimeoutException te) {
-            LOGGER.error("Command did not return in expected timeframe of " + timeOutInSeconds + " seconds", te);
+            LOGGER.error("Command did not return in expected timeframe of {} seconds", timeOutInSeconds, te);
             returnValue = MappingPluginState.TIMEOUT();
         } catch (InterruptedException e) {
             LOGGER.error("Command execution has been interrupted.", e);

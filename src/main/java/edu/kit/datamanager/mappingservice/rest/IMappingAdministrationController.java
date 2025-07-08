@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springdoc.core.converters.models.PageableAsQueryParam;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "201", description = "CREATED is returned only if the record has been validated, persisted and the mapping document was successfully validated and stored.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
                 @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if the provided mapping record or the mapping document are invalid."),
                 @ApiResponse(responseCode = "409", description = "CONFLICT is returned, if there is already a mapping for the provided mapping id."),
-                @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, an unexpected exception occured while persisting the mapping.")})
+                @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned, an unexpected exception occurred while persisting the mapping.")})
 
     @RequestMapping(path = "/", method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
@@ -72,7 +73,7 @@ public interface IMappingAdministrationController {
                 @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no record for the provided identifier was found.")})
     @RequestMapping(value = {"/{mappingId}"}, method = {RequestMethod.GET}, produces = {"application/vnd.datamanager.mapping-record+json"})
     @ResponseBody
-    ResponseEntity getMappingById(
+    ResponseEntity<MappingRecord> getMappingById(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr);
@@ -86,7 +87,7 @@ public interface IMappingAdministrationController {
 
     @RequestMapping(value = {"/{mappingId}/document"}, method = {RequestMethod.GET}, produces = {"application/octet-stream"})
     @ResponseBody
-    ResponseEntity getMappingDocumentById(
+    ResponseEntity<Resource> getMappingDocumentById(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr);
@@ -120,7 +121,7 @@ public interface IMappingAdministrationController {
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             @Parameter(description = "JSON representation of the metadata record.") @RequestPart(name = "record") final MultipartFile record,
             @Parameter(description = "The mapping document associated with the record. "
-                    + "The format of the document is defined by the mapping type, which is given by the mappingType attribute of the mapping record.", required = false) @RequestPart(name = "document") final MultipartFile document,
+                    + "The format of the document is defined by the mapping type, which is given by the mappingType attribute of the mapping record.") @RequestPart(name = "document") final MultipartFile document,
             final WebRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder
@@ -135,7 +136,7 @@ public interface IMappingAdministrationController {
     @Parameters({
         @Parameter(name = "If-Match", description = "ETag of the current mapping record. Please use quotation marks!", required = true, in = ParameterIn.HEADER)})
     @ResponseBody
-    ResponseEntity deleteMapping(
+    ResponseEntity<Void> deleteMapping(
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr);
