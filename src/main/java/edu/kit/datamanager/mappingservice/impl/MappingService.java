@@ -27,6 +27,7 @@ import edu.kit.datamanager.mappingservice.exception.MappingJobException;
 import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
 import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import edu.kit.datamanager.mappingservice.exception.MappingServiceUserException;
+import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
@@ -50,9 +51,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,7 +90,6 @@ public class MappingService {
      */
     private Path jobsOutputDirectory;
 
-    private ApplicationProperties applicationProperties;
     private final MeterRegistry meterRegistry;
 
     /**
@@ -101,9 +99,8 @@ public class MappingService {
 
     @Autowired
     public MappingService(ApplicationProperties applicationProperties, MeterRegistry meterRegistry) {
-        this.applicationProperties = applicationProperties;
         this.meterRegistry = meterRegistry;
-        init(this.applicationProperties);
+        init(applicationProperties);
     }
 
     /**
@@ -118,32 +115,35 @@ public class MappingService {
      */
     public MappingRecord createMapping(String content, MappingRecord mappingRecord) throws IOException {
         LOGGER.trace("Creating mapping with id {}.", mappingRecord.getMappingId());
-        // Check for valid mapping ID (should contain at least one non whitespace.
+        // Check for valid mapping ID (should contain at least one non whitespace).
         String mappingId = mappingRecord.getMappingId();
         if ((mappingId == null) || (mappingId.isBlank())) {
-            String message = String.format("MappingID shouldn't be empty or contain only whitespaces. You provide '%s'", mappingId);
+            String message = String.format("MappingID shouldn't be empty or contain only whitespaces. You provided '%s'", mappingId);
             LOGGER.error(message);
             throw new BadArgumentException(message);
         }
 
         String mappingType = mappingRecord.getMappingType();
         if ((mappingType == null) || (mappingType.isBlank() || !pluginManager.getPlugins().containsKey(mappingType))) {
-            String message = String.format("MappingType shouldn't be empty or contain only whitespaces and must be a registered plugin id. You provide '%s'", mappingType);
+            String message = String.format("MappingType shouldn't be empty or contain only whitespaces and must be a registered plugin id. You provided '%s'", mappingType);
             LOGGER.error(message);
+            Set<Map.Entry<String, IMappingPlugin>> entries = pluginManager.getPlugins().entrySet();
+            LOGGER.info("Registered plugins: ");
+            for(Map.Entry<String, IMappingPlugin> entry : entries) {
+                LOGGER.info(" * {}", entry.getKey());
+            }
+
             throw new BadArgumentException(message);
         }
 
         Iterable<MappingRecord> findMapping = mappingRepo.findByMappingIdIn(Collections.singletonList(mappingRecord.getMappingId()));
         if (findMapping.iterator().hasNext()) {
-            LOGGER.error("Unable to create mapping with id {}. Mapping id is alreadyy used.", mappingRecord.getMappingId());
+            LOGGER.error("Unable to create mapping with id {}. Mapping id is already used.", mappingRecord.getMappingId());
             mappingRecord = findMapping.iterator().next();
             throw new DuplicateMappingException("Error: Mapping '" + mappingRecord.getMappingType() + "_" + mappingRecord.getMappingId() + "' already exists!");
         }
 
-        LOGGER.trace("Saving mapping file.");
-        saveMappingFile(content, mappingRecord);
-        LOGGER.trace("Persisting mapping record.");
-        MappingRecord result = mappingRepo.save(mappingRecord);
+        MappingRecord result = persistMapping(content, mappingRecord);
         LOGGER.trace("Mapping with id {} successfully created.", result.getMappingId());
         return mappingRecord;
     }
@@ -163,10 +163,7 @@ public class MappingService {
 
         LOGGER.trace("Updating mapping with id {}.", mappingRecord.getMappingId());
         mappingRecord.setMappingDocumentUri(findMapping.get().getMappingDocumentUri());
-        LOGGER.trace("Saving mapping file.");
-        saveMappingFile(content, mappingRecord);
-        LOGGER.trace("Persisting mapping record.");
-        mappingRepo.save(mappingRecord);
+        persistMapping(content, mappingRecord);
         LOGGER.trace("Mapping with id {} successfully updated.", mappingRecord.getMappingId());
     }
 
@@ -189,7 +186,7 @@ public class MappingService {
         try {
             deleteMappingFile(mappingRecord);
         } catch (IOException e) {
-            LOGGER.error(String.format("Failed to delete mapping file at %s. Please remove it manually.", mappingRecord.getMappingDocumentUri()), e);
+            LOGGER.error("Failed to delete mapping file at {}. Please remove it manually.", mappingRecord.getMappingDocumentUri(), e);
         }
     }
 
@@ -432,7 +429,11 @@ public class MappingService {
             //delete output file if file still exists (even after the job was removed from the queue)
             File outputFile = getOutputFile(jobId);
             if (outputFile.exists()) {
-                outputFile.delete();
+                if(outputFile.delete()){
+                    LOGGER.trace("Output file {} deleted.", outputFile);
+                }else{
+                    LOGGER.warn("Output file {} could not be deleted.", outputFile);
+                }
             } else {
                 LOGGER.debug("No output file for job {} found.", jobId);
             }
@@ -458,7 +459,11 @@ public class MappingService {
 
             if (jobOutput.exists()) {
                 LOGGER.trace(" - Deleting job output");
-                jobOutput.delete();
+                if(jobOutput.delete()){
+                    LOGGER.trace(" - Output file {} deleted.", jobOutput);
+                }else{
+                    LOGGER.warn(" ! Output file {} could not be deleted.", jobOutput);
+                }
             }
             LOGGER.trace("Removing job from queue.");
             jobManager.removeJob(jobId);
@@ -488,7 +493,7 @@ public class MappingService {
     }
 
     /**
-     * Initalize mappings directory and mappingUtil instance.
+     * Initialize mappings directory and mappingUtil instance.
      *
      * @param applicationProperties Properties holding mapping directory
      * setting.
@@ -577,5 +582,12 @@ public class MappingService {
     private String date2String() {
         SimpleDateFormat sdf = new SimpleDateFormat("_yyyyMMdd_HHmmss");
         return sdf.format(new Date());
+    }
+
+    private MappingRecord persistMapping(String content, MappingRecord mappingRecord) throws IOException {
+        LOGGER.trace("Saving mapping file.");
+        saveMappingFile(content, mappingRecord);
+        LOGGER.trace("Persisting mapping record.");
+        return mappingRepo.save(mappingRecord);
     }
 }

@@ -19,8 +19,6 @@ import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -121,8 +119,8 @@ class PluginManagerTest {
             }
             pluginManager.mapFile("InOutPlugin_1.1.2", new File("mapping-schema").toPath(), inputFile.toPath(), outputFile.toPath());
             assertTrue(outputFile.exists());
-            inputFile.delete();
-            outputFile.delete();
+            assertTrue(inputFile.delete());
+            assertTrue(outputFile.delete());
         } catch (MappingPluginException | IOException e) {
             fail("Mapping failed", e);
         }
