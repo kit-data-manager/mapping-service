@@ -33,8 +33,6 @@ import java.util.Properties;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  *
@@ -47,17 +45,17 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
     /**
      * The plugin name.
      */
-    private String name;
+    private final String name;
     /**
      * The URL of the Git repository where the plugin code is located.
      */
-    private String repositoryUrl;
+    private final String repositoryUrl;
 
     /**
-     * The tag which should be used to checkout a specific version from
+     * The tag which should be used to check out a specific version from
      * repositoryUrl.
      */
-    private String tag;
+    private final String tag;
 
     /**
      * The minimal python version required by the plugin
@@ -69,8 +67,8 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
      */
     private Path dir;
 
-    private String pluginVenv = "venv/PluginVenv";
-    private String venvInterpreter;
+    private final String pluginVenv = "venv/PluginVenv";
+    private final String venvInterpreter;
 
     /**
      * Default constructor for instantiating a Python-based mapping plugin. It
@@ -82,10 +80,9 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
      * the root of the Jar file. The properties file must contain one property
      * 'version' which represents an existing Git tag matching a released
      * version of the Python plugin code, e.g., version=v1.0.0
-     *
      * Furthermore, the properties file may contain a minimal Python version
      * that is required by the plugin to work. The minimal Python version is set
-     * via the 'min.python' property, e.g.., min.python=3.10.0 If the minimal
+     * via the 'min.python' property, e.g., min.python=3.10.0 If the minimal
      * Python version is not met, the plugin will be ignored.
      *
      * @param pluginName The name of the plugin.
@@ -129,20 +126,17 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
      * plugin to gather all information required for starting a Python process
      * executing the mapping script. The returned array must contain at least
      * the following information:
-     *
      * &lt;ul&gt; &lt;li&gt;The absolute path of the main script. It must start
      * with the working dir received as argument, where all checked-out code is
      * located.&lt;/li&gt; &lt;li&gt;Script-specific parameters to provide
      * mappingFile, inputFile, and outputFile to the script execution. Depending
      * on the script implementation, the number and kind of required arguments
      * may differ.&lt;/li&gt; &lt;/ul&gt;
-     *
      * Example: In standalone mode, a script is called via `plugin_wrapper.py
      * sem -m mappingFile -i inputFile -o outputFile -debug`. In that case, the
      * resulting array should look as follows: [workingDir +
      * "plugin_wrapper.py", "sem", "-m", mappingFile.toString(), "-i",
      * inputFile.toString(), "-o", outputFile.toString(), "-debug"].
-     *
      * The Python call itself will be added according to the Venv used for
      * plugin execution and must not be included.
      *
@@ -244,7 +238,6 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
      * This method checks if the local Python installation version is larger or
      * equal the provided version number. The version should be provided as
      * semantic version number, i.e., 3.13.2
-     *
      * The method will return TRUE if the minimal requirements are met and false
      * otherwise. False is also returned if obtaining/parsing the local python
      * version fails. for any reason.
@@ -266,7 +259,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
                 LOGGER.error("Failed to obtain Python version. python --version returned with status {}.", state.getState());
             } else {
 
-                LOGGER.trace("Version command output: {}", bout.toString());
+                LOGGER.trace("Version command output: {}", bout);
 
                 String[] split = bout.toString().split(" ");
 
