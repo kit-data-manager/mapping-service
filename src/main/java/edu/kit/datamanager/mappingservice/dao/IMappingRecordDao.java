@@ -37,7 +37,7 @@ public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>,
      * Find a MappingRecords by the given ID.
      *
      * @param mappingId The id to search for.
-     * @return A optional of the matching MappingRecord.
+     * @return An optional of the matching MappingRecord.
      */
     Optional<MappingRecord> findByMappingId(String mappingId);
 

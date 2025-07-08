@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.MimeType;
 
 /**
  *
@@ -57,13 +56,13 @@ public class InOutPlugin implements IMappingPlugin {
     }
 
     @Override
-    public MimeType[] inputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/*")};
+    public String[] inputTypes() {
+        return new String[]{"application/*"};
     }
 
     @Override
-    public MimeType[] outputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/*")};
+    public String[] outputTypes() {
+        return new String[]{"application/*"};
     }
 
     @Override
