@@ -64,7 +64,7 @@ ext {
 }
 
 dependencies {
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.2.1.202505142326-r'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation "org.springframework.boot:spring-boot-starter-data-rest"
