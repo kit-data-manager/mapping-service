@@ -15,7 +15,8 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
-import edu.kit.datamanager.mappingservice.plugins.*;
+import edu.kit.datamanager.mappingservice.plugins.AbstractPythonMappingPlugin;
+
 import java.nio.file.Path;
 
 public class GemmaPlugin extends AbstractPythonMappingPlugin {

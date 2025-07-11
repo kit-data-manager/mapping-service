@@ -1,14 +1,14 @@
 package edu.kit.datamanager.mappingservice;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
-import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import io.micrometer.core.instrument.MeterRegistry;
 import edu.kit.datamanager.mappingservice.plugins.PluginLoader;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
 import edu.kit.datamanager.security.filter.KeycloakJwtProperties;
 import edu.kit.datamanager.security.filter.KeycloakTokenFilter;
 import edu.kit.datamanager.security.filter.KeycloakTokenValidator;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

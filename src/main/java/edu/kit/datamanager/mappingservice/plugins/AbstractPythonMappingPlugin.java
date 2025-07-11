@@ -19,6 +19,10 @@ import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedEx
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +34,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

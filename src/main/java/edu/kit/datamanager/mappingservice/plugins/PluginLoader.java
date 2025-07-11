@@ -18,20 +18,6 @@ import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -41,6 +27,21 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 /**
  * Class for loading plugins.
@@ -72,14 +73,12 @@ public class PluginLoader {
     /**
      * Load plugins from a given directory.
      *
-     * @param pluginDir Directory containing plugins.
+     * @param pluginDir      Directory containing plugins.
      * @param packagesToScan Packages to scan in addition for plugins.
-     *
      * @return Map of plugins.
-     *
-     * @throws IOException If there is an error with the file system.
+     * @throws IOException            If there is an error with the file system.
      * @throws MappingPluginException If there is an error with the plugin or
-     * the input.
+     *                                the input.
      */
     public Map<String, IMappingPlugin> loadPlugins(File pluginDir, String[] packagesToScan) throws IOException, MappingPluginException {
         Map<String, IMappingPlugin> result = new HashMap<>();
@@ -186,15 +185,17 @@ public class PluginLoader {
         LOG.trace("Instantiating plugins from list: {}", pluggable);
         List<IMappingPlugin> plugs = new ArrayList<>(pluggable.size());
         for (Class<IMappingPlugin> plug : pluggable) {
-            LOG.trace("Instantiating plugin from class {}.", plug);
-            try {
-                plugs.add(plug.getDeclaredConstructor().newInstance());
-            } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-                LOG.info("Can't instantiate plugin: {}", plug.getName());
-                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't instantiate plugin: " + plug.getName(), e);
-            } catch (IllegalAccessException e) {
-                LOG.info("IllegalAccess for plugin: {}", plug.getName());
-                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "IllegalAccess for plugin: " + plug.getName(), e);
+            if (!Modifier.isAbstract(plug.getModifiers())) {
+                LOG.trace("Instantiating plugin from {}.", plug);
+                try {
+                    plugs.add(plug.getDeclaredConstructor().newInstance());
+                } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+                    LOG.info("Can't instantiate plugin: {}", plug.getName());
+                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Can't instantiate plugin: " + plug.getName(), e);
+                } catch (IllegalAccessException e) {
+                    LOG.info("IllegalAccess for plugin: {}", plug.getName());
+                    throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "IllegalAccess for plugin: " + plug.getName(), e);
+                }
             }
         }
         return plugs;
@@ -228,7 +229,7 @@ public class PluginLoader {
     }
 
     private Class<?> loadClass(ClassLoader loader, MetadataReaderFactory readerFactory,
-            Resource resource) {
+                               Resource resource) {
         try {
             MetadataReader reader = readerFactory.getMetadataReader(resource);
             return ClassUtils.forName(reader.getClassMetadata().getClassName(), loader);

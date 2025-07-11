@@ -26,6 +26,7 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
@@ -42,6 +43,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.test.context.web.ServletTestExecutionListener;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,13 +53,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.Disabled;
-import org.springframework.web.client.ResourceAccessException;
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @EnableRuleMigrationSupport

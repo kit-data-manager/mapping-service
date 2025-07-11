@@ -20,17 +20,17 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assume;
-
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *

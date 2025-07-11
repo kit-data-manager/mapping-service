@@ -18,14 +18,7 @@ package edu.kit.datamanager.mappingservice.rest.impl;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.JobStatus;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.exception.JobIdConflictException;
-import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
-import edu.kit.datamanager.mappingservice.exception.MappingException;
-import edu.kit.datamanager.mappingservice.exception.MappingExecutionException;
-import edu.kit.datamanager.mappingservice.exception.MappingJobException;
-import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
-import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
-import edu.kit.datamanager.mappingservice.exception.MappingServiceUserException;
+import edu.kit.datamanager.mappingservice.exception.*;
 import edu.kit.datamanager.mappingservice.impl.JobManager;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
@@ -35,18 +28,23 @@ import edu.kit.datamanager.mappingservice.util.FileUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,11 +53,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * Controller for executing document mappings via REST API.
@@ -128,7 +121,6 @@ public class MappingExecutionController implements IMappingExecutionController {
             } catch (MappingPluginException e) {
                 LOG.error("Failed to execute mapping.", e);
                 e.throwMe();
-                //throw new MappingExecutionException("Failed to execute mapping with id " + mappingID + " on provided input document.");
             } finally {
                 LOG.trace("Removing user upload at {}.", inputFile);
                 FileUtil.removeFile(inputPath);
