@@ -86,6 +86,7 @@ public class WebSecurityConfig {
         if (applicationProperties.isAuthEnabled()) {
             logger.trace("Authentication is ENABLED. Collecting secured endpoints.");
             securedEndpointMatchers = Arrays.asList(
+                    new AntPathRequestMatcher("/api/v1/mappingAdministration/types/*/execute", "POST"),
                     new AntPathRequestMatcher("/api/v1/mappingAdministration/reloadTypes", "GET"),
                     new AntPathRequestMatcher("/api/v1/mappingAdministration", "PUT"),
                     new AntPathRequestMatcher("/api/v1/mappingAdministration", "POST")

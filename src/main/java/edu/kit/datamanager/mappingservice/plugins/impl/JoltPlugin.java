@@ -1,13 +1,14 @@
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
 import com.bazaarvoice.jolt.Chainr;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

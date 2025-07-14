@@ -113,8 +113,10 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
             }
 
             if (System.getProperty("os.name").startsWith("Windows")) {
+                LOGGER.trace("Windows OS, expecting venv interpreter at relative path {}/Scripts/python.exe.", pluginVenv);
                 venvInterpreter = pluginVenv + "/Scripts/python.exe";
             } else {
+                LOGGER.trace("Unix OS, expecting venv interpreter at relative path {}/bin/python3.", pluginVenv);
                 venvInterpreter = pluginVenv + "/bin/python3";
             }
         } catch (IOException e) {

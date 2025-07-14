@@ -172,7 +172,7 @@ public interface IMappingAdministrationController {
                     + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
     @RequestMapping(value = {"/types/{typeID}/execute"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
-    void mapDocument(
+    void runPlugin(
             @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
             @Parameter(description = "The mapping rules document.", required = true) @RequestPart(name = "mapping") final MultipartFile mapping,
             @Parameter(description = "The typeID of the plugin to execute.", required = true) @PathVariable(value = "typeID") String typeID,

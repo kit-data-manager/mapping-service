@@ -40,7 +40,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -180,7 +182,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity getMappingById(
+    public ResponseEntity<MappingRecord> getMappingById(
             @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr) {
@@ -218,7 +220,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity getMappingDocumentById(
+    public ResponseEntity<Resource> getMappingDocumentById(
             @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr) {
@@ -235,7 +237,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         LOG.trace("Checking accessibility of local path {}.", mappingDocumentPath.toString());
         if (!Files.exists(mappingDocumentPath) || !Files.isRegularFile(mappingDocumentPath) || !Files.isReadable(mappingDocumentPath)) {
             LOG.trace("Mapping document at path {} either does not exist or is no file or is not readable. Returning HTTP INTERNAL_SERVER_ERROR.", mappingDocumentPath);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Metadata document on server either does not exist or is no file or is not readable.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ByteArrayResource("Metadata document on server either does not exist or is no file or is not readable.".getBytes(StandardCharsets.UTF_8)));
         }
 
         LOG.trace("Get ETag of MappingRecord.");
@@ -280,7 +282,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity deleteMapping(
+    public ResponseEntity<Void> deleteMapping(
             @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr) {
@@ -388,7 +390,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public void mapDocument(MultipartFile document, MultipartFile mapping, String typeID, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
+    public void runPlugin(MultipartFile document, MultipartFile mapping, String typeID, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
         LOG.trace("Performing mapDocument(File#{}, File#{}, {})", document.getOriginalFilename(), mapping.getOriginalFilename(), typeID);
         Optional<Path> resultPath = Optional.empty();
 
