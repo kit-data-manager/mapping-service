@@ -93,6 +93,12 @@ public class WebSecurityConfig {
             );
         } else {
             logger.trace("Authentication is DISABLED. Not securing endpoints.");
+            //.antMatchers("/internal/**").access("hasIpAddress('127.0.0.1') or hasIpAddress('::1')")
+
+            // http
+            //            .authorizeRequests()
+            //                .antMatchers("/internal/**").hasIpAddress("127.0.0.1")
+            //                .anyRequest().permitAll();
             securedEndpointMatchers = List.of();
         }
 
