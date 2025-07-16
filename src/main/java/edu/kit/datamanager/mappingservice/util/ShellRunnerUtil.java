@@ -21,10 +21,7 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -118,13 +115,14 @@ public class ShellRunnerUtil {
 
         ExecutorService pool = Executors.newSingleThreadExecutor();
         MappingPluginState returnValue = MappingPluginState.SUCCESS();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process p = pb.start();
 
             pipeStream(p.getInputStream(), new PrintStream(output));
-            pipeStream(p.getErrorStream(), new PrintStream(error));
+            pipeStream(p.getErrorStream(), new PrintStream(bout));
 
             if (!p.waitFor(timeOutInSeconds, TimeUnit.SECONDS)) {
                 throw new TimeoutException("Process did not return within " + timeOutInSeconds + " seconds.");
@@ -135,18 +133,28 @@ public class ShellRunnerUtil {
         } catch (IOException ioe) {
             LOGGER.error("Failed to run command or to access output/error streams.", ioe);
             returnValue = MappingPluginState.EXECUTION_ERROR();
+            returnValue.setDetails("Failed to run command or to access output/error streams.");
         } catch (TimeoutException te) {
             LOGGER.error("Command did not return in expected timeframe of {} seconds", timeOutInSeconds, te);
             returnValue = MappingPluginState.TIMEOUT();
+            returnValue.setDetails(te.getMessage());
         } catch (InterruptedException e) {
             LOGGER.error("Command execution has been interrupted.", e);
             returnValue = MappingPluginState.UNKNOWN_ERROR();
+            returnValue.setDetails("Command execution has been interrupted.");
         } catch (BadExitCodeException e) {
             LOGGER.error("Failed to execute command due to an unexpected exception.", e);
             returnValue = MappingPluginState.BAD_EXIT_CODE();
-            returnValue.setDetails(e.getExitCode());
+            returnValue.setDetails("Mapping process returned with exit code " + e.getExitCode() + ". StdErr:\n" + bout.toString());
         } finally {
             pool.shutdown();
+            //write output puffer to provided output stream
+            try {
+                output.write(bout.toByteArray());
+                output.flush();
+            }catch(IOException ioe){
+                LOGGER.info("Failed to write error buffer to error stream.", ioe);
+            }
         }
 
         if (returnValue.getState() != MappingPluginState.SUCCESS().getState()) {

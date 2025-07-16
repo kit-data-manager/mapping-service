@@ -96,9 +96,10 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
             this.repositoryUrl = repositoryUrl;
             // Get the context class loader
             ClassLoader classLoader = this.getClass().getClassLoader();
-            // TODO: do we need to make sure that the resource path is somehow related to the current plugin to avoid loading the wrong property file in case of identical property names?
+            // Ensure that the resource path is somehow related to the current plugin (-version) to avoid
+            // loading the wrong property file in case of identical property names
             URL resource = classLoader.getResource(pluginName.toLowerCase() + ".properties");
-            LOGGER.info("Resource file: {}", resource);
+            LOGGER.info("Loading plugin properties from resource file: {}", resource);
             if (resource != null) {
                 // Load the properties file
                 try (InputStream input = resource.openStream()) {
@@ -193,7 +194,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         try {
             LOGGER.info("Cloning git repository {}, tag {}", repositoryUrl, tag);
             Path path = Paths.get(applicationProperties.getCodeLocation().toURI());
-            path = path.resolve(repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + version());
+            path = path.resolve(repositoryUrl.trim().replace("https://", "").replace(".git", "") + "_" + version());
             LOGGER.info("Target path: {}", path);
             dir = FileUtil.cloneGitRepository(repositoryUrl, tag, path.toAbsolutePath().toString());
             // Install Python dependencies
