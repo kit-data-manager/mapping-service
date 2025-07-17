@@ -101,7 +101,7 @@ public class PluginLoader {
         for (IMappingPlugin i : IMappingPluginList) {
             try {
                 i.setup(applicationProperties);
-                LOG.trace(" - Adding new plugin {}, v{} to available list", i.name(), i.version());
+                LOG.trace(" - Adding new plugin {}, version {} to available list", i.name(), i.version());
                 result.put(i.id(), i);
             } catch (PluginInitializationFailedException re) {
                 LOG.error("Failed to initialize plugin {}, version {}. Plugin will be ignored.", i.name(), i.version(), re);

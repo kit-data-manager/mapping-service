@@ -20,10 +20,7 @@ public class PathAndMethodRequestMatcher implements RequestMatcher {
 
     @Override
     public boolean matches(HttpServletRequest request){
-    logger.error("DO MATCHING STUFF");
-    boolean result =  request.getMethod().equalsIgnoreCase(httpMethod) &&
+    return request.getMethod().equalsIgnoreCase(httpMethod) &&
                 pathMatcher.match(pathPattern, request.getRequestURI());
-logger.error("RESULT: " + result);
-return result;
     }
 }
