@@ -40,8 +40,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -84,7 +82,7 @@ public class WebSecurityConfig {
             // other public endpoints of your API may be appended to this array
     };
 
-    @Bean
+    @Bean 
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         record SecuredEndpoint(String method, String pattern) {
         }
