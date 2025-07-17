@@ -266,8 +266,8 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
                 LOGGER.error("Failed to obtain Python version. python --version returned with status {}.", state.getState());
             } else {
 
-                LOGGER.trace("Version command output: {}", bout.toString());
-                LOGGER.trace("Version command error: {}", berr.toString());
+                LOGGER.trace("Version command output: {}", bout);
+                LOGGER.trace("Version command error: {}", berr);
 
                 String[] split = bout.toString().split(" ");
 

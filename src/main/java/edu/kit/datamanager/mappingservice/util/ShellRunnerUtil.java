@@ -149,6 +149,7 @@ public class ShellRunnerUtil {
         } finally {
             pool.shutdown();
             //write output puffer to provided output stream
+            LOGGER.trace("Process finished. Forwarding collected error output {} to provided error stream.", bout);
             try {
                 output.write(bout.toByteArray());
                 output.flush();
