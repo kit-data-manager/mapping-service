@@ -101,7 +101,7 @@ dependencies {
        	exclude group: "com.sun.xml.bind"
     }
     // apache
-    implementation "org.apache.tika:tika-core:3.2.0"
+    implementation "org.apache.tika:tika-core:3.2.1"
     // JoltPlugin
     implementation "com.bazaarvoice.jolt:jolt-core:0.1.8"
 
