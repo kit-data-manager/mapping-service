@@ -16,10 +16,11 @@
 package edu.kit.datamanager.mappingservice.impl;
 
 import edu.kit.datamanager.mappingservice.domain.JobStatus;
+import org.springframework.stereotype.Service;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.springframework.stereotype.Service;
 
 /**
  *

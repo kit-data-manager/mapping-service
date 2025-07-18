@@ -97,10 +97,10 @@ public class PythonRunnerUtil {
         ArrayList<String> command = new ArrayList<>();
         command.add(configuration.getPythonExecutable().getPath());
         command.add(script);
-        
         if (args != null) {
             Collections.addAll(command, args);
         }
+        LOGGER.trace("Running python script with command {}.", command);
         return ShellRunnerUtil.run(output, error, command.toArray(String[]::new));
     }
 }

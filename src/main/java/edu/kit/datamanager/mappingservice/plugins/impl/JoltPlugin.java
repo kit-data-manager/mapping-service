@@ -1,5 +1,9 @@
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
+import com.bazaarvoice.jolt.Chainr;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
@@ -8,10 +12,14 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Map;
 
 public class JoltPlugin implements IMappingPlugin {
     static Logger LOG = LoggerFactory.getLogger(JoltPlugin.class);
@@ -56,11 +64,30 @@ public class JoltPlugin implements IMappingPlugin {
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         MappingPluginState result = MappingPluginState.SUCCESS();
         try {
-            Files.copy(inputFile, outputFile, StandardCopyOption.REPLACE_EXISTING);
+            ObjectMapper mapper = new ObjectMapper();
+
+            // Load the input JSON
+            Map<String, Object> inputJson = mapper.readValue(inputFile.toFile(), Map.class);
+
+            // Load the Jolt spec (as a List of operations)
+            List<Object> joltSpec = mapper.readValue(mappingFile.toFile(), List.class);
+
+            // Create the transformer
+            Chainr chainr = Chainr.fromSpec(joltSpec);
+
+            // Apply transformation
+            Object transformedOutput = chainr.transform(inputJson);
+
+            // Print result
+            String output = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(transformedOutput);
+
+            try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+                writer.write(output);
+            }
         } catch (IOException | MappingException ex) {
             LOG.error("Failed to execute plugin.", ex);
             result = MappingPluginState.EXECUTION_ERROR();
-            result.setDetails("Failed to copy input to output, probably due to an I/O error.");
+            result.setDetails("Failed to run Jolt transformation.");
         }
         return result;
     }

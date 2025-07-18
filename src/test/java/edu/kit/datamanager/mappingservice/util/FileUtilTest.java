@@ -28,10 +28,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
-import org.apache.commons.io.filefilter.HiddenFileFilter;
 
 import static org.junit.jupiter.api.Assertions.*;
 

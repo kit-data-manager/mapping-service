@@ -20,17 +20,17 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assume;
-
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -87,7 +87,8 @@ public class PythonUtilsTest {
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.BAD_EXIT_CODE, e.getMappingPluginState().getState());
-            assertEquals(123, e.getMappingPluginState().getDetails());
+            assertInstanceOf(String.class, e.getMappingPluginState().getDetails());
+            assertTrue(((String)e.getMappingPluginState().getDetails()).contains("exit code 123"));
         }
     }
 

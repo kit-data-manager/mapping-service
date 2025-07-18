@@ -21,12 +21,13 @@ import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Simple mapping service plugin calling image magick 'identify' to obtain image

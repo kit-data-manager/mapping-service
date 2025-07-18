@@ -19,6 +19,10 @@ import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedEx
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import edu.kit.datamanager.mappingservice.util.PythonRunnerUtil;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +34,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -95,9 +96,10 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
             this.repositoryUrl = repositoryUrl;
             // Get the context class loader
             ClassLoader classLoader = this.getClass().getClassLoader();
-            // TODO: do we need to make sure that the resource path is somehow related to the current plugin to avoid loading the wrong property file in case of identical property names?
+            // Ensure that the resource path is somehow related to the current plugin (-version) to avoid
+            // loading the wrong property file in case of identical property names
             URL resource = classLoader.getResource(pluginName.toLowerCase() + ".properties");
-            LOGGER.info("Resource file: {}", resource);
+            LOGGER.info("Loading plugin properties from resource file: {}", resource);
             if (resource != null) {
                 // Load the properties file
                 try (InputStream input = resource.openStream()) {
@@ -112,8 +114,10 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
             }
 
             if (System.getProperty("os.name").startsWith("Windows")) {
+                LOGGER.trace("Windows OS, expecting venv interpreter at relative path {}/Scripts/python.exe.", pluginVenv);
                 venvInterpreter = pluginVenv + "/Scripts/python.exe";
             } else {
+                LOGGER.trace("Unix OS, expecting venv interpreter at relative path {}/bin/python3.", pluginVenv);
                 venvInterpreter = pluginVenv + "/bin/python3";
             }
         } catch (IOException e) {
@@ -190,7 +194,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         try {
             LOGGER.info("Cloning git repository {}, tag {}", repositoryUrl, tag);
             Path path = Paths.get(applicationProperties.getCodeLocation().toURI());
-            path = path.resolve(repositoryUrl.trim().replace("https://", "").replace("http://", "").replace(".git", "") + "_" + version());
+            path = path.resolve(repositoryUrl.trim().replace("https://", "").replace(".git", "") + "_" + version());
             LOGGER.info("Target path: {}", path);
             dir = FileUtil.cloneGitRepository(repositoryUrl, tag, path.toAbsolutePath().toString());
             // Install Python dependencies
@@ -253,13 +257,17 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         try {
             LOGGER.trace("Checking for minimal Python version {}.", versionString);
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            MappingPluginState state = PythonRunnerUtil.runPythonScript("--version", bout, System.err);
+            ByteArrayOutputStream berr = new ByteArrayOutputStream();
+            MappingPluginState state = PythonRunnerUtil.runPythonScript("--version", bout, berr);
+
+            LOGGER.trace("Python call returned with status {}.", state.getState());
 
             if (!MappingPluginState.StateEnum.SUCCESS.equals(state.getState())) {
                 LOGGER.error("Failed to obtain Python version. python --version returned with status {}.", state.getState());
             } else {
 
                 LOGGER.trace("Version command output: {}", bout);
+                LOGGER.trace("Version command error: {}", berr);
 
                 String[] split = bout.toString().split(" ");
 

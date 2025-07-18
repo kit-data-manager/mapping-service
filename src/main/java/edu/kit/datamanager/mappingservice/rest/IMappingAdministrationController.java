@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springdoc.core.converters.models.PageableAsQueryParam;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-import jakarta.servlet.http.HttpServletResponse;
+
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -157,4 +159,27 @@ public interface IMappingAdministrationController {
     ResponseEntity<String> reloadAvailablePlugins(
             WebRequest wr,
             HttpServletResponse hsr);
+
+    @Operation(summary = "Map a document directly using the provided plugin.", description = "This endpoint allows the mapping of documents via a file upload. "
+            + "The identifier of the plugin must be passed to this endpoint as parameters together with the document to be mapped and the mapping rules.", responses = {
+            @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. "
+                    + "The result will also be returned in the response."),
+            @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no plugin for typeID could be found."),
+            @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
+                    + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
+                    + "document should be the reason for a mapper to fail."),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
+                    + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
+    @RequestMapping(value = {"/types/{typeID}/execute"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @ResponseBody
+    void runPlugin(
+            @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
+            @Parameter(description = "The mapping rules document.", required = true) @RequestPart(name = "mapping") final MultipartFile mapping,
+            @Parameter(description = "The typeID of the plugin to execute.", required = true) @PathVariable(value = "typeID") String typeID,
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final UriComponentsBuilder uriBuilder) throws URISyntaxException;
+
+
+
 }

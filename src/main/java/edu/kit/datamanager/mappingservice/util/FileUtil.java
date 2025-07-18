@@ -20,6 +20,10 @@ import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -38,10 +42,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.tika.Tika;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
 
 /**
  * Various utility methods for file handling.
@@ -140,7 +140,7 @@ public class FileUtil {
         LOGGER.trace("fixFileExtension({})", pathToFile);
         FileInputStream fin;
         try {
-            if ((pathToFile != null) && (pathToFile.toFile().exists())) {
+            if ((pathToFile != null) && (pathToFile.toFile().exists()) && pathToFile.toFile().isFile()) {
                 fin = new FileInputStream(pathToFile.toFile());
                 byte[] header = fin.readNBytes(FEW_KILO_BYTES_FOR_TIKA);
                 fin.close();

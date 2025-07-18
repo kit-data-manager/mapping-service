@@ -20,12 +20,13 @@ import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

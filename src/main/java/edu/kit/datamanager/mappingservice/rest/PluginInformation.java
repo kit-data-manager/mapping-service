@@ -20,11 +20,14 @@ import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import lombok.*;
-import org.hibernate.Hibernate;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;

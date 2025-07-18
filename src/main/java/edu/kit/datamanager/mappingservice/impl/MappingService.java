@@ -20,13 +20,7 @@ import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
 import edu.kit.datamanager.mappingservice.domain.JobStatus;
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
-import edu.kit.datamanager.mappingservice.exception.DuplicateMappingException;
-import edu.kit.datamanager.mappingservice.exception.JobNotFoundException;
-import edu.kit.datamanager.mappingservice.exception.JobProcessingException;
-import edu.kit.datamanager.mappingservice.exception.MappingJobException;
-import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
-import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
-import edu.kit.datamanager.mappingservice.exception.MappingServiceUserException;
+import edu.kit.datamanager.mappingservice.exception.*;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
@@ -39,6 +33,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -55,7 +50,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.springframework.scheduling.annotation.Async;
 
 /**
  * Service for managing mappings.
@@ -106,11 +100,9 @@ public class MappingService {
     /**
      * Save content to mapping file and get the mapping location.
      *
-     * @param content Content of the mapping file.
+     * @param content       Content of the mapping file.
      * @param mappingRecord record of the mapping
-     *
      * @return The created mapping record.
-     *
      * @throws IOException if the provided content could not be persisted.
      */
     public MappingRecord createMapping(String content, MappingRecord mappingRecord) throws IOException {
@@ -129,7 +121,7 @@ public class MappingService {
             LOGGER.error(message);
             Set<Map.Entry<String, IMappingPlugin>> entries = pluginManager.getPlugins().entrySet();
             LOGGER.info("Registered plugins: ");
-            for(Map.Entry<String, IMappingPlugin> entry : entries) {
+            for (Map.Entry<String, IMappingPlugin> entry : entries) {
                 LOGGER.info(" * {}", entry.getKey());
             }
 
@@ -151,7 +143,7 @@ public class MappingService {
     /**
      * Update content of mapping file and get the mapping location.
      *
-     * @param content Content of the mapping file.
+     * @param content       Content of the mapping file.
      * @param mappingRecord record of the mapping
      */
     public void updateMapping(String content, MappingRecord mappingRecord) throws MappingNotFoundException, IOException {
@@ -191,11 +183,48 @@ public class MappingService {
     }
 
     /**
+     * Execute mapping plugin directly providing the input file and the mapping rules. As a result, the location
+     * of the output file is returned.
+     *
+     * @param contentUrl Local URL of the input file.
+     * @param mappingUrl Local URL of the mapping rules file.
+     * @param typeId     id of the plugin
+     * @return Path to result file.
+     */
+    public Optional<Path> runPlugin(URI contentUrl, URI mappingUrl, String typeId) throws MappingPluginException {
+        LOGGER.trace("Executing mapping plugin with content {}, mapping rules {}, and plugin with id {}.", contentUrl, mappingUrl, typeId);
+        if (contentUrl == null || mappingUrl == null || typeId == null) {
+            throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "Either contentUrl, mappingUrl, or typeId are not provided.");
+        }
+
+        Optional<Path> returnValue;
+        Path srcFile = Paths.get(contentUrl);
+        LOGGER.trace("Executing plugin with id {}.", typeId);
+
+        Counter.builder("mapping_service.plugin_usage").tag("plugin", typeId).register(meterRegistry).increment();
+
+        // execute mapping
+        Path resultFile;
+        LOGGER.trace("Preparing temporary output file.");
+        resultFile = FileUtil.createTempFile(typeId + "_" + srcFile.hashCode(), ".result");
+        LOGGER.trace("Temporary output file available at {}. Performing mapping.", resultFile);
+        MappingPluginState result = pluginManager.mapFile(typeId, Paths.get(mappingUrl), srcFile, resultFile);
+        LOGGER.trace("Mapping plugin returned with result {}. Returning result file.", result);
+        returnValue = Optional.of(resultFile);
+        // remove downloaded file
+        LOGGER.trace("Removing user upload.");
+        FileUtil.removeFile(srcFile);
+        LOGGER.trace("User upload successfully removed.");
+
+        return returnValue;
+    }
+
+    /**
      * Execute mapping and get the location of result file. If no according
      * mapping is found the src file will be returned.
      *
      * @param contentUrl Content of the src file.
-     * @param mappingId id of the mapping
+     * @param mappingId  id of the mapping
      * @return Path to result file.
      */
     public Optional<Path> executeMapping(URI contentUrl, String mappingId) throws MappingPluginException {
@@ -241,12 +270,10 @@ public class MappingService {
      * be monitored. As soon as the job has finished successfully, the output
      * can be downloaded or the job can be deleted.
      *
-     * @param jobId The job's id.
+     * @param jobId      The job's id.
      * @param contentUrl The URL of the user upload.
-     * @param mappingId The id of the mapping to be used.
-     *
+     * @param mappingId  The id of the mapping to be used.
      * @return Job status as completable future.
-     *
      * @throws MappingPluginException if calling the plugin fails.
      */
     @Async("asyncExecutor")
@@ -303,9 +330,7 @@ public class MappingService {
      * Fetch a job's status or fail if the job cannot be found.
      *
      * @param jobId The job's id.
-     *
      * @return The job status as completable future.
-     *
      * @throws JobNotFoundException If no job for the provided jobId exists.
      */
     public CompletableFuture<JobStatus> fetchJobElseThrowException(String jobId) throws JobNotFoundException {
@@ -328,9 +353,7 @@ public class MappingService {
      * Query a job's status.
      *
      * @param jobId The job's id.
-     *
      * @return The Job status.
-     *
      * @throws Throwable Any kind of error produced during job execution.
      */
     public JobStatus getJobStatus(String jobId) throws Throwable {
@@ -365,13 +388,11 @@ public class MappingService {
      * Get the job's output file.
      *
      * @param jobId The jobId.
-     *
      * @return The local file.
-     *
-     * @throws JobNotFoundException If no output file for the provided jobId
-     * could be found.
+     * @throws JobNotFoundException   If no output file for the provided jobId
+     *                                could be found.
      * @throws JobProcessingException If the job has not finished, yet.
-     * @throws Throwable Any kind of error produced during job execution.
+     * @throws Throwable              Any kind of error produced during job execution.
      */
     public File getJobOutputFile(String jobId) throws Throwable {
         CompletableFuture<JobStatus> completableFuture = fetchJob(jobId);
@@ -419,7 +440,6 @@ public class MappingService {
      * running, an according status is returned.
      *
      * @param jobId The id of the job.
-     *
      * @return The status of the job, either with status DELETED or RUNNING.
      */
     public JobStatus deleteJobAndAssociatedData(String jobId) {
@@ -429,9 +449,9 @@ public class MappingService {
             //delete output file if file still exists (even after the job was removed from the queue)
             File outputFile = getOutputFile(jobId);
             if (outputFile.exists()) {
-                if(outputFile.delete()){
+                if (outputFile.delete()) {
                     LOGGER.trace("Output file {} deleted.", outputFile);
-                }else{
+                } else {
                     LOGGER.warn("Output file {} could not be deleted.", outputFile);
                 }
             } else {
@@ -459,9 +479,9 @@ public class MappingService {
 
             if (jobOutput.exists()) {
                 LOGGER.trace(" - Deleting job output");
-                if(jobOutput.delete()){
+                if (jobOutput.delete()) {
                     LOGGER.trace(" - Output file {} deleted.", jobOutput);
-                }else{
+                } else {
                     LOGGER.warn(" ! Output file {} could not be deleted.", jobOutput);
                 }
             }
@@ -476,7 +496,6 @@ public class MappingService {
      * Get the job's output file.
      *
      * @param jobId The jobId.
-     *
      * @return File A local file.
      */
     private File getOutputFile(String jobId) {
@@ -496,7 +515,7 @@ public class MappingService {
      * Initialize mappings directory and mappingUtil instance.
      *
      * @param applicationProperties Properties holding mapping directory
-     * setting.
+     *                              setting.
      */
     private void init(ApplicationProperties applicationProperties) {
         if ((applicationProperties != null) && (applicationProperties.getMappingsLocation() != null)) {
