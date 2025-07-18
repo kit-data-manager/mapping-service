@@ -140,7 +140,7 @@ public class FileUtil {
         LOGGER.trace("fixFileExtension({})", pathToFile);
         FileInputStream fin;
         try {
-            if ((pathToFile != null) && (pathToFile.toFile().exists())) {
+            if ((pathToFile != null) && (pathToFile.toFile().exists()) && pathToFile.toFile().isFile()) {
                 fin = new FileInputStream(pathToFile.toFile());
                 byte[] header = fin.readNBytes(FEW_KILO_BYTES_FOR_TIKA);
                 fin.close();

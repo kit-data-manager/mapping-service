@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.configuration;
 
 import edu.kit.datamanager.security.filter.KeycloakTokenFilter;
 import edu.kit.datamanager.security.filter.NoAuthenticationFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +40,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -62,60 +65,67 @@ public class WebSecurityConfig {
     private Optional<KeycloakTokenFilter> keycloakTokenFilterBean;
     @Autowired
     private ApplicationProperties applicationProperties;
-
+    @Autowired
+    private HandlerMappingIntrospector introspector;
     private static final String[] AUTH_WHITELIST_SWAGGER_UI = {
-        // -- Swagger UI v2
-        "/v2/api-docs",
-        "/swagger-resources",
-        "/swagger-resources/**",
-        "/configuration/ui",
-        "/configuration/security",
-        "/swagger-ui.html",
-        "/webjars/**",
-        // -- Swagger UI v3 (OpenAPI)
-        "/v3/api-docs/**",
-        "/swagger-ui/**"
-    // other public endpoints of your API may be appended to this array
+            // -- Swagger UI v2
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            // -- Swagger UI v3 (OpenAPI)
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+            // other public endpoints of your API may be appended to this array
     };
 
-    @Bean
+    @Bean 
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        List<AntPathRequestMatcher> securedEndpointMatchers;
-
-        if (applicationProperties.isAuthEnabled()) {
-            logger.trace("Authentication is ENABLED. Collecting secured endpoints.");
-            securedEndpointMatchers = Arrays.asList(
-                    new AntPathRequestMatcher("/api/v1/mappingAdministration/types/*/execute", "POST"),
-                    new AntPathRequestMatcher("/api/v1/mappingAdministration/reloadTypes", "GET"),
-                    new AntPathRequestMatcher("/api/v1/mappingAdministration", "PUT"),
-                    new AntPathRequestMatcher("/api/v1/mappingAdministration", "POST")
-            );
-        } else {
-            logger.trace("Authentication is DISABLED. Not securing endpoints.");
-            //.antMatchers("/internal/**").access("hasIpAddress('127.0.0.1') or hasIpAddress('::1')")
-
-            // http
-            //            .authorizeRequests()
-            //                .antMatchers("/internal/**").hasIpAddress("127.0.0.1")
-            //                .anyRequest().permitAll();
-            securedEndpointMatchers = List.of();
+        record SecuredEndpoint(String method, String pattern) {
         }
 
+        //special endpoints only accessible by mapping admin (if auth enabled) or from localhost (if auth disabled)
+        List<SecuredEndpoint> securedEndpointMatchers = List.of(
+                new SecuredEndpoint("POST", "/api/v1/mappingAdministration/types/*/execute"),
+                new SecuredEndpoint("GET", "/api/v1/mappingAdministration/reloadTypes"),
+                new SecuredEndpoint("PUT", "/api/v1/mappingAdministration"),
+                new SecuredEndpoint("POST", "/api/v1/mappingAdministration")
+        );
+
         HttpSecurity httpSecurity = http.authorizeHttpRequests(
-                authorize -> authorize.
-                        requestMatchers(HttpMethod.OPTIONS).permitAll().
-                        requestMatchers(EndpointRequest.to(
-                                InfoEndpoint.class,
-                                HealthEndpoint.class
-                        )).permitAll().
-                        requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMINISTRATOR", "ACTUATOR", "SERVICE_WRITE").
-                        requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll().
-                        requestMatchers(new AntPathRequestMatcher("/error")).permitAll().
-                        requestMatchers(securedEndpointMatchers.toArray(AntPathRequestMatcher[]::new)).hasRole(applicationProperties.getMappingAdminRole()). //endpoint filters only active if auth is enabled
-                        requestMatchers(AUTH_WHITELIST_SWAGGER_UI).permitAll().
-                        anyRequest().authenticated()
-        ).
+                        authorize -> {
+                            authorize.
+                                    requestMatchers(HttpMethod.OPTIONS).permitAll().
+                                    requestMatchers(EndpointRequest.to(
+                                            InfoEndpoint.class,
+                                            HealthEndpoint.class
+                                    )).permitAll();
+
+                            authorize.
+                                    requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMINISTRATOR", "ACTUATOR", "SERVICE_WRITE").
+                                    requestMatchers("/static/**", "/error").permitAll().
+                                    requestMatchers(AUTH_WHITELIST_SWAGGER_UI).permitAll();
+
+                            if (applicationProperties.isAuthEnabled()) {
+                                logger.info("Configuring secured endpoints for being accessible by role {}.", applicationProperties.getMappingAdminRole());
+                                securedEndpointMatchers.forEach(endpoint ->
+                                        authorize.requestMatchers(endpoint.method(), endpoint.pattern()).hasRole(applicationProperties.getMappingAdminRole()) //allow for mapping admin
+                                );
+                            } else {
+                                logger.info("Configuring secured endpoints for being accessible from localhost only.");
+                                securedEndpointMatchers.forEach(endpoint -> {
+                                    RequestMatcher matcher = new PathAndMethodRequestMatcher(endpoint.method(), endpoint.pattern());
+                                    authorize.requestMatchers(localhostOnly(matcher)).permitAll(); // allow for localhost
+                                    authorize.requestMatchers(matcher).denyAll(); //deny if not localhost
+                                });
+                            }
+
+                            authorize.anyRequest().authenticated();
+                        }
+                ).
                 httpBasic(Customizer.withDefaults()).
                 cors(cors -> cors.configurationSource(corsConfigurationSource())).
                 sessionManagement(
@@ -169,5 +179,16 @@ public class WebSecurityConfig {
 
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    private RequestMatcher localhostOnly(RequestMatcher pathMatcher) {
+        return request -> {
+            return isLocalhost(request) && pathMatcher.matches(request);
+        };
+    }
+
+    private boolean isLocalhost(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
+        return "127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr);
     }
 }

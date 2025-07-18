@@ -87,7 +87,8 @@ public class PythonUtilsTest {
             fail("Expected MappingPluginException");
         } catch (MappingPluginException e) {
             assertEquals(MappingPluginState.StateEnum.BAD_EXIT_CODE, e.getMappingPluginState().getState());
-            assertEquals(123, e.getMappingPluginState().getDetails());
+            assertInstanceOf(String.class, e.getMappingPluginState().getDetails());
+            assertTrue(((String)e.getMappingPluginState().getDetails()).contains("exit code 123"));
         }
     }
 
