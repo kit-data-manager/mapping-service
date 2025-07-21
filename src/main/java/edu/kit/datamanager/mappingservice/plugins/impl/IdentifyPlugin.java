@@ -51,7 +51,7 @@ public class IdentifyPlugin implements IMappingPlugin {
 
     @Override
     public String version() {
-        return "1.0.0";
+        return "2.0.0";
     }
 
     @Override

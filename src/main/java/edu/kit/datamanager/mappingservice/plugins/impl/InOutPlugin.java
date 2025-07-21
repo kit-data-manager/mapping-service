@@ -48,7 +48,7 @@ public class InOutPlugin implements IMappingPlugin {
 
     @Override
     public String version() {
-        return "1.1.2";
+        return "2.0.0";
     }
 
     @Override

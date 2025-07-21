@@ -104,6 +104,18 @@ For more information and concrete implementation examples, please check included
 * InOutPlugin: Simple example for testing
 * JoltPlugin: Java-only plugin
 
+> [!NOTE]
+> For Python-based plugins you must additionally provide a properties file telling the plugin which tag to check out and optionally, which minimal Python version is required. The properties file must be located
+> in the base folder of the plugin jar file and must be named <LOWERCASE_PLUGIN_NAME>.properties, i.e., myplugin.properties for a plugin named 'MyPlugin'. In the following, an example properties document is shown.
+
+```properties
+version=v1.0.0
+min.python=3.0.0
+```
+
+> [!WARNING]
+> To avoid conflicts with properties files of multiple plugin versions it is recommended to remove old versions of a plugin if a new version is deployed.
+
 ## Deployment of custom Plugins
 
 Once implemented, the question is how to make own plugins available. Basically, there are two options: 
@@ -115,5 +127,5 @@ If added correctly, you may find your plugin registered with id **name()_version
 at runtime, you may call `http://localhost:8095/api/v1/mappingAdministration/reloadTypes` (for default deployments) to refresh the plugin classloader, before you may find your plugin. Afterwards, you maay create a 
 new mapping using your plugin or you can also call it directly for testing purposes using the endpoint `http://localhost:8095/api/v1/mappingAdministration/types/{pluginID}/execute`
 
-[!IMPORTANT]
-All mappingAdministration endpoints might be protected and only accessible by users with specific roles. During testing it is recommended to disable authentication and use the mapping-service only locally. 
+> [!IMPORTANT]
+> All mappingAdministration endpoints might be protected and only accessible by users with specific roles. During testing it is recommended to disable authentication and use the mapping-service only locally. 
