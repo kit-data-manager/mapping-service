@@ -199,7 +199,6 @@ public class FileUtil {
      * application/octet-stream is returned as default.
      *
      * @param file Path to file
-     *
      * @return The mime type of application/octet-stream as fallback.
      */
     public static String getMimeType(Path file) {
@@ -220,7 +219,6 @@ public class FileUtil {
      * application/octet-stream is returned as default.
      *
      * @param mimeType The mime type as string.
-     *
      * @return The extension if it could be determined by mime type or 'bin'
      * otherwise.
      */
@@ -243,7 +241,7 @@ public class FileUtil {
     /**
      * Guess the extension of the file from the first bytes using Apache Tika
      *
-     * @param filename The name of the file to support mime type detection.
+     * @param filename           The name of the file to support mime type detection.
      * @param fewKilobytesOfFile First few kilobytes of the file.
      * @return Estimated extension. e.g. '.xml'
      */
@@ -287,35 +285,42 @@ public class FileUtil {
      * 'mapping-service.codeLocation' obtained from ApplicationProperties.
      *
      * @param repositoryUrl the url of the repository to clone
-     * @param branch the branch to clone
-     * @param targetFolder the target folder
+     * @param branch        the branch to clone
+     * @param targetFolder  the target folder
      * @return the path to the cloned repository
      */
     public static Path cloneGitRepository(String repositoryUrl, String branch, String targetFolder) {
         File target = new File(targetFolder);
         if (target.exists()) {
-            Git g = null;
-            try {
-                g = Git.open(target);
+            try (Git g = Git.open(target)) {
                 LOGGER.trace("Repository already exists at {}. Active branch is: {}", target, g.getRepository().getBranch());
             } catch (IOException e) {
                 String message = String.format("Folder '%s' already exists but contains not Git repository.", target);
                 LOGGER.error(message, e);
                 throw new MappingServiceException("Failed to prepare plugin. Plugin code destination already exists but is empty.");
-            } finally {
-                if (g != null) {
-                    g.getRepository().close();
-                }
             }
         } else {
-            if(!target.mkdirs()){
+            if (!target.mkdirs()) {
                 LOGGER.warn("Failed to create target directory {}. Assuming it already exists.", target);
             }
 
             LOGGER.info("Cloning branch '{}' of repository '{}' to '{}'", branch, repositoryUrl, target.getPath());
             Git g = null;
             try {
-                g = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+                if ("latest".equals(branch)) {
+                    LOGGER.trace("Detected 'latest' branch. Checking out default branch.");
+                    g = Git.cloneRepository().setURI(repositoryUrl).setDirectory(target).call();
+                    LOGGER.trace("Determining 'latest' tag.");
+                    String tag = g.describe().setTags(true).setAbbrev(0).call();
+                    if (tag == null || tag.isEmpty()) {
+                        LOGGER.debug("No tags found. Using default branch directly.");
+                    } else {
+                        LOGGER.trace("Latest tag {} found. Checking out tag.", tag);
+                        g.checkout().setName(tag).call();
+                    }
+                } else {
+                    g = Git.cloneRepository().setURI(repositoryUrl).setBranch(branch).setDirectory(target).call();
+                }
                 LOGGER.trace("Repository successfully cloned to {}.", target);
             } catch (JGitInternalException | GitAPIException e) {
                 LOGGER.error("Error cloning git repository '{}' to '{}'!", repositoryUrl, target, e);
@@ -323,6 +328,7 @@ public class FileUtil {
             } finally {
                 if (g != null) {
                     g.getRepository().close();
+                    g.close();
                 }
             }
         }

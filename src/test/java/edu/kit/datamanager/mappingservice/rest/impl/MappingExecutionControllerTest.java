@@ -62,9 +62,9 @@ public class MappingExecutionControllerTest {
     private final static String TEMP_DIR_4_ALL = "/tmp/mapping-service/";
     private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
     private static final String MAPPING_ID = "my_dc";
-    private static final String MAPPING_TYPE = "InOutPlugin_1.1.2";
+    private static final String MAPPING_TYPE = "InOutPlugin_2.0.0";
     private static final String MAPPING_URL = "/api/v1/mappingExecution/" + MAPPING_ID;
-    private static final String MAPPING_TITLE = "TITEL";
+    private static final String MAPPING_TITLE = "TITLE";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
 
     @Autowired
@@ -128,22 +128,14 @@ public class MappingExecutionControllerTest {
             ex.printStackTrace();
         }
 
-        try {
+        //skip as currently no external plugins are shipped with mapping service
+        /*try {
             FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (IOException ex) {
             ex.printStackTrace();
-        }
+        }*/
 
         pluginManager.reloadPlugins();
-        /*  this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .apply(documentationConfiguration(restDocumentation)
-                        .uris().withPort(8095)
-                        .and().operationPreprocessors()
-                        .withRequestDefaults(prettyPrint())
-                        .withResponseDefaults(Preprocessors.removeHeaders("X-Content-Type-Options", "X-XSS-Protection", "X-Frame-Options"), prettyPrint()))
-                .alwaysDo(document("{method-name}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
-                .build();
-         */
         createMapping();
     }
 

@@ -109,8 +109,8 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
                     minPython = properties.getProperty("min.python");
                 }
             } else {
-                System.err.println("Properties file not found!");
-                tag = "unavailable";
+                LOGGER.info("Properties file not found. Using latest version.");
+                tag = "latest";
             }
 
             if (System.getProperty("os.name").startsWith("Windows")) {

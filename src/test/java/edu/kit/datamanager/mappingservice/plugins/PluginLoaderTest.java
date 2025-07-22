@@ -36,14 +36,18 @@ class PluginLoaderTest {
 
     @Autowired
     private PluginManager pluginManager;
-    
+
     @Autowired
     private PluginLoader pluginLoader;
 
     @Autowired
     private ApplicationProperties applicationProperties;
 
-    
+    private final String INOUTPLUGIN_VERSION = "2.0.0";
+    private final String INOUTPLUGIN_NAME = "InOutPlugin";
+    private final String INOUTPLUGIN_ID = INOUTPLUGIN_NAME + "_" + INOUTPLUGIN_VERSION;
+
+
     @BeforeEach
     void setUp() throws Exception {
         //not needed as plugins are part of the service now
@@ -64,21 +68,21 @@ class PluginLoaderTest {
         } catch (Exception e) {
             fail(e);
         }
- 
+
         try {
-            assertEquals("InOutPlugin_1.1.2", plugins.get("InOutPlugin_1.1.2").id());
-            assertEquals("InOutPlugin", plugins.get("InOutPlugin_1.1.2").name());
-            assertEquals("Simple plugin for testing just returning the input file.", plugins.get("InOutPlugin_1.1.2").description());
-            assertEquals("1.1.2", plugins.get("InOutPlugin_1.1.2").version());
-            assertEquals("https://github.com/kit-data-manager/mapping-service", plugins.get("InOutPlugin_1.1.2").uri());
-            assertEquals("application/*", plugins.get("InOutPlugin_1.1.2").inputTypes()[0]);
-            assertEquals("application/*", plugins.get("InOutPlugin_1.1.2").outputTypes()[0]);
-            plugins.get("InOutPlugin_1.1.2").setup(applicationProperties);
+            assertEquals(INOUTPLUGIN_ID, plugins.get(INOUTPLUGIN_ID).id());
+            assertEquals(INOUTPLUGIN_NAME, plugins.get(INOUTPLUGIN_ID).name());
+            assertEquals("Simple plugin for testing just returning the input file.", plugins.get(INOUTPLUGIN_ID).description());
+            assertEquals(INOUTPLUGIN_VERSION, plugins.get(INOUTPLUGIN_ID).version());
+            assertEquals("https://github.com/kit-data-manager/mapping-service", plugins.get(INOUTPLUGIN_ID).uri());
+            assertEquals("application/*", plugins.get(INOUTPLUGIN_ID).inputTypes()[0]);
+            assertEquals("application/*", plugins.get(INOUTPLUGIN_ID).outputTypes()[0]);
+            plugins.get(INOUTPLUGIN_ID).setup(applicationProperties);
             File inputFile = new File("/tmp/inputFile");
             if (!inputFile.exists()) {
                 Assertions.assertTrue(inputFile.createNewFile());
             }
-            assertEquals(MappingPluginState.SUCCESS().getState(), plugins.get("InOutPlugin_1.1.2").mapFile(new File("schema").toPath(), inputFile.toPath(), new File("output").toPath()).getState());
+            assertEquals(MappingPluginState.SUCCESS().getState(), plugins.get(INOUTPLUGIN_ID).mapFile(new File("schema").toPath(), inputFile.toPath(), new File("output").toPath()).getState());
         } catch (Exception e) {
             fail(e);
         }

@@ -38,6 +38,8 @@ class PluginManagerTest {
     @Autowired
     private ApplicationProperties applicationProperties;
 
+    private final String INOUTPLUGIN_ID = "InOutPlugin_2.0.0";
+
     @BeforeEach
     void setup() throws Exception {
         /*try {
@@ -119,7 +121,7 @@ class PluginManagerTest {
             if (!inputFile.exists()) {
                 assertTrue(inputFile.createNewFile());
             }
-            pluginManager.mapFile("InOutPlugin_1.1.2", new File("mapping-schema").toPath(), inputFile.toPath(), outputFile.toPath());
+            pluginManager.mapFile(INOUTPLUGIN_ID, new File("mapping-schema").toPath(), inputFile.toPath(), outputFile.toPath());
             assertTrue(outputFile.exists());
             assertTrue(inputFile.delete());
             assertTrue(outputFile.delete());
