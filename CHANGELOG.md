@@ -6,8 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
+* Cloned Git repositories are now properly closed (only relevant for tests)
+
 ### New Features
+* Added support for JWT authentication (enabled via property *mapping-service.authEnabled*)
+* Integration of Prometheus monitoring
+* Added endpoint /api/v1/mappingExecution/plugins/<PluginID>/execute for direct execution of plugins
+* Added JoltPlugin to list of default plugins
+* New configuration property *mapping-service.mappingAdminRole* can be used to authenticate access to administrative endpoints
+* plugin-core jar released as separate dependency and can be used for implementing own plugins easier 
+
 ### Changed
+* Countless dependency updates
+* Changed plugin loading behaviour (default plugins are now part of mapping-service and not shipped as jar files)
+* Plugin code (Python-based plugins) is now checked out in a configurable folder (mapping-service.codeLocation)
+* Changed base class for Python-based plugins to AbstractPythonMappingPlugin
+* Plugin version should now match the Git release tag used by Python-based plugins
+* Python-based plugins are now creating an own Venv (stored at the codeLocation) to avoid dependency conflicts
+* MappingAdministration endpoints /api/v1/mappingAdministration/types|reloadTypes were renamed to /api/v1/mappingAdministration/plugins|reloadPlugins
+* MappingAdministration /api/v1/mappingAdministration/reloadPlugins (GET) and PUT|POST /api/v1/mappingAdministration are now secured and can only be accessed from localhost (if authentication is disabled) or by users with the group role defined by property *mapping-service.mappingAdminRole*
 
 ## [1.1.1] - date 2025-01-20
 ### Fixed

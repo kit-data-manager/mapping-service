@@ -23,6 +23,7 @@ import edu.kit.datamanager.mappingservice.impl.JobManager;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
+import edu.kit.datamanager.mappingservice.plugins.PluginManager;
 import edu.kit.datamanager.mappingservice.rest.IMappingExecutionController;
 import edu.kit.datamanager.mappingservice.util.FileUtil;
 import io.micrometer.core.instrument.Counter;
@@ -71,9 +72,14 @@ public class MappingExecutionController implements IMappingExecutionController {
     private final MeterRegistry meterRegistry;
     private final DistributionSummary documentsInSizeMetric;
     private final DistributionSummary documentsOutSizeMetric;
+    /**
+     * The plugin manager.
+     */
+    private final PluginManager pluginManager;
 
-    public MappingExecutionController(MappingService mappingService, IMappingRecordDao mappingRecordDao, JobManager jobManager, MeterRegistry meterRegistry) {
+    public MappingExecutionController(MappingService mappingService, PluginManager pluginManager, IMappingRecordDao mappingRecordDao, JobManager jobManager, MeterRegistry meterRegistry) {
         this.mappingService = mappingService;
+        this.pluginManager = pluginManager;
         this.mappingRecordDao = mappingRecordDao;
         this.jobManager = jobManager;
         this.meterRegistry = meterRegistry;
@@ -282,5 +288,113 @@ public class MappingExecutionController implements IMappingExecutionController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public void runPlugin(MultipartFile document, MultipartFile mapping, String typeID, HttpServletRequest request, HttpServletResponse response, UriComponentsBuilder uriBuilder) {
+        LOG.trace("Performing mapDocument(File#{}, File#{}, {})", document.getOriginalFilename(), mapping.getOriginalFilename(), typeID);
+        Optional<Path> resultPath = Optional.empty();
+
+        if (document.isEmpty() || mapping.isEmpty() || typeID.isBlank()) {
+            String message = "Either typeID, mapping document, or input document are missing. Unable to perform mapping.";
+            LOG.error(message);
+            throw new MappingServiceUserException(message);
+        }
+
+        LOG.trace("Obtaining plugin for id {}.", typeID);
+        if (!pluginManager.listPluginIds().contains(typeID)) {
+            String message = String.format("No plugin found for mapping id %s.", typeID);
+            LOG.error("{}. Returning HTTP 404.", message);
+            throw new PluginNotFoundException(message);
+        }
+
+        LOG.trace("Processing mapping input file.");
+        String extension = "." + FilenameUtils.getExtension(document.getOriginalFilename());
+        LOG.trace(" - Determined file extension: {}", extension);
+        Path inputPath = FileUtil.createTempFile("inputMultipart", extension);
+        LOG.trace(" - Writing user upload to: {}", inputPath);
+        File inputFile = inputPath.toFile();
+        try {
+            document.transferTo(inputFile);
+            LOG.trace("Successfully stored user upload at {}.", inputPath);
+        } catch (IOException e) {
+            LOG.error("Failed to store user upload.", e);
+            throw new MappingExecutionException("Unable to write user upload to disk.");
+        }
+
+        LOG.trace("Processing mapping rules file.");
+        String mappingExtension = "." + FilenameUtils.getExtension(mapping.getOriginalFilename());
+        LOG.trace(" - Determined file extension: {}", mappingExtension);
+        Path mappingInputPath = FileUtil.createTempFile("mappingInputMultipart", mappingExtension);
+        LOG.trace(" - Writing user upload to: {}", mappingInputPath);
+        File mappingFile = mappingInputPath.toFile();
+        try {
+            mapping.transferTo(mappingFile);
+            LOG.trace("Successfully stored user upload at {}.", mappingFile);
+        } catch (IOException e) {
+            LOG.error("Failed to store user upload.", e);
+            throw new MappingExecutionException("Unable to write user upload to disk.");
+        }
+
+        try {
+            LOG.trace("Performing mapping process of file {} via mapping service", inputPath);
+
+            resultPath = mappingService.runPlugin(inputFile.toURI(), mappingInputPath.toUri(), typeID);
+            if (resultPath.isPresent()) {
+                LOG.trace("Mapping process finished. Output written to {}.", resultPath.toString());
+            } else {
+                throw new MappingPluginException(MappingPluginState.UNKNOWN_ERROR(), "Mapping process finished, but no result was returned.");
+            }
+        } catch (MappingPluginException e) {
+            LOG.error("Failed to execute mapping.", e);
+            e.throwMe();
+        } finally {
+            LOG.trace("Removing user upload at {}.", inputFile);
+            FileUtil.removeFile(inputPath);
+            LOG.trace("User upload successfully removed.");
+        }
+
+        Path result = resultPath.get();
+        if (!Files.exists(result) || !Files.isRegularFile(result) || !Files.isReadable(result)) {
+            String message = "The mapping result expected at path " + result + " is not accessible. This indicates an error of the mapper implementation.";
+            LOG.error(message);
+            throw new MappingServiceException(message);
+        }
+
+        LOG.trace("Determining mime type for mapping result {}.", result);
+        result = FileUtil.fixFileExtension(result);
+
+        String mimeType = FileUtil.getMimeType(result);
+        LOG.trace("Mime type {} determined. Identifying file extension.", mimeType);
+        String resultExtension = FileUtil.getExtensionForMimeType(mimeType);
+
+        LOG.trace("Returning result using mime type {} and file extension {}.", mimeType, extension);
+        response.setStatus(HttpStatus.OK.value());
+        response.setHeader("Content-Type", mimeType);
+        response.setHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(result.toFile().length()));
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Expires", "0");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;" + "filename=result" + extension);
+        try {
+            LOG.trace("Writing file to response output stream.");
+            Files.copy(result, response.getOutputStream());
+        } catch (IOException ex) {
+            String message = "Failed to write mapping result file to stream.";
+            LOG.error(message, ex);
+            throw new MappingServiceException(message);
+        } finally {
+            Counter.builder("mapping_service.mapping_usage").tag("mappingID", typeID).register(meterRegistry).increment();
+            this.documentsInSizeMetric.record(document.getSize());
+            this.documentsOutSizeMetric.record(result.toFile().length());
+
+            LOG.trace("Result file successfully transferred to client. Removing file {} from disk.", result);
+            try {
+                Files.delete(result);
+                LOG.trace("Result file successfully removed.");
+            } catch (IOException ignored) {
+                LOG.warn("Failed to remove result file. Please remove manually.");
+            }
+        }
     }
 }

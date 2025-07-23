@@ -45,8 +45,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -89,8 +87,7 @@ public class WebSecurityConfig {
 
         //special endpoints only accessible by mapping admin (if auth enabled) or from localhost (if auth disabled)
         List<SecuredEndpoint> securedEndpointMatchers = List.of(
-                new SecuredEndpoint("POST", "/api/v1/mappingAdministration/types/*/execute"),
-                new SecuredEndpoint("GET", "/api/v1/mappingAdministration/reloadTypes"),
+                new SecuredEndpoint("GET", "/api/v1/mappingAdministration/reloadPlugins"),
                 new SecuredEndpoint("PUT", "/api/v1/mappingAdministration"),
                 new SecuredEndpoint("POST", "/api/v1/mappingAdministration")
         );

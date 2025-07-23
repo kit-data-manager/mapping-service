@@ -25,7 +25,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springdoc.core.converters.models.PageableAsQueryParam;
 import org.springframework.core.io.Resource;
@@ -51,7 +50,7 @@ import java.util.List;
 public interface IMappingAdministrationController {
 
     @Operation(summary = "Create a new mapping.", description = "This endpoint allows to create a new mapping and required two parameters: The record metadata, which contains "
-            + "the mapping identifier and mapping type, and the mapping document, which defines the rules for the mapping applied by the given mapping type. ",
+            + "the mapping identifier and mapping plugin id, and the mapping document, which defines the rules for the mapping applied by the given mapping plugin. ",
             responses = {
                 @ApiResponse(responseCode = "201", description = "CREATED is returned only if the record has been validated, persisted and the mapping document was successfully validated and stored.", content = @Content(schema = @Schema(implementation = MappingRecord.class))),
                 @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if the provided mapping record or the mapping document are invalid."),
@@ -63,7 +62,7 @@ public interface IMappingAdministrationController {
     ResponseEntity<MappingRecord> createMapping(
             @Parameter(description = "JSON representation of the mapping record.", required = true) @RequestPart(name = "record") final MultipartFile record,
             @Parameter(description = "The mapping document associated with the record. "
-                    + "The format of the document is defined by the mapping type, which is given by the mappingType attribute of the mapping record.", required = true) @RequestPart(name = "document") final MultipartFile document,
+                    + "The format of the document is defined by the mapping plugin, which is given by the mappingPluginId attribute of the mapping record.", required = true) @RequestPart(name = "document") final MultipartFile document,
             final WebRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;
@@ -95,7 +94,7 @@ public interface IMappingAdministrationController {
             HttpServletResponse hsr);
 
     @Operation(summary = "Get all mapping records.", description = "List all mapping records in a paginated and/or sorted form. The listing can be "
-            + "refined by providing a typeId in order to return only mapping for a certain mapping type. If not typeId is provided, all mapping "
+            + "refined by providing a mappingPluginId in order to return only mapping for a certain mapping plugin. If no mappingPluginId is provided, all mapping "
             + "records are returned.",
             responses = {
                 @ApiResponse(responseCode = "200", description = "OK and a list of records, which might be empty.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = MappingRecord.class))))})
@@ -103,7 +102,7 @@ public interface IMappingAdministrationController {
     @PageableAsQueryParam
     @ResponseBody
     ResponseEntity<List<MappingRecord>> getMappings(
-            @Parameter(description = "The type identifier linked to a mapping type.") @RequestParam(value = "typeId") String typeId,
+            @Parameter(description = "The plugin identifier linked to a mapping plugin.") @RequestParam(value = "mappingPluginId") String mappingPluginId,
             Pageable pgbl,
             WebRequest wr,
             HttpServletResponse hsr,
@@ -123,7 +122,7 @@ public interface IMappingAdministrationController {
             @Parameter(description = "The mapping identifier.", required = true) @PathVariable(value = "mappingId") String mappingId,
             @Parameter(description = "JSON representation of the metadata record.") @RequestPart(name = "record") final MultipartFile record,
             @Parameter(description = "The mapping document associated with the record. "
-                    + "The format of the document is defined by the mapping type, which is given by the mappingType attribute of the mapping record.") @RequestPart(name = "document") final MultipartFile document,
+                    + "The format of the document is defined by the mapping plugin, which is given by the mappingPluginId attribute of the mapping record.") @RequestPart(name = "document") final MultipartFile document,
             final WebRequest request,
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder
@@ -146,40 +145,17 @@ public interface IMappingAdministrationController {
     @Operation(summary = "Get all available plugins.",
             responses = {
                 @ApiResponse(responseCode = "200", description = "OK and a list of all plugins will be returned, which might be empty.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PluginInformation.class))))})
-    @RequestMapping(value = {"/types"}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/plugins"}, method = {RequestMethod.GET})
     @ResponseBody
     ResponseEntity<List<PluginInformation>> getAvailablePlugins(
             WebRequest wr,
             HttpServletResponse hsr);
 
-    @Operation(summary = "Reload all mapping types.", description = "Reloads all plugins from the plugin directory and updates their dependencies if necessary.",
+    @Operation(summary = "Reload all mapping plugins.", description = "Reloads all plugins from the plugin directory and updates their dependencies if necessary.",
             responses = {
                 @ApiResponse(responseCode = "204", description = "NO_CONTENT is returned on a successful refresh.")})
-    @RequestMapping(value = {"/reloadTypes"}, method = {RequestMethod.GET})
+    @RequestMapping(value = {"/reloadPlugins"}, method = {RequestMethod.GET})
     ResponseEntity<String> reloadAvailablePlugins(
             WebRequest wr,
             HttpServletResponse hsr);
-
-    @Operation(summary = "Map a document directly using the provided plugin.", description = "This endpoint allows the mapping of documents via a file upload. "
-            + "The identifier of the plugin must be passed to this endpoint as parameters together with the document to be mapped and the mapping rules.", responses = {
-            @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. "
-                    + "The result will also be returned in the response."),
-            @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no plugin for typeID could be found."),
-            @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
-                    + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
-                    + "document should be the reason for a mapper to fail."),
-            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
-                    + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
-    @RequestMapping(value = {"/types/{typeID}/execute"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @ResponseBody
-    void runPlugin(
-            @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
-            @Parameter(description = "The mapping rules document.", required = true) @RequestPart(name = "mapping") final MultipartFile mapping,
-            @Parameter(description = "The typeID of the plugin to execute.", required = true) @PathVariable(value = "typeID") String typeID,
-            final HttpServletRequest request,
-            final HttpServletResponse response,
-            final UriComponentsBuilder uriBuilder) throws URISyntaxException;
-
-
-
 }

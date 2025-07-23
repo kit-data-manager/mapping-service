@@ -115,4 +115,24 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
     @DeleteMapping(path = "/schedule/{job-id}")
     ResponseEntity<Void> deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable;
+
+    @Operation(summary = "Map a document directly using the provided plugin.", description = "This endpoint allows the mapping of documents via a file upload. "
+            + "The identifier of the plugin must be passed to this endpoint as parameters together with the document to be mapped and the mapping rules.", responses = {
+            @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. "
+                    + "The result will also be returned in the response."),
+            @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no plugin for pluginId could be found."),
+            @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
+                    + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
+                    + "document should be the reason for a mapper to fail."),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
+                    + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
+    @RequestMapping(value = {"/plugins/{pluginId}/execute"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @ResponseBody
+    void runPlugin(
+            @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
+            @Parameter(description = "The mapping rules document.", required = true) @RequestPart(name = "mapping") final MultipartFile mapping,
+            @Parameter(description = "The pluginId of the plugin to execute.", required = true) @PathVariable(value = "pluginId") String pluginId,
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final UriComponentsBuilder uriBuilder) throws URISyntaxException;
 }
