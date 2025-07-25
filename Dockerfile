@@ -18,7 +18,7 @@ LABEL stage=build-env
 # Install git, python3, pip and bash  as additional requirement
 RUN apt-get -y update && \
     apt-get -y upgrade  && \
-    apt-get install -y --no-install-recommends git bash python3 python3-pip && \
+    apt-get install -y --no-install-recommends git bash python3 python3-pip python3-venv && \
     apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -48,7 +48,8 @@ RUN bash ./build.sh $SERVICE_DIRECTORY
 ####################################################
 # Runtime environment 4 metastore2
 ####################################################
-FROM eclipse-temurin:24 AS run-service-mapping-service
+FROM ubuntu:24.04 AS run-service-mapping-service
+ENV DEBIAN_FRONTEND=noninteractive
 LABEL maintainer=webmaster@datamanager.kit.edu
 LABEL stage=run
 
@@ -62,12 +63,16 @@ ENV REPO_NAME=${REPO_NAME_DEFAULT}
 ENV SERVICE_DIRECTORY=${SERVICE_ROOT_DIRECTORY_DEFAULT}${REPO_NAME}
 ENV REPO_PORT=${REPO_PORT_DEFAULT}
 
-# Install python3, pip and bash as additional requirement
-RUN apt-get -y update && \
-    apt-get -y upgrade  && \
-    apt-get install -y --no-install-recommends python3 python3-pip bash && \
-    apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install python3, pip and bash as additional requirements
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 python3-venv python3-pip \
+        openjdk-21-jdk \
+        curl wget git bash ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN java -version && python3 --version && python3 -m venv /venv
 
 # Copy service from build container
 RUN mkdir -p ${SERVICE_DIRECTORY}

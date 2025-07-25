@@ -13,14 +13,20 @@ public class PathAndMethodRequestMatcher implements RequestMatcher {
     private final String httpMethod;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
+    public PathAndMethodRequestMatcher(String pathPattern) {
+        this.httpMethod = "ANY";
+        this.pathPattern = pathPattern;
+    }
+
     public PathAndMethodRequestMatcher(String httpMethod, String pathPattern) {
         this.httpMethod = httpMethod;
         this.pathPattern = pathPattern;
     }
 
     @Override
-    public boolean matches(HttpServletRequest request){
-    return request.getMethod().equalsIgnoreCase(httpMethod) &&
+    public boolean matches(HttpServletRequest request) {
+
+        return ("ANY".equals(httpMethod) || request.getMethod().equalsIgnoreCase(httpMethod)) &&
                 pathMatcher.match(pathPattern, request.getRequestURI());
     }
 }
