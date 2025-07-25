@@ -257,8 +257,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
         try {
             LOGGER.trace("Checking for minimal Python version {}.", versionString);
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            ByteArrayOutputStream berr = new ByteArrayOutputStream();
-            MappingPluginState state = PythonRunnerUtil.runPythonScript("--version", bout, berr);
+            MappingPluginState state = PythonRunnerUtil.runPythonScript("--version", bout, System.err);
 
             LOGGER.trace("Python call returned with status {}.", state.getState());
 
@@ -267,12 +266,11 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
             } else {
 
                 LOGGER.trace("Version command output: {}", bout);
-                LOGGER.trace("Version command error: {}", berr);
 
                 String[] split = bout.toString().split(" ");
 
                 if (split.length == 2) {
-                    String localPythonVersion = bout.toString().split(" ")[1].trim();
+                    String localPythonVersion = split[1].trim();
                     LOGGER.trace("Obtained local Python version: {}", localPythonVersion);
                     ComparableVersion localVersion = new ComparableVersion(localPythonVersion);
                     ComparableVersion minimalVersion = new ComparableVersion(versionString);

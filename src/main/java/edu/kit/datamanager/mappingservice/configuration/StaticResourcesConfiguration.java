@@ -43,7 +43,7 @@ public class StaticResourcesConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
+        registry.addResourceHandler("/ui/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
     }
 
     @Override

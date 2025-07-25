@@ -80,7 +80,7 @@ public class WebSecurityConfig {
             // other public endpoints of your API may be appended to this array
     };
 
-    @Bean 
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         record SecuredEndpoint(String method, String pattern) {
         }
@@ -119,6 +119,8 @@ public class WebSecurityConfig {
                                     authorize.requestMatchers(matcher).denyAll(); //deny if not localhost
                                 });
                             }
+
+
 
                             authorize.anyRequest().authenticated();
                         }

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -113,20 +114,46 @@ public class ShellRunnerUtil {
             throw new MappingPluginException(MappingPluginState.INVALID_INPUT(), "No command given.");
         }
 
-        ExecutorService pool = Executors.newSingleThreadExecutor();
+        LOGGER.trace("Running command {} with timeout {}.", Arrays.asList(command), timeOutInSeconds);
+
         MappingPluginState returnValue = MappingPluginState.SUCCESS();
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        ByteArrayOutputStream errorBuffer = new ByteArrayOutputStream();
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
+            LOGGER.trace("Starting process.");
             Process p = pb.start();
+            LOGGER.trace("Connecting streams.");
 
-            pipeStream(p.getInputStream(), new PrintStream(output));
-            pipeStream(p.getErrorStream(), new PrintStream(bout));
+            // Pipe stdout to provided OutputStream
+            Thread stdoutThread = new Thread(() -> {
+                try (InputStream is = p.getInputStream()) {
+                    is.transferTo(output);
+                } catch (IOException e) {
+                    LOGGER.error("Error piping stdout", e);
+                }
+            });
 
+            // Buffer stderr into ByteArrayOutputStream
+            Thread stderrThread = new Thread(() -> {
+                try (InputStream is = p.getErrorStream()) {
+                    is.transferTo(errorBuffer);
+                } catch (IOException e) {
+                    LOGGER.error("Error buffering stderr", e);
+                }
+            });
+
+            stdoutThread.start();
+            stderrThread.start();
+
+            LOGGER.trace("Waiting for process to finish.");
             if (!p.waitFor(timeOutInSeconds, TimeUnit.SECONDS)) {
                 throw new TimeoutException("Process did not return within " + timeOutInSeconds + " seconds.");
             }
+            stdoutThread.join(); // wait for streams to finish
+            stderrThread.join();
+
+            LOGGER.trace("Checking exit value.");
             if (p.exitValue() != 0) {
                 throw new BadExitCodeException(p.exitValue());
             }
@@ -145,14 +172,13 @@ public class ShellRunnerUtil {
         } catch (BadExitCodeException e) {
             LOGGER.error("Failed to execute command due to an unexpected exception.", e);
             returnValue = MappingPluginState.BAD_EXIT_CODE();
-            returnValue.setDetails("Mapping process returned with exit code " + e.getExitCode() + ". StdErr:\n" + bout.toString());
+            returnValue.setDetails("Mapping process returned with exit code " + e.getExitCode() + ". StdErr:\n" + errorBuffer);
         } finally {
-            pool.shutdown();
             //write output puffer to provided output stream
-            LOGGER.trace("Process finished. Forwarding collected error output {} to provided error stream.", bout);
+            LOGGER.trace("Process finished. Forwarding collected error output \n{}\nto provided error stream.", errorBuffer);
             try {
-                output.write(bout.toByteArray());
-                output.flush();
+                error.write(errorBuffer.toByteArray());
+                error.flush();
             }catch(IOException ioe){
                 LOGGER.info("Failed to write error buffer to error stream.", ioe);
             }
@@ -162,17 +188,5 @@ public class ShellRunnerUtil {
             throw new MappingPluginException(returnValue);
         }
         return returnValue;
-    }
-
-    private static void pipeStream(final InputStream src, final OutputStream dest) {
-        new Thread(() -> {
-            Scanner sc = new Scanner(src);
-            try (PrintStream print = new PrintStream(dest)) {
-                while (sc.hasNextLine()) {
-                    print.println(sc.nextLine());
-                }
-                print.flush();
-            }
-        }).start();
     }
 }

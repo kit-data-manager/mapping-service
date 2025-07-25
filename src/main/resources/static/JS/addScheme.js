@@ -34,7 +34,7 @@ function loadFile() {
 
 function load() {
     const http = new XMLHttpRequest();
-    http.open("GET", apiUrl + "/types")
+    http.open("GET", apiUrl + "/plugins")
     http.send();
     http.onload = () => {
         const result = JSON.parse(http.responseText)
@@ -395,7 +395,7 @@ function unselect() {
 
 function reloadTypes() {
     const http = new XMLHttpRequest();
-    http.open("GET", apiUrl + "/reloadTypes")
+    http.open("GET", apiUrl + "/reloadPlugins")
     http.send()
     http.onload = () => {
         location.reload()
