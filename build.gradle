@@ -115,7 +115,7 @@ dependencies {
     //testImplementation 'org.springframework:spring-test'
 
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.4'
-    testImplementation 'org.mockito:mockito-core:5.18.0'
+    testImplementation 'org.mockito:mockito-core:5.19.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     testImplementation 'net.bytebuddy:byte-buddy:1.17.7'
