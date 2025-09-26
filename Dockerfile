@@ -11,7 +11,7 @@ ARG SERVICE_ROOT_DIRECTORY_DEFAULT=/spring/
 ####################################################
 # Building environment (java & git)
 ####################################################
-FROM eclipse-temurin:24 AS build-env-java
+FROM eclipse-temurin:25 AS build-env-java
 LABEL maintainer=webmaster@datamanager.kit.edu
 LABEL stage=build-env
 
