@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * @author hartmann-v
@@ -57,6 +58,7 @@ public class FileUtilTest {
      * Test of downloadResource method, of class GemmaMapping.
      */
     @Test
+    @Disabled("Recently, download fails with 404.")
     public void testDownloadResourceWithPath() throws URISyntaxException {
         System.out.println("downloadResource");
         assertNotNull(new FileUtil());
