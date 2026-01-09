@@ -188,10 +188,13 @@ public class MappingExecutionController implements IMappingExecutionController {
         String jobId = null;
         for (int i = 1; i < 4; i++) {
             jobId = UUID.randomUUID().toString();
-            if (jobManager.getJob(jobId) == null) {
+            if (jobManager.getJob(jobId) != null) {
+                LOG.trace("Duplicated job id detected. Attempt {}/{}", i, 3);
                 jobId = null;
+            }else{
+                //usable job id found
+                break;
             }
-            LOG.trace("Duplicated job id detected. Attempt {}/{}", i, 3);
         }
 
         if (jobId == null) {
