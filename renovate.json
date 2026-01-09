@@ -1,63 +1,79 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-
   "extends": [
     "config:recommended",
     ":dependencyDashboard",
     ":enablePreCommit"
   ],
-
   "timezone": "UTC",
-
-  "labels": ["dependencies", "renovate"],
-  "baseBranches": ["development"],
-
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "baseBranchPatterns": [
+    "development"
+  ],
   "packageRules": [
     {
-      "matchManagers": ["gradle"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true,
       "automergeType": "branch",
-      "stabilityDays": 3
+      "minimumReleaseAge": "3 days"
     },
     {
-      "matchManagers": ["gradle"],
-      "matchUpdateTypes": ["major"],
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false
     },
     {
-      "matchPackagePrefixes": ["org.springframework.boot"],
-      "groupName": "spring boot dependencies"
+      "groupName": "spring boot dependencies",
+      "matchPackageNames": [
+        "org.springframework.boot{/,}**"
+      ]
     },
     {
-      "matchPackagePrefixes": ["org.springframework"],
-      "groupName": "spring framework dependencies"
+      "groupName": "spring framework dependencies",
+      "matchPackageNames": [
+        "org.springframework{/,}**"
+      ]
     },
     {
-      "matchPackagePrefixes": ["com.fasterxml.jackson"],
-      "groupName": "jackson dependencies"
+      "groupName": "jackson dependencies",
+      "matchPackageNames": [
+        "com.fasterxml.jackson{/,}**"
+      ]
     },
     {
-      "matchPackagePrefixes": ["org.junit", "org.mockito"],
       "groupName": "test dependencies",
-      "matchDepTypes": ["testImplementation", "testCompile"]
+      "matchDepTypes": [
+        "testImplementation",
+        "testCompile"
+      ],
+      "matchPackageNames": [
+        "org.junit{/,}**",
+        "org.mockito{/,}**"
+      ]
     }
   ],
-
   "gradle": {
     "enabled": true
   },
-
   "ignoreDeps": [
     "org.projectlombok:lombok"
   ],
-
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,
-
   "dependencyDashboardTitle": "Renovate Dependency Dashboard",
-
   "commitMessagePrefix": "chore(deps):",
-
   "rebaseWhen": "conflicted"
 }
