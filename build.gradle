@@ -76,7 +76,7 @@ dependencies {
 
     // monitoring
     implementation 'io.micronaut.micrometer:micronaut-micrometer-registry-prometheus:5.13.2'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator:3.5.7'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:3.5.9'
 
      // springdoc
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}"
@@ -91,7 +91,7 @@ dependencies {
     implementation "org.javers:javers-spring-boot-starter-sql:${javersVersion}"
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.5.0'
-    implementation 'org.apache.maven:maven-artifact:3.9.11'
+    implementation 'org.apache.maven:maven-artifact:3.9.12'
     implementation 'org.json:json:20250517'
     implementation 'com.github.jknack:handlebars:4.5.0'
     implementation 'com.google.guava:guava:33.5.0-jre'
@@ -120,7 +120,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.20.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
-    testImplementation 'net.bytebuddy:byte-buddy:1.18.1'
+    testImplementation 'net.bytebuddy:byte-buddy:1.18.3'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
