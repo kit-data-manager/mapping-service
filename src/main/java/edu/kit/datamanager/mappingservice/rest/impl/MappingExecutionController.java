@@ -191,7 +191,7 @@ public class MappingExecutionController implements IMappingExecutionController {
             if (jobManager.getJob(jobId) != null) {
                 LOG.trace("Duplicated job id detected. Attempt {}/{}", i, 3);
                 jobId = null;
-            }else{
+            } else {
                 //usable job id found
                 break;
             }
@@ -233,11 +233,11 @@ public class MappingExecutionController implements IMappingExecutionController {
                 return ResponseEntity.ok(JobStatus.status(jobId, JobStatus.STATUS.SUBMITTED));
             } catch (MappingPluginException e) {
                 LOG.error("Failed to execute mapping.", e);
-                return ResponseEntity.status(500).body(JobStatus.error(jobId, JobStatus.STATUS.FAILED, String.format("Failed to schedule mapping with id '%s' on provided input document.", mappingID)));
-            } finally {
-                LOG.trace("Removing user upload at {}.", inputFile);
+                // remove uploaded file
+                LOG.trace("Removing user upload at {}.", inputPath);
                 FileUtil.removeFile(inputPath);
                 LOG.trace("User upload successfully removed.");
+                return ResponseEntity.status(500).body(JobStatus.error(jobId, JobStatus.STATUS.FAILED, String.format("Failed to schedule mapping with id '%s' on provided input document.", mappingID)));
             }
         } else {
             String message = "Either mapping id or input document are missing. Unable to perform mapping.";
