@@ -1,4 +1,63 @@
 {
-  "labels": ["dependencies"],
-  "baseBranches": ["development"]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":enablePreCommit"
+  ],
+
+  "timezone": "UTC",
+
+  "labels": ["dependencies", "renovate"],
+  "baseBranches": ["development"],
+
+  "packageRules": [
+    {
+      "matchManagers": ["gradle"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "branch",
+      "stabilityDays": 3
+    },
+    {
+      "matchManagers": ["gradle"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "matchPackagePrefixes": ["org.springframework.boot"],
+      "groupName": "spring boot dependencies"
+    },
+    {
+      "matchPackagePrefixes": ["org.springframework"],
+      "groupName": "spring framework dependencies"
+    },
+    {
+      "matchPackagePrefixes": ["com.fasterxml.jackson"],
+      "groupName": "jackson dependencies"
+    },
+    {
+      "matchPackagePrefixes": ["org.junit", "org.mockito"],
+      "groupName": "test dependencies",
+      "matchDepTypes": ["testImplementation", "testCompile"]
+    }
+  ],
+
+  "gradle": {
+    "enabled": true
+  },
+
+  "ignoreDeps": [
+    "org.projectlombok:lombok"
+  ],
+
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+
+  "dependencyDashboardTitle": "Renovate Dependency Dashboard",
+
+  "commitMessagePrefix": "chore(deps):",
+
+  "rebaseWhen": "conflicted"
 }
