@@ -41,7 +41,7 @@ jobs:
     - name: Set up Python3
       uses: actions/setup-python@v6
       with:
-        python-version: '3.13'
+        python-version: '3.14'
     - name: Set up OpenJDK
       uses: actions/setup-java@v5
       with:
@@ -101,7 +101,7 @@ jobs:
       - name: Set up Python3
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Set up OpenJDK
         uses: actions/setup-java@v5
