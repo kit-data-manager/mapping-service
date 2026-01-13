@@ -15,39 +15,40 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
-import com.bazaarvoice.jolt.Chainr;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.dashjoin.jsonata.Jsonata;
+
 /**
- * Plugin implementation of the Jolt JSON-JSON transformation library. For more information and format description
- * please check [bazaarvoice/jolt@GitHub](https://github.com/bazaarvoice/jolt).
+ * Plugin implementation of the Jsonata query and transformation language for JSON data. For more information and
+ * format description please check the [JSONata Homepage](https://docs.jsonata.org/overview.html).
  *
  * @author jejkal
  */
-public class JoltPlugin implements IMappingPlugin {
-    static Logger LOG = LoggerFactory.getLogger(JoltPlugin.class);
+public class JsonataPlugin implements IMappingPlugin {
+    static Logger LOG = LoggerFactory.getLogger(JsonataPlugin.class);
 
     @Override
     public String name() {
-        return "JoltPlugin";
+        return "JsonataPlugin";
     }
 
     @Override
     public String description() {
-        return "Plugin for Jolt-based JSON to JSON transformation.";
+        return "Plugin for Jsonata-based JSON to JSON transformation.";
     }
 
     @Override
@@ -67,7 +68,7 @@ public class JoltPlugin implements IMappingPlugin {
 
     @Override
     public String[] outputTypes() {
-        return new String[]{"application/json"};
+        return new String[]{"application/json", "text/plain"};
     }
 
     @Override
@@ -80,19 +81,15 @@ public class JoltPlugin implements IMappingPlugin {
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
         MappingPluginState result = MappingPluginState.SUCCESS();
         try {
+            String mappingContent = Files.readString(mappingFile);
+            Jsonata expression = Jsonata.jsonata(mappingContent);
             ObjectMapper mapper = new ObjectMapper();
-
             // Load the input JSON
             Map<String, Object> inputJson = mapper.readValue(inputFile.toFile(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-
-            // Load the Jolt spec (as a List of operations)
-            List<Object> joltSpec = mapper.readValue(mappingFile.toFile(), new com.fasterxml.jackson.core.type.TypeReference<List<Object>>() {});
-
-            // Create the transformer
-            Chainr chainr = Chainr.fromSpec(joltSpec);
+            expression.evaluate(inputJson);
 
             // Apply transformation
-            Object transformedOutput = chainr.transform(inputJson);
+            Object transformedOutput = expression.evaluate(inputJson);
 
             // Print result
             String output = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(transformedOutput);
@@ -103,11 +100,9 @@ public class JoltPlugin implements IMappingPlugin {
         } catch (IOException | MappingException ex) {
             LOG.error("Failed to execute plugin.", ex);
             result = MappingPluginState.EXECUTION_ERROR();
-            result.setDetails("Failed to run Jolt transformation.");
+            result.setDetails("Failed to run Jsonata transformation.");
         }
         return result;
     }
 
 }
-
-

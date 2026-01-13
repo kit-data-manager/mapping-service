@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Integration of Prometheus monitoring
 * Added endpoint /api/v1/mappingExecution/plugins/<PluginID>/execute for direct execution of plugins
 * Added JoltPlugin to list of default plugins
+* Added JsonataPlugin to list of default plugins
 * New configuration property *mapping-service.mappingAdminRole* can be used to authenticate access to administrative endpoints
 * plugin-core jar released as separate dependency and can be used for implementing own plugins easier 
 

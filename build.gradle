@@ -106,6 +106,8 @@ dependencies {
     implementation "org.apache.tika:tika-core:3.2.3"
     // JoltPlugin
     implementation "com.bazaarvoice.jolt:jolt-core:0.1.8"
+    // JsonataPlugin
+    implementation "com.dashjoin:jsonata:0.9.9"
 
     testImplementation platform('org.junit:junit-bom')
     testImplementation 'org.junit.jupiter:junit-jupiter'
