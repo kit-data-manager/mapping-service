@@ -1,11 +1,11 @@
 plugins {
-    id 'org.springframework.boot' version '3.5.7'
+    id 'org.springframework.boot' version '3.5.9'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '4.0.5'
     id 'io.freefair.maven-publish-java' version '9.1.0'
     id "org.owasp.dependencycheck" version "12.1.9"
     id 'net.researchgate.release' version '3.1.0'
-    id "com.gorylenko.gradle-git-properties" version "2.5.3"
+    id "com.gorylenko.gradle-git-properties" version "2.5.4"
     id 'io.freefair.lombok' version '9.1.0'
     id 'java'
     id 'application'
@@ -60,13 +60,13 @@ ext {
     pythonExecutable = System.getProperty('pythonExecutable', "file:///usr/bin/python")
     userDir = System.getProperty('user.dir')
     set('springBootVersion', "3.2.1")
-    set('springDocVersion', "2.8.14")
+    set('springDocVersion', "2.8.15")
     set('javersVersion', "7.9.0")
     set('keycloakVersion', "19.0.0")
 }
 
 dependencies {
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.4.0.202509020913-r'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation "org.springframework.boot:spring-boot-starter-data-rest"
@@ -75,8 +75,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     // monitoring
-    implementation 'io.micronaut.micrometer:micronaut-micrometer-registry-prometheus:5.13.1'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator:3.5.7'
+    implementation 'io.micronaut.micrometer:micronaut-micrometer-registry-prometheus:5.13.2'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:3.5.9'
 
      // springdoc
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}"
@@ -91,7 +91,7 @@ dependencies {
     implementation "org.javers:javers-spring-boot-starter-sql:${javersVersion}"
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'org.apache.commons:commons-collections4:4.5.0'
-    implementation 'org.apache.maven:maven-artifact:3.9.11'
+    implementation 'org.apache.maven:maven-artifact:3.9.12'
     implementation 'org.json:json:20250517'
     implementation 'com.github.jknack:handlebars:4.5.0'
     implementation 'com.google.guava:guava:33.5.0-jre'
@@ -117,10 +117,10 @@ dependencies {
     //testImplementation 'org.springframework:spring-test'
 
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.5'
-    testImplementation 'org.mockito:mockito-core:5.20.0'
+    testImplementation 'org.mockito:mockito-core:5.21.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
-    testImplementation 'net.bytebuddy:byte-buddy:1.18.1'
+    testImplementation 'net.bytebuddy:byte-buddy:1.18.3'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
@@ -128,7 +128,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql:42.7.8'
     runtimeOnly 'org.apache.httpcomponents:httpclient:4.5.14'
 
-    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.5'
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:4.0.0'
 }
 
 //customization of java compile task

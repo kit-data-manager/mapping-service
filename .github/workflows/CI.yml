@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Set up OpenJDK
         uses: actions/setup-java@v5
         with:
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
       - name: Get Python location
         run: python -c "import os, sys; print(sys.executable)"
       - name: Update pip
