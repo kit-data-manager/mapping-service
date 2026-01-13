@@ -101,13 +101,24 @@ javadoc {
 //see https://github.com/gradle-nexus/publish-plugin
 ////////////////////////////////////////////////////////////////////////////////
 nexusPublishing {
-        repositories {
-            sonatype{
-            //Only needed for deploying snapshots. 
-            //Otherwise, username and password are configured in the CI pipeline. 
-            username = findProperty("sonatypeToken")
-            password = findProperty("sonatypeTokenPassword")
+    repositories {
+        // Migration to Sontatype Central
+        // see https://github.com/gradle-nexus/publish-plugin?tab=readme-ov-file#publishing-to-maven-central-via-sonatype-central
+        // see https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
         }
+        // You need to set your Central credentials (those are different from the legacy OSSRH ones).
+        // To increase security, it is advised to use the user token's username and password pair
+        // (instead of regular username and password).
+        // Those values should be set as the
+        //   sonatypeUsername and
+        //   sonatypePassword project properties, e.g. in ~/.gradle/gradle.properties or
+        //   via the
+        //   ORG_GRADLE_PROJECT_sonatypeUsername and
+        //   ORG_GRADLE_PROJECT_sonatypePassword environment variables.
+        //  For generating the user token, see https://central.sonatype.org/publish/generate-portal-token/
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -168,30 +179,25 @@ publishing {
 //see https://docs.gradle.org/current/userguide/signing_plugin.html
 ////////////////////////////////////////////////////////////////////////////////
 signing {
-    //make signing required unless for SNAPSHOT releases or if signing is explicitly skipped
-    def currentVersion = project.version?.toString() ?: ""
-    def shouldSign = !currentVersion.endsWith("-SNAPSHOT") && !project.hasProperty("skipSigning")
+ //make signing required unless for SNAPSHOT releases or if signing is explicitly skipped
+    required { !project.version.endsWith("-SNAPSHOT") && !project.hasProperty("skipSigning") }
+   
+    //look for property 'signingKey'
+    if (project.findProperty("signingKey")) {
+        //If required, read a sub-key specified by its ID in property signingKeyId
+        //def signingKeyId = findProperty("signingKeyId")
+        //read property 'signingKey'
+        def signingKey = findProperty("signingKey")
+        //read property 'signingPassword'
+        def signingPassword = findProperty("signingPassword")   
+        //Select to use in-memory ascii-armored keys
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        //Only if also using signingKeyId
+        //useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
 
-    required { shouldSign }
-
-    if(shouldSign){
-        //look for property 'signingKey'
-        if (project.findProperty("signingKey")) {
-            //If required, read a sub-key specified by its ID in property signingKeyId
-            //def signingKeyId = findProperty("signingKeyId")
-            //read property 'signingKey'
-            def signingKey = findProperty("signingKey")
-            //read property 'signingPassword'
-            def signingPassword = findProperty("signingPassword")   
-            //Select to use in-memory ascii-armored keys
-            useInMemoryPgpKeys(signingKey, signingPassword)
-            //Only if also using signingKeyId
-            //useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-
-            //Apply signing to publication identity 'publishing.publications.maven'
-            sign publishing.publications.mavenJava
-        }else {
-            println 'WARNING: No property \'signingKey\' found. Artifact signing will be skipped.'
-        }
+        //Apply signing to publication identity 'publishing.publications.maven'
+        sign publishing.publications.mavenJava
+    }else {
+        println 'WARNING: No property \'signingKey\' found. Artifact signing will be skipped.'
     }
 }
