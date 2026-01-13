@@ -1,8 +1,6 @@
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
 import com.bazaarvoice.jolt.Chainr;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
@@ -12,12 +10,9 @@ import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 

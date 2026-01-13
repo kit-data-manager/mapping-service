@@ -69,13 +69,13 @@ and modify it according to your needs. Espacially the following properties (at t
 ## Starting the Mapping-Service
 
 The executable jar of the mapping-service is located at 'build/libs/mapping-service-<VERSION>.jar' You should copy it to some dedicated folder, 
-place 'application.properties' next to it, adapt it according to your needs, and startt he mapping-service by calling:
+place 'application.properties' next to it, adapt it according to your needs, and start he mapping-service by calling:
 
-`java -jar mapping-service-<VERSION>.jar`
+`java -jar mapping-service.jar`
 
 If your 'application.properties' is located in another folder, you may use the following call:
 
-`java -jar mapping-service-<VERSION>.jar --spring.config.location=/myConfigFolder/application.properties`
+`java -jar mapping-service.jar --spring.config.location=/myConfigFolder/application.properties`
 
 ## Installation
 There are three ways to install the mapping-service as a system service:
