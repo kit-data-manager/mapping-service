@@ -220,7 +220,7 @@ public class MappingExecutionController implements IMappingExecutionController {
         }
 
         Path inputPath = prepareInputPath(document);
-        Path mappingInputPath = prepareInputPath(document, "mappingInputMultipart");
+        Path mappingInputPath = prepareInputPath(mapping, "mappingInputMultipart");
         Optional<Path> resultPath = Optional.empty();
 
         //Mapping execution via plugin
