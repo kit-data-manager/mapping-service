@@ -6,12 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
+
+### New Features
+
+### Changed
+
+## [2.0.0] - data 2026-01-14
+### Fixed
 * Cloned Git repositories are now properly closed (only relevant for tests)
 
 ### New Features
 * Added support for JWT authentication (enabled via property *mapping-service.authEnabled*)
 * Integration of Prometheus monitoring
-* Added endpoint /api/v1/mappingExecution/plugins/<PluginID>/execute for direct execution of plugins
+* Added endpoint /api/v1/mappingExecution/plugins/<PluginID>/execute for direct execution of plugins, e.g., for testing
 * Added JoltPlugin to list of default plugins
 * Added JsonataPlugin to list of default plugins
 * New configuration property *mapping-service.mappingAdminRole* can be used to authenticate access to administrative endpoints
@@ -160,7 +167,8 @@ and mapping of metadata documents delivered by RabbitMQ
 - Mapping of metadata documents with Gemma
 - Ingest to elasticsearch
 
-[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/kit-data-manager/mapping-service/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/kit-data-manager/mapping-service/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/kit-data-manager/mapping-service/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.5...v1.1.0
 [1.0.5]: https://github.com/kit-data-manager/mapping-service/compare/v1.0.4...v1.0.5

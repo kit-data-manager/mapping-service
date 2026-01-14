@@ -17,7 +17,7 @@ Depending on which plugin type you plan to implement, there is a slight differen
 
 Gradle:
 ```groovy
-    implementation 'edu.kit.datamanager:mapping-plugin-core:1.1.2'     
+    implementation 'edu.kit.datamanager:mapping-plugin-core:2.0.0'     
 ```
 
 Maven:
@@ -25,7 +25,7 @@ Maven:
     <dependency>
         <groupId>edu.kit.datamanager</groupId>
         <artifactId>mapping-plugin-core</artifactId>
-        <version>1.1.2</version>
+        <version>2.0.0</version>
     </dependency>
 ```
 
