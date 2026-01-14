@@ -17,16 +17,15 @@ package edu.kit.datamanager.mappingservice.rest;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.MimeTypeUtils;
-
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.MimeTypeUtils;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -230,7 +229,7 @@ class PluginInformationTest {
             new PluginInformation(null, pluginManager);
             fail("Expected exception");
         } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.NOT_FOUND, e.getState());
+            assertEquals(MappingPluginState.NOT_FOUND(), e.getMappingPluginState());
         }
     }
 }

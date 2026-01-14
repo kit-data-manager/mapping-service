@@ -1,8 +1,3 @@
-# Read Me First
-The following was discovered as part of building this project:
-
-* The original package name 'edu.kit.datamanager.mapping-service' is invalid and this project uses 'edu.kit.datamanager.mappingservice' instead.
-
 # Getting Started
 
 ### Reference Documentation

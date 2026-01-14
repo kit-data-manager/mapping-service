@@ -15,17 +15,18 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
-import org.junit.jupiter.api.Test;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import org.apache.commons.io.FileUtils;
-import static org.junit.jupiter.api.Assertions.*;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -37,13 +38,15 @@ class PluginManagerTest {
     @Autowired
     private ApplicationProperties applicationProperties;
 
+    private final String INOUTPLUGIN_ID = "InOutPlugin_2.0.0";
+
     @BeforeEach
     void setup() throws Exception {
-        try {
+        /*try {
             FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (IOException ex) {
             ex.printStackTrace();
-        }
+        }*/
         pluginManager.reloadPlugins();
     }
 
@@ -71,37 +74,42 @@ class PluginManagerTest {
     void mapFileInvalidParameters() {
         try {
             pluginManager.mapFile(null, null, null, null);
-        } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
-            assertEquals("Plugin ID is null.", e.getMessage());
+        } catch (MappingServiceException e) {
+            assertEquals("PluginId is null.", e.getMessage());
+        } catch (MappingPluginException ex) {
+            fail("Expected MappingServiceException");
         }
 
         try {
             pluginManager.mapFile("test", null, null, null);
-        } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
-            assertEquals("Path to mapping schema is null.", e.getMessage());
+        } catch (MappingServiceException e) {
+            assertEquals("Path to mapping file is null.", e.getMessage());
+        } catch (MappingPluginException ex) {
+            fail("Expected MappingServiceException");
         }
 
         try {
             pluginManager.mapFile("test", new File("test").toPath(), null, null);
-        } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
+        } catch (MappingServiceException e) {
             assertEquals("Path to input file is null.", e.getMessage());
+        } catch (MappingPluginException ex) {
+            fail("Expected MappingServiceException");
         }
 
         try {
             pluginManager.mapFile("test", new File("test").toPath(), new File("testInput").toPath(), null);
-        } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.INVALID_INPUT, e.getState());
+        } catch (MappingServiceException e) {
             assertEquals("Path to output file is null.", e.getMessage());
+        } catch (MappingPluginException ex) {
+            fail("Expected MappingServiceException");
         }
 
         try {
             pluginManager.mapFile("test", new File("test").toPath(), new File("testInput").toPath(), new File("testOutput").toPath());
-        } catch (MappingPluginException e) {
-            assertEquals(MappingPluginState.NOT_FOUND, e.getState());
-            assertEquals("Plugin 'test' not found!", e.getMessage());
+        } catch (MappingServiceException e) {
+            fail("Expected MappingPluginException");
+        } catch (MappingPluginException ex) {
+            assertEquals("Plugin 'test' not found!", ex.getMessage());
         }
     }
 
@@ -109,12 +117,16 @@ class PluginManagerTest {
     void mapFile() {
         try {
             File outputFile = new File("/tmp/testOutput");
-            pluginManager.mapFile("TEST_0.0.0", new File("mapping-schema").toPath(), new File("input").toPath(), outputFile.toPath());
+            File inputFile = new File("/tmp/testInput");
+            if (!inputFile.exists()) {
+                assertTrue(inputFile.createNewFile());
+            }
+            pluginManager.mapFile(INOUTPLUGIN_ID, new File("mapping-schema").toPath(), inputFile.toPath(), outputFile.toPath());
             assertTrue(outputFile.exists());
-            outputFile.delete();
-        } catch (MappingPluginException e) {
-            e.printStackTrace();
-            fail("Mapping failed");
+            assertTrue(inputFile.delete());
+            assertTrue(outputFile.delete());
+        } catch (MappingPluginException | IOException e) {
+            fail("Mapping failed", e);
         }
     }
 }

@@ -15,7 +15,10 @@
  */
 package edu.kit.datamanager.mappingservice.configuration;
 
+import edu.kit.datamanager.mappingservice.rest.impl.PreHandleInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -28,13 +31,19 @@ import org.springframework.web.util.UrlPathHelper;
  */
 @Configuration
 public class StaticResourcesConfiguration implements WebMvcConfigurer {
+    private final PreHandleInterceptor preHandleInterceptor;
 
     private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
         "classpath:/static/"};
 
+    @Autowired
+    public StaticResourcesConfiguration(PreHandleInterceptor preHandleInterceptor) {
+        this.preHandleInterceptor = preHandleInterceptor;
+    }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
+        registry.addResourceHandler("/ui/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
     }
 
     @Override
@@ -42,5 +51,10 @@ public class StaticResourcesConfiguration implements WebMvcConfigurer {
         UrlPathHelper urlPathHelper = new UrlPathHelper();
         urlPathHelper.setUrlDecode(false);
         configurer.setUrlPathHelper(urlPathHelper);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(preHandleInterceptor);
     }
 }

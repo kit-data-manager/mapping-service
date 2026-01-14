@@ -15,8 +15,13 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -26,8 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Class for managing plugins and their execution.
@@ -47,6 +50,8 @@ public class PluginManager {
      */
     private final ApplicationProperties applicationProperties;
 
+    private final PluginLoader pluginLoader;
+
     /**
      * Map of plugins.
      */
@@ -59,16 +64,19 @@ public class PluginManager {
      * instantiation time.
      */
     @Autowired
-    public PluginManager(ApplicationProperties applicationProperties) {
+    public PluginManager(ApplicationProperties applicationProperties, PluginLoader pluginLoader, MeterRegistry meterRegistry) {
         this.applicationProperties = applicationProperties;
+        this.pluginLoader = pluginLoader;
         reloadPlugins();
+
+        Gauge.builder("mapping_service.plugins_total", () -> plugins.size()).register(meterRegistry);
     }
 
     /**
      * Unload all plugins and reload them from the configured plugin folder.
      */
     public final void unload() {
-        PluginLoader.unload();
+        pluginLoader.unload();
         plugins.clear();
     }
 
@@ -78,13 +86,13 @@ public class PluginManager {
     public final void reloadPlugins() {
         unload();
         try {
-            plugins = PluginLoader.loadPlugins(Paths.get(applicationProperties.getPluginLocation().toURI()).toFile());
+            plugins = pluginLoader.loadPlugins(Paths.get(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
         } catch (URISyntaxException ex) {
-            LOG.error("Mapping plugin location " + applicationProperties.getPluginLocation() + " cannot be converted to URI", ex);
+            LOG.error("Mapping plugin location {} cannot be converted to URI", applicationProperties.getPluginLocation(), ex);
         } catch (IOException ioe) {
-            LOG.error("Failed to open plugin libraries at plugin location " + applicationProperties.getPluginLocation() + ".", ioe);
+            LOG.error("Failed to open plugin libraries at plugin location {}.", applicationProperties.getPluginLocation(), ioe);
         } catch (MappingPluginException e) {
-            LOG.info("Unable to obtain plugin classes from libraries at plugin location " + applicationProperties.getPluginLocation() + ".", e);
+            LOG.info("Unable to obtain plugin classes from libraries at plugin location {}.", applicationProperties.getPluginLocation(), e);
         }
     }
 
@@ -105,9 +113,7 @@ public class PluginManager {
     public final List<String> listPluginIds() {
         Map<String, IMappingPlugin> map = getPlugins();
         List<String> result = new ArrayList<>();
-        map.entrySet().forEach(entry -> {
-            result.add(entry.getKey());
-        });
+        map.forEach((key, value) -> result.add(key));
         return result;
     }
 
@@ -118,29 +124,33 @@ public class PluginManager {
      * @param mappingFile Path to the mapping schema.
      * @param inputFile Path to the input file.
      * @param outputFile Path where the output is temporarily stored.
+     *
      * @return MappingPluginState.SUCCESS if the plugin was executed
      * successfully.
+     *
      * @throws MappingPluginException If there is an error with the plugin or
      * the input.
      */
-    public final MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
+    public final MappingPluginState mapFile(String pluginId, Path mappingFile, Path inputFile, Path outputFile) throws MappingServiceException, MappingPluginException {
+        //The following issues should never happen as they are checked before. 
+        //If they occur, it's a server fault, nothing a user can solve.
         if (pluginId == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Plugin ID is null.");
+            throw new MappingServiceException("PluginId is null.");
         }
         if (mappingFile == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to mapping schema is null.");
+            throw new MappingServiceException("Path to mapping file is null.");
         }
         if (inputFile == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to input file is null.");
+            throw new MappingServiceException("Path to input file is null.");
         }
         if (outputFile == null) {
-            throw new MappingPluginException(MappingPluginState.INVALID_INPUT, "Path to output file is null.");
+            throw new MappingServiceException("Path to output file is null.");
         }
 
         if (plugins.containsKey(pluginId)) {
             LOG.trace("Plugin found. Performing mapFile({}, {}, {}).", mappingFile, inputFile, outputFile);
             return plugins.get(pluginId).mapFile(mappingFile, inputFile, outputFile);
         }
-        throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin '" + pluginId + "' not found!");
+        throw new MappingPluginException(MappingPluginState.NOT_FOUND(), String.format("Plugin '%s' not found!", pluginId));
     }
 }

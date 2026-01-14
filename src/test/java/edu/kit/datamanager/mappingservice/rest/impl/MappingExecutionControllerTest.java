@@ -11,9 +11,11 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -40,8 +42,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.springframework.context.annotation.ComponentScan;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -61,9 +62,9 @@ public class MappingExecutionControllerTest {
     private final static String TEMP_DIR_4_ALL = "/tmp/mapping-service/";
     private final static String TEMP_DIR_4_MAPPING = TEMP_DIR_4_ALL + "mapping/";
     private static final String MAPPING_ID = "my_dc";
-    private static final String MAPPING_TYPE = "TEST_0.0.0";
+    private static final String MAPPING_TYPE = "InOutPlugin_2.0.0";
     private static final String MAPPING_URL = "/api/v1/mappingExecution/" + MAPPING_ID;
-    private static final String MAPPING_TITLE = "TITEL";
+    private static final String MAPPING_TITLE = "TITLE";
     private static final String MAPPING_DESCRIPTION = "DESCRIPTION";
 
     @Autowired
@@ -127,22 +128,14 @@ public class MappingExecutionControllerTest {
             ex.printStackTrace();
         }
 
-        try {
+        //skip as currently no external plugins are shipped with mapping service
+        /*try {
             FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (IOException ex) {
             ex.printStackTrace();
-        }
+        }*/
 
         pluginManager.reloadPlugins();
-        /*  this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .apply(documentationConfiguration(restDocumentation)
-                        .uris().withPort(8095)
-                        .and().operationPreprocessors()
-                        .withRequestDefaults(prettyPrint())
-                        .withResponseDefaults(Preprocessors.removeHeaders("X-Content-Type-Options", "X-XSS-Protection", "X-Frame-Options"), prettyPrint()))
-                .alwaysDo(document("{method-name}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint())))
-                .build();
-         */
         createMapping();
     }
 
@@ -155,7 +148,7 @@ public class MappingExecutionControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.multipart(MAPPING_URL).file(mappingFile)).
                 andDo(print()).
                 andExpect(status().isOk()).
-                andExpect(header().string("content-disposition", "attachment;filename=result.txt")).andReturn();
+                andExpect(header().string("content-disposition", "attachment;filename=result.json")).andReturn();
     }
 
     @Test

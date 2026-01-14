@@ -17,8 +17,7 @@ package edu.kit.datamanager.mappingservice.configuration;
 
 import edu.kit.datamanager.security.filter.KeycloakTokenFilter;
 import edu.kit.datamanager.security.filter.NoAuthenticationFilter;
-import java.util.Arrays;
-import java.util.Optional;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,77 +28,128 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author jejkal
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
-    
+
     @Autowired
-    private Optional<KeycloakTokenFilter> keycloaktokenFilterBean;
-    
+    private Optional<KeycloakTokenFilter> keycloakTokenFilterBean;
+    @Autowired
+    private ApplicationProperties applicationProperties;
+    @Autowired
+    private HandlerMappingIntrospector introspector;
     private static final String[] AUTH_WHITELIST_SWAGGER_UI = {
-        // -- Swagger UI v2
-        "/v2/api-docs",
-        "/swagger-resources",
-        "/swagger-resources/**",
-        "/configuration/ui",
-        "/configuration/security",
-        "/swagger-ui.html",
-        "/webjars/**",
-        // -- Swagger UI v3 (OpenAPI)
-        "/v3/api-docs/**",
-        "/swagger-ui/**"
+            // -- Swagger UI v2
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            // -- Swagger UI v3 (OpenAPI)
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
             // other public endpoints of your API may be appended to this array
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        record SecuredEndpoint(String method, String pattern) {
+        }
+
+        //special endpoints only accessible by mapping admin (if auth enabled) or from localhost (if auth disabled)
+        List<SecuredEndpoint> securedEndpointMatchers = List.of(
+                new SecuredEndpoint("GET", "/api/v1/mappingAdministration/reloadPlugins"),
+                new SecuredEndpoint("PUT", "/api/v1/mappingAdministration"),
+                new SecuredEndpoint("POST", "/api/v1/mappingAdministration")
+        );
+
         HttpSecurity httpSecurity = http.authorizeHttpRequests(
-                authorize -> authorize.
-                        requestMatchers(HttpMethod.OPTIONS).permitAll().
-                        requestMatchers(EndpointRequest.to(
-                                InfoEndpoint.class,
-                                HealthEndpoint.class
-                        )).permitAll().
-                        requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMIN", "ACTUATOR", "SERVICE_WRITE").
-                        //  requestMatchers(new AntPathRequestMatcher("/oaipmh")).permitAll().
-                        requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll().
-                        requestMatchers(new AntPathRequestMatcher("/error")).permitAll().
-                        //requestMatchers(new AntPathRequestMatcher("/api/v1/")).permitAll().
-                        requestMatchers(AUTH_WHITELIST_SWAGGER_UI).permitAll().
-                        anyRequest().authenticated()
-        ).
+                        authorize -> {
+                            authorize.
+                                    requestMatchers(HttpMethod.OPTIONS).permitAll().
+                                    requestMatchers(EndpointRequest.to(
+                                            InfoEndpoint.class,
+                                            HealthEndpoint.class
+                                    )).permitAll();
+
+                            authorize.
+                                    requestMatchers(EndpointRequest.toAnyEndpoint()).hasAnyRole("ANONYMOUS", "ADMINISTRATOR", "ACTUATOR", "SERVICE_WRITE").
+                                    requestMatchers("/static/**", "/error").permitAll().
+                                    requestMatchers(AUTH_WHITELIST_SWAGGER_UI).permitAll();
+
+                            if (applicationProperties.isAuthEnabled()) {
+                                logger.info("Configuring secured endpoints for being accessible by role {}.", applicationProperties.getMappingAdminRole());
+                                securedEndpointMatchers.forEach(endpoint ->
+                                        authorize.requestMatchers(endpoint.method(), endpoint.pattern()).hasRole(applicationProperties.getMappingAdminRole()) //allow for mapping admin
+                                );
+                            } else {
+                                logger.info("Configuring secured endpoints for being accessible from localhost only.");
+                                securedEndpointMatchers.forEach(endpoint -> {
+                                    RequestMatcher matcher = new PathAndMethodRequestMatcher(endpoint.method(), endpoint.pattern());
+                                    authorize.requestMatchers(localhostOnly(matcher)).permitAll(); // allow for localhost
+                                    authorize.requestMatchers(matcher).denyAll(); //deny if not localhost
+                                });
+                            }
+
+
+
+                            authorize.anyRequest().authenticated();
+                        }
+                ).
+                httpBasic(Customizer.withDefaults()).
                 cors(cors -> cors.configurationSource(corsConfigurationSource())).
                 sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         logger.info("CSRF disabled!");
-        httpSecurity = httpSecurity.csrf(csrf -> csrf.disable());
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
-        logger.info("Authentication is DISABLED. Adding 'NoAuthenticationFilter' to authentication chain.");
-        AuthenticationManager defaultAuthenticationManager = http.getSharedObject(AuthenticationManager.class);
-        httpSecurity = httpSecurity.addFilterAfter(new NoAuthenticationFilter("vkfvoswsohwrxgjaxipuiyyjgubggzdaqrcuupbugxtnalhiegkppdgjgwxsmvdb", defaultAuthenticationManager), BasicAuthenticationFilter.class);
-    
-        httpSecurity.headers(headers -> headers.cacheControl(cache -> cache.disable()));
+        if (keycloakTokenFilterBean.isPresent()) {
+            logger.trace("Adding Keycloak filter to filter chain.");
+            httpSecurity.addFilterAfter(keycloakTokenFilterBean.get(), BasicAuthenticationFilter.class);
+        } else {
+            logger.trace("Keycloak not configured. Skip adding keycloak filter to filter chain.");
+        }
+
+        if (!applicationProperties.isAuthEnabled()) {
+            logger.info("Adding 'NoAuthenticationFilter' to filter chain.");
+            AuthenticationManager defaultAuthenticationManager = http.getSharedObject(AuthenticationManager.class);
+            httpSecurity = httpSecurity.addFilterAfter(new NoAuthenticationFilter("vkfvoswsohwrxgjaxipuiyyjgubggzdaqrcuupbugxtnalhiegkppdgjgwxsmvdb", defaultAuthenticationManager), BasicAuthenticationFilter.class);
+        } else {
+            logger.info("Skip adding NoAuthenticationFilter to filter chain.");
+        }
+
+        logger.trace("Turning off cache control.");
+        httpSecurity.headers(headers -> headers.cacheControl(HeadersConfigurer.CacheControlConfig::disable));
 
         return httpSecurity.build();
     }
@@ -116,33 +166,28 @@ public class WebSecurityConfig {
         return firewall;
     }
 
-    /* @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilter() {
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.addExposedHeader("Content-Range");
-        config.addExposedHeader("ETag");
-
-        source.registerCorsConfiguration("/**", config);
-        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-        bean.setOrder(0);
-        return bean;
-    }*/
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+        config.addAllowedOriginPattern(applicationProperties.getAllowedOriginPattern());
+        config.setAllowedHeaders(Arrays.asList(applicationProperties.getAllowedHeaders()));
+        config.setAllowedMethods(Arrays.asList(applicationProperties.getAllowedMethods()));
+        config.setExposedHeaders(Arrays.asList(applicationProperties.getExposedHeaders()));
 
-        config.addAllowedOriginPattern("*");
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("*"));
-        config.setExposedHeaders(Arrays.asList("*"));
- 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    private RequestMatcher localhostOnly(RequestMatcher pathMatcher) {
+        return request -> {
+            return isLocalhost(request) && pathMatcher.matches(request);
+        };
+    }
+
+    private boolean isLocalhost(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
+        return "127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr);
     }
 }

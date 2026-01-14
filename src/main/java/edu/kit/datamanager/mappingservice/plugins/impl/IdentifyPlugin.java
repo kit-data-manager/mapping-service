@@ -15,17 +15,19 @@
  */
 package edu.kit.datamanager.mappingservice.plugins.impl;
 
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import edu.kit.datamanager.mappingservice.exception.PluginInitializationFailedException;
 import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.util.ShellRunnerUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.MimeType;
 
 /**
  * Simple mapping service plugin calling image magick 'identify' to obtain image
@@ -36,8 +38,6 @@ import org.springframework.util.MimeType;
 public class IdentifyPlugin implements IMappingPlugin {
 
     static Logger LOG = LoggerFactory.getLogger(IdentifyPlugin.class);
-
-    private boolean initialized = false;
 
     @Override
     public String name() {
@@ -51,7 +51,7 @@ public class IdentifyPlugin implements IMappingPlugin {
 
     @Override
     public String version() {
-        return "1.0.0";
+        return "2.0.0";
     }
 
     @Override
@@ -60,34 +60,36 @@ public class IdentifyPlugin implements IMappingPlugin {
     }
 
     @Override
-    public MimeType[] inputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+    public String[] inputTypes() {
+        return new String[]{"image/*"};
     }
 
     @Override
-    public MimeType[] outputTypes() {
-        return new MimeType[]{MimeType.valueOf("application/octet-stream")};
+    public String[] outputTypes() {
+        return new String[]{"application/*"};
     }
 
     @Override
-    public void setup() {
-        if (Paths.get("/usr/bin/identify").toFile().exists()) {
-            initialized = true;
+    public void setup(ApplicationProperties applicationProperties) {
+        if (!Paths.get("/usr/bin/identify").toFile().exists()) {
+            throw new PluginInitializationFailedException("Required executable /usr/bin/identify not found.");
         }
     }
 
     @Override
     public MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException {
+        MappingPluginState result;
         try {
-            FileOutputStream fout = new FileOutputStream(outputFile.toFile());
-            ShellRunnerUtil.run(fout, fout, "/usr/bin/identify", "-verbose", inputFile.toAbsolutePath().toString());
-            fout.flush();
-            fout.close();
+            try (FileOutputStream out = new FileOutputStream(outputFile.toFile())) {
+                result = ShellRunnerUtil.run(out, out, "/usr/bin/identify", "-verbose", inputFile.toAbsolutePath().toString());
+                out.flush();
+            }
         } catch (IOException ex) {
             LOG.error("Failed to execute plugin.", ex);
-            return MappingPluginState.EXECUTION_ERROR;
+            result = MappingPluginState.EXECUTION_ERROR();
+            result.setDetails(ex.getMessage());
         }
-        return MappingPluginState.SUCCESS;
+        return result;
     }
 
 }

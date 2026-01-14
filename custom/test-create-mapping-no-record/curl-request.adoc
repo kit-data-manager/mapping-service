@@ -1,6 +1,0 @@
-[source,bash]
-----
-$ curl 'http://localhost:8095/api/v1/mappingAdministration/' -i -X POST \
-    -H 'Content-Type: multipart/form-data' \
-    -F 'document=@my_dc4gemma.mapping;type=application/json'
-----

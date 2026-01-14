@@ -20,11 +20,14 @@ import edu.kit.datamanager.mappingservice.plugins.IMappingPlugin;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginState;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
-import lombok.*;
-import org.hibernate.Hibernate;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,14 +95,12 @@ public class PluginInformation implements Serializable {
             this.version = p.version();
             this.description = p.description();
             this.uri = p.uri();
-            ArrayList<String> inputTypesList = new ArrayList<>();
-            Arrays.stream(p.inputTypes()).toList().forEach(mimeType -> inputTypesList.add(mimeType.toString()));
-            this.inputTypes = inputTypesList.toArray(new String[0]);
-            ArrayList<String> outputTypesList = new ArrayList<>();
-            Arrays.stream(p.outputTypes()).toList().forEach(mimeType -> outputTypesList.add(mimeType.toString()));
-            this.outputTypes = outputTypesList.toArray(new String[0]);
+            ArrayList<String> inputTypesList = new ArrayList<>(Arrays.stream(p.inputTypes()).toList());
+            this.inputTypes = inputTypesList.toArray(String[]::new);
+            ArrayList<String> outputTypesList = new ArrayList<>(Arrays.stream(p.outputTypes()).toList());
+            this.outputTypes = outputTypesList.toArray(String[]::new);
         } else {
-            throw new MappingPluginException(MappingPluginState.NOT_FOUND, "Plugin with id " + id + " not found.");
+            throw new MappingPluginException(MappingPluginState.NOT_FOUND(), "Plugin with id " + id + " not found.");
         }
     }
 

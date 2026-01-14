@@ -17,17 +17,30 @@ The REST-API is documented at the following link: [http://\<IP or hostname>:8095
 Dependencies that are needed to build and are not being downloaded via gradle:
 
 - OpenJDK 17
-- Python 3
-- pip (runtime only)
+- (Optional) Python 3
+- (Optional) pip (runtime only)
 
 `./gradlew build`
 
+The build can be further customized via different build profiles. Available profiles are: 
+
+* default - Default build including tests. Used by default.
+* minimal - Minimal build without tests for fast local builds
+* deploy - Full build including tests, packaging of mapping-plugin-core, and 
+           deployment to maven-central. This build profile is supposed to be 
+           used inside a CI environment, as it requires further configuration, 
+           i.e., credentials for deployment.
+
+The different build profiles can be activated via: 
+
+`./gradlew build -PbuildProfile=minimal`
+
 ### Python Location
 
-Currently, mapping-service requires Python to be installed in order to build and to run. At runtime, the Python executable is configured in 
-`application.properties`(see below). For building the mapping-service Python executable is set to `/usr/bin/python3` by default. In case you want to build 
-the mapping-service on a machine on which the Python installation is located elsewhere, e.g., under Windows, you can provide the Python location 
-used at compile time externally, i.e.:
+The mapping-service supports plugins running Python code. To provide basic testing for this feature, some tests require configured Python in order to be executable.
+While at runtime, the Python executable is configured in application.properties, at build time the Python location may differ depending on the build environment.
+By default, '/usr/bin/python3' is assumed as Python location. If you are using a different Python installation, e.g., under Windows or MacOS, you may either modify 
+'build.gradle' (look out for pythonExecutable) or you provide the Python executable as command line argument, e.g.,
 
 ```
 .\gradlew "-DpythonExecutable=file:///C:/Python310/python.exe" build
@@ -35,54 +48,45 @@ used at compile time externally, i.e.:
 
 ## How to start
 
-Before you can start the mapping-service, you  first have to create an `application.properties` file in the source folder. As an example you may use `config/application.default.properties`
+Before you can start the mapping-service, you  first have to create an `application.properties` file in the source folder. As an example you may use `settings/application.default.properties`
 and modify it according to your needs. Espacially the following properties (at the end of the file) are important:
-- `spring.datasource.url=jdbc:h2:file:/tmp/mapping-service/database`
-The path points to the location of the database in which your configured mappings are stored.
-- `mapping-service.pythonExecutable=${pythonExecutable:'file:///usr/bin/python3'}` \
-If no pythonExecutable is provided externally (see above) the default `/usr/bin/python3` is used.
-- `mapping-service.pluginLocation=file:///tmp/mapping-service/plugins` \
-The local folder where available plugins are located.
-- `mapping-service.mappingsLocation:file:///tmp/mapping-service/` \
-Enter the location where you want to store your mappings. This folder will be created if it does not exist yet.
 
-In order to provide the mapping-service with mapping functionality, there are already some pre-compiled plugins available under in the `plugins` folder of this repository.
-Copy them to your configured `mapping-service.pluginLocation` to make them available to the mapping-service. 
-The source code of the gemma-plugin can be found [here](https://github.com/maximilianiKIT/gemma-plugin). The plugin shows how to integrate Python mappings easily.
+| Property | Description | Default |
+|----------|-------------|---------|
+| spring.datasource.url | The path points to the location of the database in which your configured mappings are stored. For production use it is not recommended to use the pre-configured H2 database!    | jdbc:h2:file:/tmp/mapping-service/database   |
+| mapping-service.pythonExecutable | The path to your local Python executable. The default uses the pythonExecutable system property provided via -DpythonExecutable= or  file:///usr/bin/python3 if no such system property is provided. | ${pythonExecutable:'file:///usr/bin/python3'}  |
+| mapping-service.pluginLocation | The local folder from where plugins are loaded. The folder will be created on startup if it does not exist. | None  |
+| mapping-service.codeLocation | The local folder where plugins can checkout code from GitHub. For Python-based plugins, also the virtual env is created in this folder. The folder will be created on startup if it does not exist. | None  |
+| mapping-service.mappingSchemasLocation | The local folder where the mapping files are stored. The folder will be created on startup if it does not exist. | None  |
+| mapping-service.jobOutput | The local folder where asynchronous mapping execution job outputs are stored. The folder will be created on startup if it does not exist. | None  |
+| mapping-service.packagesToScan | Packages scanned for mapping plugins in addition to plugins located in mapping-service.pluginLocation. Typically, this property has not the be changed. | edu.kit.datamanager.mappingservice.plugins.impl  |
+| mapping-service.executionTimeout | The timeout in seconds a plugin process, i.e., Python of Shell, may take before it is assumed to be stale. | 30 |
+| mapping-service.authEnabled | Defines if authentication is enabled or not. If enabled, additional keycloak configuration is required. | false |
+| mapping-service.mappingAdminRole | Defines the user role which must be present to be able to administrate the mapping service, i.e., add or remove mappings. | MAPPING_ADMIN |
+| management.metrics.export.prometheus.enabled | Enables or disabled capturing of prometheus metrics. | true |
+| management.endpoint.metrics.enabled | Enables or disabled the metrics actuator endpoint. This is only needed, if metrics are captured at all. | true |
 
-There is also the possibility to add new plugins directly at the source tree and create a pluggable Jar out of them. Therefor, check 
-`src/main/java/edu/kit/datamanager/mappingservice/plugins/impl`. Just add your new plugin, e.g., based on the `TestPlugin` example. 
-In order to make the plugin usable by the mapping service, you then have to build a plugin Jar out of it. In order to do that, just call:
+## Starting the Mapping-Service
 
-```
-./gradlew buildPluginJar
-```
+The executable jar of the mapping-service is located at 'build/libs/mapping-service-<VERSION>.jar' You should copy it to some dedicated folder, 
+place 'application.properties' next to it, adapt it according to your needs, and start he mapping-service by calling:
 
-This task creates a file `default-plugins-<VERSION>` at `build/libs` which has to be copied to `mapping-service.pluginLocation` to make it available. 
+`java -jar mapping-service.jar`
 
-After doing this, the mapping-service is ready for the first start. This can be achieved by executing:
+If your 'application.properties' is located in another folder, you may use the following call:
 
-`java -jar build/lib/mapping-service-<VERSION>.jar`
-
-This assumes, that the command is called from the source folder and that your `application.properties` is located in the same folder. 
-Otherwise, you may use:
-
-`java -jar build/lib/mapping-service-<VERSION>.jar --spring.config.location=/tmp/application.properties`
-
-Ideally, for production use, you place everything (`mapping-service-<VERSION>.jar`, `application.properties`, `mapping-service.pluginLocation`, `mapping-service.mappingsLocation`,
-and `spring.datasource.url`) in a separate folder from where you then call the mapping-service via: 
-
-`java -jar mapping-service-<VERSION>.jar`
+`java -jar mapping-service.jar --spring.config.location=/myConfigFolder/application.properties`
 
 ## Installation
-There are three ways to install metaStore2 as a microservice:
+There are three ways to install the mapping-service as a system service:
+
 - [Using](#Installation-via-GitHub-Packages) the image available via [GitHub Packages](https://github.com/orgs/kit-data-manager/packages?repo_name=mapping-service) (***recommended***)
 - [Building](#Build-docker-container-locally) docker image locally
 - [Building](#Build-and-run-locally) and running locally
 
 ## Installation via GitHub Packages
 ### Prerequisites
-In order to run this microservice via docker you'll need:
+In order to run the mapping-service via docker you'll need:
 
 * [Docker](https://www.docker.com/) 
 
@@ -110,7 +114,7 @@ user@localhost:/home/user/mapping-service$
 ```
 
 #### Create image
-Now you'll have to create an image containing the microservice. This can be done via a script.
+Now you'll have to create an image containing the mapping-service. This can be done via a script.
 On default the created images will be tagged as follows:
 
 *'latest tag'-'actual date(yyyy-mm-dd)'* (e.g.: 1.1.0-2023-06-27)
@@ -128,7 +132,7 @@ user@localhost:/home/user/mapping-service$
 ```
 
 #### Build docker container
-After building image you have to create (and start) a container for executing microservice:
+After building image you have to create (and start) a container for executing the mapping-service:
 ```
 # If you want to use a specific image you may list all possible tags first.
 user@localhost:/home/user/mapping-service$ docker images ghcr.io/kit-data-manager/mapping-service --format {{.Tag}}

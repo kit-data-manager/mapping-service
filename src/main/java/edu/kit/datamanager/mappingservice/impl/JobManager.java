@@ -16,10 +16,11 @@
 package edu.kit.datamanager.mappingservice.impl;
 
 import edu.kit.datamanager.mappingservice.domain.JobStatus;
+import org.springframework.stereotype.Service;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.springframework.stereotype.Service;
 
 /**
  *
@@ -62,7 +63,7 @@ public class JobManager {
      * Remove the job with the provided id. Keep in mind, that removing the job
      * from the JobManager won't remove job outputs.
      *
-     * @param The job's id.
+     * @param jobId The job's id.
      */
     public void removeJob(String jobId) {
         mapOfJobs.remove(jobId);

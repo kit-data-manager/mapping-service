@@ -20,16 +20,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.net.URISyntaxException;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
 
 /**
  * Interface and documentation for mapping execution REST-API.
@@ -62,19 +62,38 @@ public interface IMappingExecutionController {
             final HttpServletResponse response,
             final UriComponentsBuilder uriBuilder) throws URISyntaxException;
 
+    @Operation(summary = "Map a document directly using the provided plugin.", description = "This endpoint allows the mapping of documents via a file upload. "
+            + "The identifier of the plugin must be passed to this endpoint as parameters together with the document to be mapped and the mapping rules.", responses = {
+            @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. "
+                    + "The result will also be returned in the response."),
+            @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no plugin for pluginId could be found."),
+            @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
+                    + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
+                    + "document should be the reason for a mapper to fail."),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
+                    + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
+    @RequestMapping(value = {"/plugins/{pluginId}/execute"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @ResponseBody
+    void runPlugin(
+            @Parameter(description = "The document to be mapped.", required = true) @RequestPart(name = "document") final MultipartFile document,
+            @Parameter(description = "The mapping rules document.", required = true) @RequestPart(name = "mapping") final MultipartFile mapping,
+            @Parameter(description = "The pluginId of the plugin to execute.", required = true) @PathVariable(value = "pluginId") String pluginId,
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final UriComponentsBuilder uriBuilder) throws URISyntaxException;
+
     @Operation(summary = "Map a document with an existing mapping. The mapping is executed asynchronously, the call returns a JobStatus document "
             + "that contains the jobId used to query the execution status.", description = "This endpoint allows the asynchronous mapping of documents via a file upload. "
             + "The prerequisite for this is a mapping that has already been created in advance via the \"/api/v1/mappingAdministration\" endpoint or the GUI. "
             + "The identifier of this mapping must then be passed to this endpoint as parameters together with the document to be mapped.", responses = {
-                @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. "
-                        + "The result will also be returned in the response."),
-                @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no mapping for mappingID could be found."),
-                @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
-                        + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
-                        + "document should be the reason for a mapper to fail."),
-                @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
-                        + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
-
+            @ApiResponse(responseCode = "200", description = "OK is returned if the mapping was successful. "
+                    + "The result will also be returned in the response."),
+            @ApiResponse(responseCode = "404", description = "NOT_FOUND is returned if no mapping for mappingID could be found."),
+            @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or the mapping could not be performed with the provided input. It is "
+                    + "expected that a mapping plugin accepts a well defined input and produces results for proper inputs. Therefore, only a faulty input "
+                    + "document should be the reason for a mapper to fail."),
+            @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR is returned the mapping returned successfully, but the mapping result "
+                    + "is not accessible. This is expected to be an error in the mapping implementation and should be fixed in there.")})
     @RequestMapping(value = {"/schedule/"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
     ResponseEntity<JobStatus> scheduleMapDocument(
@@ -92,7 +111,7 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
 
     @GetMapping(path = "/schedule/{job-id}/status", produces = "application/json")
-    public ResponseEntity<JobStatus> getJobStatus(
+    ResponseEntity<JobStatus> getJobStatus(
             @Parameter(description = "The jobId to query for.", required = true) @PathVariable(name = "job-id") String jobId) throws Throwable;
 
     @Operation(summary = "Get a mapping job's output file. The output file is available as soon as the job has finished. If this is the case, the job status "
@@ -104,7 +123,7 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing or is not a valid UUID."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
     @GetMapping(path = "/schedule/{job-id}/download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<Resource> getJobOutputFile(@PathVariable(name = "job-id") String jobId) throws Throwable;
+    ResponseEntity<Resource> getJobOutputFile(@PathVariable(name = "job-id") String jobId) throws Throwable;
 
     @Operation(summary = "Delete a mapping job's output file.",
             description = "This endpoint allows to remove the result of an asynchronous job execution from the server.",
@@ -114,5 +133,5 @@ public interface IMappingExecutionController {
                 @ApiResponse(responseCode = "400", description = "BAD_REQUEST is returned if a parameter is missing, is not a valid UUID, or if the job has not finished, yet."),
                 @ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR if the mapping job has failed.")})
     @DeleteMapping(path = "/schedule/{job-id}")
-    public ResponseEntity deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable;
+    ResponseEntity<Void> deleteJobAndAssociatedData(@PathVariable(name = "job-id") String jobId) throws Throwable;
 }

@@ -18,12 +18,18 @@ package edu.kit.datamanager.mappingservice.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import edu.kit.datamanager.entities.EtagSupport;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.springframework.http.MediaType;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
@@ -45,7 +51,7 @@ public class MappingRecord implements EtagSupport, Serializable {
     @NotNull(message = "The unique identify of the record.")
     private String mappingId;
 
-    @NotNull(message = "Type of the mapping, e.g. GEMMA, XSLT, handlebars, ....")
+    @NotNull(message = "Id of the plugin used for the mapping, e.g. GEMMA_v1.0.0, XSLT_v2.1.0, handlebars_v2.0.1, ....")
     private String mappingType;
 
     @NotNull(message = "Title of the mapping.")

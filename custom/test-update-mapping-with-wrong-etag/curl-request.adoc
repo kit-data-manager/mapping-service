@@ -1,8 +1,0 @@
-[source,bash]
-----
-$ curl 'http://localhost:8095/api/v1/mappingAdministration/my_dc' -i -X PUT \
-    -H 'Content-Type: multipart/form-data' \
-    -H 'If-Match: wrongEtag' \
-    -F 'record=@record.json;type=application/json' \
-    -F 'document=@my_dc4gemma.mapping;type=application/json'
-----

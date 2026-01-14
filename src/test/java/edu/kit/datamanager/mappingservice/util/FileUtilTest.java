@@ -17,6 +17,7 @@ package edu.kit.datamanager.mappingservice.util;
 
 import com.google.common.io.Files;
 import edu.kit.datamanager.mappingservice.exception.MappingException;
+import edu.kit.datamanager.mappingservice.exception.MappingServiceException;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * @author hartmann-v
@@ -56,6 +58,7 @@ public class FileUtilTest {
      * Test of downloadResource method, of class GemmaMapping.
      */
     @Test
+    @Disabled("Recently, download fails with 404.")
     public void testDownloadResourceWithPath() throws URISyntaxException {
         System.out.println("downloadResource");
         assertNotNull(new FileUtil());
@@ -319,34 +322,24 @@ public class FileUtilTest {
     @Test
     void cloneValidGitRepository() {
         Path util = null;
+
         try {
             util = FileUtil.cloneGitRepository("https://github.com/kit-data-manager/mapping-service.git", "main", "/tmp/test");
         } catch (Exception e) {
             fail(e);
+        } finally {
+            try {
+                FileUtils.deleteDirectory(new File("/tmp/test"));
+            } catch (IOException e) {
+            }
         }
-        try {
-            FileUtils.deleteDirectory(new File("tmp/test"));
-        } catch (IOException e) {
-        }
+
         assertNotNull(util);
-        util = null;
-        try {
-            util = FileUtil.cloneGitRepository("https://github.com/kit-data-manager/mapping-service.git", "main");
-        } catch (Exception e) {
-            fail(e);
-        }
-        assertNotNull(util);
-        try {
-            FileUtils.deleteDirectory(new File(util.toUri()));
-        } catch (IOException e) {
-        }
-        util = null;
     }
 
     @Test
     void cloneInvalidGitRepository() {
-        assertThrows(MappingException.class, () -> FileUtil.cloneGitRepository("test", "test", "test"));
-        assertThrows(MappingException.class, () -> FileUtil.cloneGitRepository("test", "test"));
+        assertThrows(MappingServiceException.class, () -> FileUtil.cloneGitRepository("test", "test", "test"));
     }
 
     @AfterEach

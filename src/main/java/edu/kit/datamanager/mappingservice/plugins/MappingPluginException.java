@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
+
+import lombok.Getter;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Exception thrown by mapping plugins.
  *
  * @author maximilianiKIT
  */
+@Getter
 public class MappingPluginException extends Exception {
 
     /**
      * State of the plugin.
      */
-    private MappingPluginState state;
+    private final MappingPluginState mappingPluginState;
 
     /**
      * Default constructor.
@@ -34,8 +37,8 @@ public class MappingPluginException extends Exception {
      * @param state State of the plugin.
      */
     public MappingPluginException(MappingPluginState state) {
-        super(state.name());
-        this.state = state;
+        super(state.getState().name());
+        this.mappingPluginState = state;
     }
 
     /**
@@ -46,7 +49,7 @@ public class MappingPluginException extends Exception {
      */
     public MappingPluginException(MappingPluginState state, String message) {
         super(message);
-        this.state = state;
+        this.mappingPluginState = state;
     }
 
     /**
@@ -58,16 +61,10 @@ public class MappingPluginException extends Exception {
      */
     public MappingPluginException(MappingPluginState state, String message, Throwable cause) {
         super(message, cause);
-        this.state = state;
+        this.mappingPluginState = state;
     }
 
-    /**
-     * This method returns the state of the plugin.
-     *
-     * @return The state of the plugin.
-     */
-    public MappingPluginState getState() {
-        return state;
+    public void throwMe() throws ResponseStatusException {
+        throw new ResponseStatusException(this.mappingPluginState.getState().getHttpStatus(), "Cause: " + this.mappingPluginState.getDetails());
     }
 }
-

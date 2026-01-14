@@ -15,21 +15,20 @@
 package edu.kit.datamanager.mappingservice.plugins;
 
 import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.MimeTypeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
-import org.apache.commons.io.FileUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -39,15 +38,24 @@ class PluginLoaderTest {
     private PluginManager pluginManager;
 
     @Autowired
+    private PluginLoader pluginLoader;
+
+    @Autowired
     private ApplicationProperties applicationProperties;
+
+    private final String INOUTPLUGIN_VERSION = "2.0.0";
+    private final String INOUTPLUGIN_NAME = "InOutPlugin";
+    private final String INOUTPLUGIN_ID = INOUTPLUGIN_NAME + "_" + INOUTPLUGIN_VERSION;
+
 
     @BeforeEach
     void setUp() throws Exception {
-        try {
+        //not needed as plugins are part of the service now
+        /*try {
             FileUtils.copyDirectory(Path.of("./plugins").toFile(), Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
         } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+            fail("IOException during setup occurred.", ex);
+        }*/
         pluginManager.reloadPlugins();
     }
 
@@ -56,23 +64,25 @@ class PluginLoaderTest {
         System.out.println("Test valid");
         Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile());
+            plugins = pluginLoader.loadPlugins(Path.of(applicationProperties.getPluginLocation().toURI()).toFile(), applicationProperties.getPackagesToScan());
         } catch (Exception e) {
             fail(e);
         }
-        for (var entry : plugins.entrySet()) {
-            System.out.println(entry.getValue().id());
-        }
+
         try {
-            assertEquals("TEST_0.0.0", plugins.get("TEST_0.0.0").id());
-            assertEquals("TEST", plugins.get("TEST_0.0.0").name());
-            assertEquals("Hello world! This is a non functional test plugin.", plugins.get("TEST_0.0.0").description());
-            assertEquals("0.0.0", plugins.get("TEST_0.0.0").version());
-            assertEquals("https://github.com/kit-data-manager/gemma", plugins.get("TEST_0.0.0").uri());
-            assertEquals(MimeTypeUtils.APPLICATION_JSON, plugins.get("TEST_0.0.0").inputTypes()[0]);
-            assertEquals(MimeTypeUtils.APPLICATION_JSON, plugins.get("TEST_0.0.0").outputTypes()[0]);
-            plugins.get("TEST_0.0.0").setup();
-            assertEquals(MappingPluginState.SUCCESS, plugins.get("TEST_0.0.0").mapFile(new File("schema").toPath(), new File("input").toPath(), new File("output").toPath()));
+            assertEquals(INOUTPLUGIN_ID, plugins.get(INOUTPLUGIN_ID).id());
+            assertEquals(INOUTPLUGIN_NAME, plugins.get(INOUTPLUGIN_ID).name());
+            assertEquals("Simple plugin for testing just returning the input file.", plugins.get(INOUTPLUGIN_ID).description());
+            assertEquals(INOUTPLUGIN_VERSION, plugins.get(INOUTPLUGIN_ID).version());
+            assertEquals("https://github.com/kit-data-manager/mapping-service", plugins.get(INOUTPLUGIN_ID).uri());
+            assertEquals("application/*", plugins.get(INOUTPLUGIN_ID).inputTypes()[0]);
+            assertEquals("application/*", plugins.get(INOUTPLUGIN_ID).outputTypes()[0]);
+            plugins.get(INOUTPLUGIN_ID).setup(applicationProperties);
+            File inputFile = new File("/tmp/inputFile");
+            if (!inputFile.exists()) {
+                Assertions.assertTrue(inputFile.createNewFile());
+            }
+            assertEquals(MappingPluginState.SUCCESS().getState(), plugins.get(INOUTPLUGIN_ID).mapFile(new File("schema").toPath(), inputFile.toPath(), new File("output").toPath()).getState());
         } catch (Exception e) {
             fail(e);
         }
@@ -80,43 +90,34 @@ class PluginLoaderTest {
 
     @Test
     void invalidPath() {
-        Map<String, IMappingPlugin> plugins = null;
         try {
-            PluginLoader.loadPlugins(new File("./invalid/test"));
+            pluginLoader.loadPlugins(new File("./invalid/test"), applicationProperties.getPackagesToScan());
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
+            fail("MappingPluginException caught when loading plugins from invalid path.", validationWarning);
         }
     }
 
-//    @Test
-//    void invalidPlugin() {
-//        Map<String, IMappingPlugin> plugins = null;
-//        try {
-//            plugins = PluginLoader.loadPlugins(new File("./invalid_plugins"));
-//        } catch (Exception e) {
-//            fail(e);
-//        }
-//    }
     @Test
     void nullInput() {
-        Map<String, IMappingPlugin> plugins = null;
         try {
-            plugins = PluginLoader.loadPlugins(null);
+            pluginLoader.loadPlugins(null, null);
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
+            fail("MappingPluginException caught while loading plugins from invalid path.", validationWarning);
         }
     }
 
     @Test
-    void emptyinput() {
-        Map<String, IMappingPlugin> plugins = null;
+    void testEmptyInput() {
         try {
-            plugins = PluginLoader.loadPlugins(new File(""));
+            pluginLoader.loadPlugins(new File(""), null);
         } catch (IOException e) {
             fail(e);
         } catch (MappingPluginException validationWarning) {
+            fail("MappingPluginException caught when loading plugins from invalid path.", validationWarning);
         }
     }
 }

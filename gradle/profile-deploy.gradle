@@ -14,6 +14,61 @@
  * limitations under the License.
  */
 
+// Classes jar for plugin-core
+task pluginCoreClassesJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
+    archiveClassifier = ''
+    from sourceSets.main.output
+    include '**/configuration/ApplicationProperties.class', 
+            '**/exception/BadExitCodeException.class', 
+            '**/exception/PluginInitializationFailedException.class',
+            '**/exception/MappingPluginException.class',
+            '**/exception/MappingException.class',
+            '**/exception/MappingServiceException.class',
+            '**/plugins/AbstractPythonMappingPlugin.class', 
+            '**/plugins/IMappingPlugin.class', 
+            '**/plugins/MappingPluginException.class', 
+            '**/plugins/MappingPluginState.class', 
+            '**/plugins/MappingPluginState$StateEnum.class',
+            '**/util/FileUtil.class',
+            '**/util/PythonRunnerUtil.class', 
+            '**/util/ShellRunnerUtil.class'
+    includeEmptyDirs false
+}
+
+// Sources jar for plugin-core
+task pluginCoreSourcesJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    include '**/configuration/ApplicationProperties.java', 
+            '**/exception/BadExitCodeException.java', 
+            '**/exception/PluginInitializationFailedException.java',
+            '**/exception/MappingPluginException.java',
+            '**/exception/MappingException.java',
+            '**/exception/MappingServiceException.java',
+            '**/plugins/AbstractPythonMappingPlugin.java', 
+            '**/plugins/IMappingPlugin.java', 
+            '**/plugins/MappingPluginException.java', 
+            '**/plugins/MappingPluginState.java',
+            '**/plugins/MappingPluginState$StateEnum.java',
+            '**/util/FileUtil.java',
+            '**/util/PythonRunnerUtil.java', 
+            '**/util/ShellRunnerUtil.java'
+    includeEmptyDirs false
+}
+
+javadoc {
+    failOnError = false
+}
+
+// Javadoc jar
+task javadocJar(type: Jar) {
+    archiveBaseName = 'mapping-plugin-core'
+    archiveClassifier = 'javadoc'
+    from javadoc
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //for plugin net.researchgate.release 
 //see https://github.com/researchgate/gradle-release
@@ -25,4 +80,124 @@ release {
     versionPropertyFile = 'gradle.properties'
     //set possible properties which may contain the version
     versionProperties = ['version', 'mainversion']
+    git {
+        //branch from where to release (default: main)
+        requireBranch.set('main')
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//for javadoc task
+//see https://docs.gradle.org/current/dsl/org.gradle.api.tasks.javadoc.Javadoc.html
+////////////////////////////////////////////////////////////////////////////////
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//for plugin io.github.gradle-nexus.publish-plugin
+//see https://github.com/gradle-nexus/publish-plugin
+////////////////////////////////////////////////////////////////////////////////
+nexusPublishing {
+    repositories {
+        // Migration to Sontatype Central
+        // see https://github.com/gradle-nexus/publish-plugin?tab=readme-ov-file#publishing-to-maven-central-via-sonatype-central
+        // see https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
+        // You need to set your Central credentials (those are different from the legacy OSSRH ones).
+        // To increase security, it is advised to use the user token's username and password pair
+        // (instead of regular username and password).
+        // Those values should be set as the
+        //   sonatypeUsername and
+        //   sonatypePassword project properties, e.g. in ~/.gradle/gradle.properties or
+        //   via the
+        //   ORG_GRADLE_PROJECT_sonatypeUsername and
+        //   ORG_GRADLE_PROJECT_sonatypePassword environment variables.
+        //  For generating the user token, see https://central.sonatype.org/publish/generate-portal-token/
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+//for plugin maven-publish/io.github.gradle-nexus.publish-plugin
+//see https://docs.gradle.org/current/userguide/publishing_maven.html
+////////////////////////////////////////////////////////////////////////////////
+publishing {
+    publications {
+        //define publication identity, e.g. maven, which will be used
+        //by the signing plugin, e.g. sign publishing.publications.mavenJava
+         mavenJava(MavenPublication) {
+            //include custom artifacts
+            artifact pluginCoreClassesJar
+            artifact pluginCoreSourcesJar
+            artifact javadocJar
+            
+            //defined base properties for pom
+            groupId = 'edu.kit.datamanager'
+            artifactId = 'mapping-plugin-core'
+            version = project.version
+          
+
+            pom {
+                name = artifactId
+                description = 'Core classes for mapping service plugins.'
+                url = 'http://datamanager.kit.edu'
+
+                //add packaging property
+                withXml {
+                    asNode().appendNode('packaging', 'jar')
+                }
+                //add misc information
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Jejkal'
+                        name = 'Thomas Jejkal'
+                        email = 'webmaster@datamanager.kit.edu'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com/kit-data-manager/mapping-service'
+                    developerConnection = 'scm:git:github.com/kit-data-manager/mapping-service'
+                    url = 'https://github.com/kit-data-manager/mapping-service'
+                }
+            }         
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//for plugin signing
+//see https://docs.gradle.org/current/userguide/signing_plugin.html
+////////////////////////////////////////////////////////////////////////////////
+signing {
+ //make signing required unless for SNAPSHOT releases or if signing is explicitly skipped
+    required { !project.version.endsWith("-SNAPSHOT") && !project.hasProperty("skipSigning") }
+   
+    //look for property 'signingKey'
+    if (project.findProperty("signingKey")) {
+        //If required, read a sub-key specified by its ID in property signingKeyId
+        //def signingKeyId = findProperty("signingKeyId")
+        //read property 'signingKey'
+        def signingKey = findProperty("signingKey")
+        //read property 'signingPassword'
+        def signingPassword = findProperty("signingPassword")   
+        //Select to use in-memory ascii-armored keys
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        //Only if also using signingKeyId
+        //useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+
+        //Apply signing to publication identity 'publishing.publications.maven'
+        sign publishing.publications.mavenJava
+    }else {
+        println 'WARNING: No property \'signingKey\' found. Artifact signing will be skipped.'
+    }
 }

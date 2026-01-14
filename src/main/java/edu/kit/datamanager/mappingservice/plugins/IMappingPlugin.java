@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.kit.datamanager.mappingservice.plugins;
 
-import org.springframework.util.MimeType;
+import edu.kit.datamanager.mappingservice.configuration.ApplicationProperties;
 
 import java.nio.file.Path;
 
 /**
- * Interface for mapping plugins.
- * Every plugin which implements this interface and is placed in the plugins folder will be loaded and usable via the REST-API.
+ * Interface for mapping plugins. Every plugin which implements this interface
+ * and is placed in the plugins folder will be loaded and usable via the
+ * REST-API.
  *
  * @author maximilianiKIT
  */
@@ -42,15 +42,17 @@ public interface IMappingPlugin {
     String description();
 
     /**
-     * The version of the plugin which gets displayed in the UI and is part of the id.
+     * The version of the plugin which gets displayed in the UI and is part of
+     * the id.
      *
      * @return The version of the plugin.
      */
     String version();
 
     /**
-     * A URI which refers to the plugin or the technology used by the plugin (e.g. a link to a GitHub repository).
-     * This URI will be displayed in the UI.
+     * A URI which refers to the plugin or the technology used by the plugin
+     * (e.g. a link to a GitHub repository). This URI will be displayed in the
+     * UI.
      *
      * @return The URI of the plugin.
      */
@@ -61,18 +63,19 @@ public interface IMappingPlugin {
      *
      * @return The mime type of the input data.
      */
-    MimeType[] inputTypes();
+    String[] inputTypes();
 
     /**
      * The mime type of the output data.
      *
      * @return The mime type of the output data.
      */
-    MimeType[] outputTypes();
+    String[] outputTypes();
 
     /**
-     * The id of the plugin which is used to identify the plugin.
-     * By default, the id is composed of the name and the version of the plugin (e.g. testPlugin_2.1.0).
+     * The id of the plugin which is used to identify the plugin. By default,
+     * the id is composed of the name and the version of the plugin (e.g.
+     * testPlugin_2.1.0).
      *
      * @return The id of the plugin.
      */
@@ -81,19 +84,22 @@ public interface IMappingPlugin {
     }
 
     /**
-     * This method is called when the plugin is loaded.
-     * It can be used to initialize the plugin and install dependencies.
+     * This method is called when the plugin is loaded. It can be used to
+     * initialize the plugin and install dependencies.
+     *
+     * @param applicationProperties Properties object containing all
+     * mapping-service settings.
      */
-    void setup();
+    void setup(ApplicationProperties applicationProperties);
 
     /**
      * The method which is called to execute the plugin.
      *
-     * @param inputFile   The path to the output document.
-     * @param outputFile  The path to the output document.
+     * @param inputFile The path to the output document.
+     * @param outputFile The path to the output document.
      * @param mappingFile The path to the mapping schema.
      * @return The exit code of the plugin.
-     * 
+     *
      * @throws MappingPluginException If the mapping execution fails.
      */
     MappingPluginState mapFile(Path mappingFile, Path inputFile, Path outputFile) throws MappingPluginException;

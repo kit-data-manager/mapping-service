@@ -17,14 +17,13 @@
 package edu.kit.datamanager.mappingservice.dao;
 
 import edu.kit.datamanager.mappingservice.domain.MappingRecord;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * This interface defines the methods for accessing the database for the MappingRecords.
@@ -37,7 +36,7 @@ public interface IMappingRecordDao extends JpaRepository<MappingRecord, String>,
      * Find a MappingRecords by the given ID.
      *
      * @param mappingId The id to search for.
-     * @return A optional of the matching MappingRecord.
+     * @return An optional of the matching MappingRecord.
      */
     Optional<MappingRecord> findByMappingId(String mappingId);
 

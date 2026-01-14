@@ -15,11 +15,12 @@
  */
 package edu.kit.datamanager.mappingservice.rest.impl;
 
+import com.google.common.base.Strings;
 import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.mappingservice.dao.IMappingRecordDao;
-import edu.kit.datamanager.mappingservice.domain.MappingRecord;
 import edu.kit.datamanager.mappingservice.domain.AclEntry;
-import edu.kit.datamanager.mappingservice.exception.MappingNotFoundException;
+import edu.kit.datamanager.mappingservice.domain.MappingRecord;
+import edu.kit.datamanager.mappingservice.exception.*;
 import edu.kit.datamanager.mappingservice.impl.MappingService;
 import edu.kit.datamanager.mappingservice.plugins.MappingPluginException;
 import edu.kit.datamanager.mappingservice.plugins.PluginManager;
@@ -27,12 +28,19 @@ import edu.kit.datamanager.mappingservice.rest.IMappingAdministrationController;
 import edu.kit.datamanager.mappingservice.rest.PluginInformation;
 import edu.kit.datamanager.util.AuthenticationHelper;
 import edu.kit.datamanager.util.ControllerUtils;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.core.util.Json;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,8 +52,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +62,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 
 /**
  * Controller for managing mapping files.
@@ -81,15 +87,23 @@ public class MappingAdministrationController implements IMappingAdministrationCo
      */
     private final PluginManager pluginManager;
 
+    private final MeterRegistry meterRegistry;
+    private final DistributionSummary documentsInSizeMetric;
+    private final DistributionSummary documentsOutSizeMetric;
     /**
      * Connection to the executive logic of the mapping service.
      */
     private final MappingService mappingService;
 
-    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, PluginManager pluginManager, MappingService mappingService) {
+    public MappingAdministrationController(IMappingRecordDao mappingRecordDao, PluginManager pluginManager, MappingService mappingService, MeterRegistry meterRegistry) {
         this.mappingRecordDao = mappingRecordDao;
         this.mappingService = mappingService;
         this.pluginManager = pluginManager;
+        this.meterRegistry = meterRegistry;
+
+        Gauge.builder("mapping_service.schemes_total", mappingRecordDao::count).register(meterRegistry);
+        this.documentsInSizeMetric = DistributionSummary.builder("mapping_service.documents.input_size").baseUnit("bytes").register(meterRegistry);
+        this.documentsOutSizeMetric = DistributionSummary.builder("mapping_service.documents.output_size").baseUnit("bytes").register(meterRegistry);
     }
 
     @Override
@@ -103,13 +117,16 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
         MappingRecord mappingRecord;
         try {
-            LOG.trace("Deserializing mapping record.");
             mappingRecord = Json.mapper().readValue(record.getInputStream(), MappingRecord.class);
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
             LOG.error("Unable to deserialize mapping record.", ex);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-//.body("Unable to deserialize provided mapping record.");
+        }
+
+        if (Strings.isNullOrEmpty(mappingRecord.getMappingId()) || Strings.isNullOrEmpty(mappingRecord.getMappingType())) {
+            LOG.error("Invalid mapping record. Either mappingId or mappingType are null.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         LOG.trace("Obtaining caller principle for authorization purposes.");
@@ -145,8 +162,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             mappingRecord = mappingService.createMapping(contentOfFile, mappingRecord);
         } catch (IOException ioe) {
             LOG.error("Unable to create mapping for provided inputs.", ioe);
-           //return ResponseEntity.internalServerError().body("Unable to create mapping for provided inputs.");
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         LOG.trace("Mapping successfully persisted. Updating document URI.");
@@ -155,12 +171,12 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         URI locationUri;
         locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(mappingRecord.getMappingId(), wr, hsr)).toUri();
 
-        LOG.trace("Successfully created mapping with id '{}' and type '{}'.", mappingRecord.getMappingId(), mappingRecord.getMappingType());
+        LOG.trace("Successfully created mapping with id '{}' and plugin '{}'.", mappingRecord.getMappingId(), mappingRecord.getMappingType());
         return ResponseEntity.created(locationUri).body(mappingRecord);
     }
 
     @Override
-    public ResponseEntity getMappingById(
+    public ResponseEntity<MappingRecord> getMappingById(
             @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr) {
@@ -198,7 +214,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity getMappingDocumentById(
+    public ResponseEntity<Resource> getMappingDocumentById(
             @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr) {
@@ -215,7 +231,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         LOG.trace("Checking accessibility of local path {}.", mappingDocumentPath.toString());
         if (!Files.exists(mappingDocumentPath) || !Files.isRegularFile(mappingDocumentPath) || !Files.isReadable(mappingDocumentPath)) {
             LOG.trace("Mapping document at path {} either does not exist or is no file or is not readable. Returning HTTP INTERNAL_SERVER_ERROR.", mappingDocumentPath);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Metadata document on server either does not exist or is no file or is not readable.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ByteArrayResource("Metadata document on server either does not exist or is no file or is not readable.".getBytes(StandardCharsets.UTF_8)));
         }
 
         LOG.trace("Get ETag of MappingRecord.");
@@ -227,21 +243,21 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
     @Override
     public ResponseEntity<List<MappingRecord>> getMappings(
-            @RequestParam(value = "typeId", required = false) String typeId,
+            @RequestParam(value = "mappingPluginId", required = false) String mappingPluginId,
             Pageable pgbl,
             WebRequest wr,
             HttpServletResponse hsr,
             UriComponentsBuilder ucb) {
         //if security is enabled, include principal in query
-        LOG.trace("Performing getMappings({}, {}).", typeId, pgbl);
+        LOG.trace("Performing getMappings({}, {}).", mappingPluginId, pgbl);
         Page<MappingRecord> records;
         //try {
-        if ((typeId == null)) {
-            LOG.trace("No type provided. Querying for all mapping records.");
+        if ((mappingPluginId == null)) {
+            LOG.trace("No plugin id provided. Querying for all mapping records.");
             records = mappingRecordDao.findAll(pgbl);
         } else {
-            LOG.trace("Querying for mapping records for mapping type {}.", typeId);
-            records = mappingRecordDao.findByMappingIdIn(List.of(typeId), pgbl);
+            LOG.trace("Querying for mapping records for mapping plugin {}.", mappingPluginId);
+            records = mappingRecordDao.findByMappingIdIn(List.of(mappingPluginId), pgbl);
         }
 
         List<MappingRecord> recordList = records.getContent();
@@ -260,7 +276,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     @Override
-    public ResponseEntity deleteMapping(
+    public ResponseEntity<Void> deleteMapping(
             @PathVariable(value = "mappingId") String mappingId,
             WebRequest wr,
             HttpServletResponse hsr) {
@@ -295,7 +311,6 @@ public class MappingAdministrationController implements IMappingAdministrationCo
 
         MappingRecord mappingRecord;
         try {
-            LOG.trace("Deserializing mapping record.");
             mappingRecord = Json.mapper().readValue(record.getInputStream(), MappingRecord.class);
             LOG.trace("Deserialized mapping record: {}", record);
         } catch (IOException ex) {
@@ -303,9 +318,9 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        if ((!mappingRecord.getMappingId().equals(mappingId))) {
-            LOG.trace("Mapping record id {} differs from adressed mapping id {}. Setting mapping record id to adressed id.", mappingRecord.getMappingId(), mappingId);
-            mappingRecord.setMappingId(mappingId);
+        if ((!mappingId.equals(mappingRecord.getMappingId()))) {
+            LOG.error("Mapping record id {} differs from addressed mapping id {}.", mappingRecord.getMappingId(), mappingId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         LOG.trace("Reading mapping record with id {} from database.", mappingRecord.getMappingId());
@@ -339,7 +354,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
         URI locationUri;
         locationUri = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getMappingById(mappingRecord.getMappingId(), wr, hsr)).toUri();
 
-        LOG.info("Successfully updated mapping record with id '{}' and type '{}'.", mappingRecord.getMappingId(), mappingRecord.getMappingType());
+        LOG.info("Successfully updated mapping record with id '{}' and plugin '{}'.", mappingRecord.getMappingId(), mappingRecord.getMappingType());
         return ResponseEntity.ok().location(locationUri).eTag("\"" + etag + "\"").body(mappingRecord);
     }
 
@@ -369,12 +384,10 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     }
 
     /**
-     * Get the record of given id / type.
+     * Get the record of given id / plugin.
      *
      * @param mappingId mappingId of the mapping
-     *
-     * @return record of given id / type.
-     *
+     * @return record of given id / plugin.
      * @throws MappingNotFoundException Not found.
      */
     private MappingRecord getMappingByIdInternal(String mappingId) throws MappingNotFoundException {
@@ -392,7 +405,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
     /**
      * This method merges two MappingRecords.
      *
-     * @param managed The existing MappingRecord.
+     * @param managed  The existing MappingRecord.
      * @param provided The MappingRecord to merge.
      * @return The merged MappingRecord.
      */
@@ -402,7 +415,7 @@ public class MappingAdministrationController implements IMappingAdministrationCo
             managed.setTitle(provided.getTitle());
             LOG.trace("Updating record description from {} to {}.", managed.getDescription(), provided.getDescription());
             managed.setDescription(provided.getDescription());
-            LOG.trace("Updating record type from {} to {}.", managed.getMappingType(), provided.getMappingType());
+            LOG.trace("Updating record plugin from {} to {}.", managed.getMappingType(), provided.getMappingType());
             managed.setMappingType(provided.getMappingType());
 
             //update acl

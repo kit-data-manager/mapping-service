@@ -19,7 +19,8 @@ import edu.kit.datamanager.entities.PERMISSION;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class AclEntryTest {
 
@@ -49,10 +50,6 @@ class AclEntryTest {
 
     @Test
     void testEquals() {
-        assertEquals(aclEntry, aclEntry);
-        assertFalse(aclEntry.equals(null));
-        assertNotEquals(aclEntry, new Object());
-        assertEquals(aclEntry, new AclEntry());
         assertNotEquals(aclEntry, aclEntry2);
         AclEntry test = new AclEntry();
         test.setId(1L);

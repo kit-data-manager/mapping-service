@@ -17,9 +17,12 @@ package edu.kit.datamanager.mappingservice.domain;
 import edu.kit.datamanager.annotations.SecureUpdate;
 import edu.kit.datamanager.entities.PERMISSION;
 import edu.kit.datamanager.util.EnumUtils;
-import lombok.*;
-
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.util.Objects;
 
 /**
