@@ -98,7 +98,7 @@ For more information and concrete implementation examples, please check included
 * JoltPlugin: Java-only plugin
 
 > [!NOTE]
-> For Python-based plugins you must additionally provide a properties file telling the plugin which tag to check out and optionally, which minimal Python version is required. The properties file must be located
+> For Python-based plugins you must additionally provide a properties file telling the plugin which ref to check out and optionally, which minimal Python version is required. Typically, there should be a tag with the value of the version property, e.g., v1.0.0, but it may also point to a specific branch. Git will first look for a branch with the given name and if not available check refs/tags for v1.0.0 . The properties file must be located
 > in the base folder of the plugin jar file and must be named <LOWERCASE_PLUGIN_NAME>.properties, i.e., myplugin.properties for a plugin named 'MyPlugin'. In the following, an example properties document is shown.
 
 ```properties
