@@ -124,7 +124,7 @@ public class MappingExecutionController implements IMappingExecutionController {
         LOG.trace("User upload successfully removed.");
     }
 
-    private void sendReponse(Path result, HttpServletResponse response){
+    private void sendReponse(Path result, String id, long documentSize, HttpServletResponse response){
         if (!Files.exists(result) || !Files.isRegularFile(result) || !Files.isReadable(result)) {
             String message = "The mapping result expected at path " + result + " is not accessible. This indicates an error of the mapper implementation.";
             LOG.error(message);
@@ -154,8 +154,8 @@ public class MappingExecutionController implements IMappingExecutionController {
             LOG.error(message, ex);
             throw new MappingServiceException(message);
         } finally {
-            Counter.builder("mapping_service.mapping_usage").tag("mappingID", pluginId).register(meterRegistry).increment();
-            this.documentsInSizeMetric.record(document.getSize());
+            Counter.builder("mapping_service.mapping_usage").tag("mappingID", id).register(meterRegistry).increment();
+            this.documentsInSizeMetric.record(documentSize);
             this.documentsOutSizeMetric.record(result.toFile().length());
 
             LOG.trace("Result file successfully transferred to client. Removing file {} from disk.", result);
@@ -198,30 +198,8 @@ public class MappingExecutionController implements IMappingExecutionController {
             removeUserData(inputPath);
         }
 
-        //Result download
-        Path result = resultPath.get();
-        prepareResponse(result, response);
-
-        try {
-            LOG.trace("Writing file to response output stream.");
-            Files.copy(result, response.getOutputStream());
-        } catch (IOException ex) {
-            String message = "Failed to write mapping result file to stream.";
-            LOG.error(message, ex);
-            throw new MappingServiceException(message);
-        } finally {
-            Counter.builder("mapping_service.mapping_usage").tag("mappingID", mappingID).register(meterRegistry).increment();
-            this.documentsInSizeMetric.record(document.getSize());
-            this.documentsOutSizeMetric.record(result.toFile().length());
-
-            LOG.trace("Result file successfully transferred to client. Removing file {} from disk.", result);
-            try {
-                Files.delete(result);
-                LOG.trace("Result file successfully removed.");
-            } catch (IOException ignored) {
-                LOG.warn("Failed to remove result file. Please remove manually.");
-            }
-        }
+        //Result submission
+        sendReponse(resultPath.get(), mappingID,document.getSize(), response);
     }
 
     @Override
@@ -262,10 +240,8 @@ public class MappingExecutionController implements IMappingExecutionController {
             removeUserData(inputPath, mappingInputPath);
         }
 
-        //Result download
-        Path result = resultPath.get();
-        prepareResponse(result, response);
-
+        //Result submission
+        sendReponse(resultPath.get(), pluginId, document.getSize(), response);
     }
 
     @Override
