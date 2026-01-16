@@ -59,6 +59,7 @@ task pluginCoreSourcesJar(type: Jar) {
 }
 
 javadoc {
+    exclude "**/*.md"
     failOnError = false
 }
 
