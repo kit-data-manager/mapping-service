@@ -60,7 +60,7 @@ ext {
     pythonExecutable = System.getProperty('pythonExecutable', "file:///usr/bin/python")
     userDir = System.getProperty('user.dir')
     set('springBootVersion', "3.2.1")
-    set('springDocVersion', "2.8.15")
+    set('springDocVersion', "3.0.1")
     set('javersVersion', "7.9.0")
     set('keycloakVersion', "19.0.0")
 }
