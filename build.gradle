@@ -107,7 +107,7 @@ dependencies {
     // JoltPlugin
     implementation "com.bazaarvoice.jolt:jolt-core:0.1.8"
     // JsonataPlugin
-    implementation "com.dashjoin:jsonata:0.9.9"
+    implementation "com.dashjoin:jsonata:0.9.10"
 
     testImplementation platform('org.junit:junit-bom')
     testImplementation 'org.junit.jupiter:junit-jupiter'
