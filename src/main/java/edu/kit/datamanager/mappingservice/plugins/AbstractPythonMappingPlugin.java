@@ -211,7 +211,7 @@ public abstract class AbstractPythonMappingPlugin implements IMappingPlugin {
                         throw new PluginInitializationFailedException("Failed to install plugin requirements. Status: " + venvState.getState());
                     }
                 } else {
-                    LOGGER.info("No requirements file found. Skipping dependency installation.");
+                    LOGGER.warn("No requirements.dist.txt file found. Skipping dependency installation.");
                 }
             } else {
                 throw new PluginInitializationFailedException("Venv installation has failed. Status: " + venvState.getState());
